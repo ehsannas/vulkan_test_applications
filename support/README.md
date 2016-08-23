@@ -3,3 +3,4 @@ creation of Applications.
 
 [android_native_app_glue](android_native_app_glue/README.md)
 [entry](entry/README.md)
+[log](log/README.md)

@@ -14,8 +14,9 @@
  */
 
 #include "support/entry/entry.h"
-#include <thread>
+#include "support/log/log.h"
 #include <chrono>
+#include <thread>
 
 namespace entry {
 namespace internal {
@@ -33,7 +34,7 @@ void android_main(android_app *app) {
   app_dummy();
 
   std::thread main_thread([&]() {
-    entry::entry_data data{app};
+    entry::entry_data data{app, logging::GetLogger()};
     main_entry(&data);
   });
 
@@ -76,7 +77,7 @@ int main(int argc, char **argv) {
   xcb_flush(connection);
 
   std::thread main_thread([&]() {
-    entry::entry_data data{window, connection};
+    entry::entry_data data{window, connection, logging::GetLogger()};
     main_entry(&data);
   });
   main_thread.join();

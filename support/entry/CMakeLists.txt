@@ -14,7 +14,7 @@
 #
 
 if(ANDROID)
-set(ADDITIONAL_LIBS log android android_native_app_glue)
+set(ADDITIONAL_LIBS android android_native_app_glue)
 elseif(UNIX)
 set(ADDITIONAL_LIBS xcb pthread)
 endif()
@@ -23,4 +23,5 @@ add_vulkan_static_library(entry
     SOURCES
         entry.cpp
     LIBS
-        ${ADDITIONAL_LIBS})
+        ${ADDITIONAL_LIBS}
+        logger)

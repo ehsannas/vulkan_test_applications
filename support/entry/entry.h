@@ -16,6 +16,9 @@
 #pragma once
 
 #include <functional>
+#include <memory>
+
+#include "support/log/log.h"
 
 #if defined __linux__ || defined __ANDROID__
 
@@ -55,6 +58,8 @@ struct entry_data {
   xcb_window_t native_window_handle;
   xcb_connection_t *native_connection;
 #endif
+  // This is never null.
+  std::unique_ptr<logging::Logger> log;
 };
 } // namespace entry
 

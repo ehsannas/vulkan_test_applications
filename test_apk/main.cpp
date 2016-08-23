@@ -14,8 +14,10 @@
  */
 
 #include "support/entry/entry.h"
+#include "support/log/log.h"
 
 // Trival entry function. Does nothing.
 int main_entry(const entry::entry_data *data) {
+    data->log->LogInfo("Application Startup");
     return 0;
 }

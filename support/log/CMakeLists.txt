@@ -13,6 +13,14 @@
 # limitations under the License.
 #
 
-add_subdirectory(android_native_app_glue)
-add_subdirectory(log)
-add_subdirectory(entry)
+set(ADDITIONAL_LIBS)
+if(ANDROID)
+set(ADDITIONAL_LIBS log)
+endif()
+
+add_vulkan_static_library(logger
+    SOURCES
+        log.cpp
+        log.h
+    LIBS
+        ${ADDITIONAL_LIBS})
