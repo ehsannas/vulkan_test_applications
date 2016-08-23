@@ -14,4 +14,9 @@
 #
 
 add_vulkan_executable(test_exe
-  SOURCES main.cpp LIBS test_lib test_so)
+  SOURCES main.cpp
+  LIBS
+    test_lib
+    test_so
+    dynamic_loader
+)

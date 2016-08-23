@@ -13,11 +13,21 @@
  * limitations under the License.
  */
 
+#include "support/dynamic_loader/dynamic_library.h"
 #include "support/entry/entry.h"
 #include "support/log/log.h"
 
-// Trival entry function. Does nothing.
+// Trival entry function.
+// It will be removed in the future once we have more function
+// apps to test.
+// It makes sure that both the logging, and the dynamic loader are functioning.
 int main_entry(const entry::entry_data *data) {
-    data->log->LogInfo("Application Startup");
-    return 0;
+  data->log->LogInfo("Application Startup");
+
+  auto vulkan_lib = dynamic_loader::OpenLibrary("libvulkan");
+
+  data->log->LogInfo("The Vulkan Library is ",
+                      vulkan_lib && vulkan_lib->is_valid() ? "Valid"
+                                                           : "Invalid");
+  return 0;
 }

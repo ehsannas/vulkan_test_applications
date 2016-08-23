@@ -13,9 +13,13 @@
 # limitations under the License.
 #
 
-# Log must exist first since other libraries depend on it
-add_subdirectory(log)
+if(UNIX)
+set(ADDITIONAL_LIBS dl)
+endif()
 
-add_subdirectory(android_native_app_glue)
-add_subdirectory(dynamic_loader)
-add_subdirectory(entry)
+add_vulkan_static_library(dynamic_loader
+    SOURCES
+        dynamic_library.h
+        dynamic_library.cpp
+    LIBS
+        ${ADDITIONAL_LIBS})
