@@ -16,6 +16,18 @@
 project(VulkanTestApplications)
 cmake_minimum_required(VERSION 2.8)
 
+# BUILD_APKS invokes all of the build in a special mode.
+# Instead of actually creating libraries and executables, we generate Android Studio
+# projects that depend on all of the libraries and executables. When we go and actually
+# run ninja, we invoke gradle on any out of date projects.
+# This means that there are 3 main modes that this build may be run in.
+# 1) A normal cmake build. This builds targets for the host platform.
+# 2a) A build with BUILD_APKS which will not itself create any libraries or executables, but
+#      will create Android Studio projects to do the same. A build will
+#      then run gradle on those projects which will run 2b) below.
+# 2b) A build FROM Android Studio, this will set(ANDROID TRUE),
+#      and generate shared libraries for use in an APK.
+
 option(BUILD_APKS "Should we be building Android apks for our project"
   ${BUILD_APKS})
 

@@ -28,8 +28,6 @@ set(CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/values/strings.xml
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/values/styles.xml)
 
-
-
 set(NON_CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/gradlew
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/gradlew.bat
@@ -41,6 +39,7 @@ set(NON_CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
 
+# This recursively gathers all of the dependencies for a target.
 macro(gather_deps target)
   get_target_property(SRC ${target} LIB_SRCS)
   get_target_property(LIBS ${target} LIB_DEPS)
@@ -54,7 +53,11 @@ macro(gather_deps target)
   endif()
 endmacro()
 
-
+# This adds a vulkan executable (program). By default this just plugs into
+# add_executable (Linux/Windows) or add_library (Android). If BUILD_APKS
+# is true, then an Android Studio project is created and a target to build it
+# is created. All of the dependencies are correctly tracked and the
+# project will be rebuilt if any dependency changes.
 function(add_vulkan_executable target)
   cmake_parse_arguments(EXE "" "" "SOURCES;LIBS" ${ARGN})
 
@@ -111,6 +114,12 @@ function(add_vulkan_executable target)
   endif()
 endfunction(add_vulkan_executable)
 
+
+# This adds a library. By default this just plugs into
+# add_library. If BUILD_APKS is true then a custom target is created
+# and all of the sources are added to it. When an executable
+# (from above) uses the library, the sources treated AS
+# dependencies.
 function(_add_vulkan_library target)
   cmake_parse_arguments(LIB "" "TYPE" "SOURCES;LIBS" ${ARGN})
 
@@ -129,10 +138,12 @@ function(_add_vulkan_library target)
   endif()
 endfunction()
 
+# Helper function to add a static libray
 function(add_vulkan_static_library target)
   _add_vulkan_library(${target} TYPE STATIC ${ARGN})
 endfunction(add_vulkan_static_library)
 
+# Helper function to add a shared libray
 function(add_vulkan_shared_library target)
   _add_vulkan_library(${target} TYPE SHARED ${ARGN})
 endfunction(add_vulkan_shared_library)
