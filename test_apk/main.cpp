@@ -12,3 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "support/entry/entry.h"
+
+// Trival entry function. Does nothing.
+int main_entry(const entry::entry_data *data) {
+    return 0;
+}

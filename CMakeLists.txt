@@ -14,7 +14,7 @@
 #
 
 project(VulkanTestApplications)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # BUILD_APKS invokes all of the build in a special mode.
 # Instead of actually creating libraries and executables, we generate Android Studio
@@ -38,7 +38,11 @@ if (BUILD_APKS)
   get_filename_component(ANDROID_NDK ${ANDROID_NDK} ABSOLUTE)
 endif()
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 include("cmake/build_apk.cmake")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(support)
 
