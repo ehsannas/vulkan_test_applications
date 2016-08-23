@@ -40,6 +40,9 @@ endif()
 
 include("cmake/build_apk.cmake")
 
+add_subdirectory(support)
+
+# Used for testing features, not actually code.
 add_subdirectory(test_lib)
 add_subdirectory(test_so)
 add_subdirectory(test_apk)
