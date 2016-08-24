@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
-#include "support/dynamic_loader/dynamic_library.h"
+#include <vector>
+
 #include "support/entry/entry.h"
 #include "support/log/log.h"
+#include "vulkan_wrapper/instance_wrapper.h"
+#include "vulkan_wrapper/library_wrapper.h"
 
 // Trival entry function.
 // It will be removed in the future once we have more function
@@ -23,11 +26,32 @@
 // It makes sure that both the logging, and the dynamic loader are functioning.
 int main_entry(const entry::entry_data *data) {
   data->log->LogInfo("Application Startup");
+  vulkan::LibraryWrapper wrapper(data->log.get());
 
-  auto vulkan_lib = dynamic_loader::OpenLibrary("libvulkan");
+  uint32_t num_properties = 0;
+  wrapper.vkEnumerateInstanceLayerProperties(&num_properties, nullptr);
+  std::vector<VkLayerProperties> properties(num_properties);
+  wrapper.vkEnumerateInstanceLayerProperties(&num_properties,
+                                             properties.data());
 
-  data->log->LogInfo("The Vulkan Library is ",
-                      vulkan_lib && vulkan_lib->is_valid() ? "Valid"
-                                                           : "Invalid");
+  VkApplicationInfo app_info{
+      VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, nullptr, 0, nullptr, 0, 0};
+
+  VkInstanceCreateInfo info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                            nullptr,
+                            0,
+                            &app_info,
+                            0,
+                            nullptr,
+                            0,
+                            nullptr};
+
+  VkInstance raw_instance;
+  wrapper.vkCreateInstance(&info, nullptr, &raw_instance);
+
+  {
+    vulkan::VkInstance instance(raw_instance, nullptr, &wrapper);
+  }
+  data->log->LogInfo("Application Shutdown");
   return 0;
 }

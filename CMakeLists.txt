@@ -45,6 +45,7 @@ include("cmake/build_apk.cmake")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(support)
+add_subdirectory(vulkan_wrapper)
 
 # Used for testing features, not actually code.
 add_subdirectory(test_lib)

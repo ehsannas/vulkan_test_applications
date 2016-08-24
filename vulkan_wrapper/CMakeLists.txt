@@ -13,10 +13,9 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(test_exe
-  SOURCES main.cpp
-  LIBS
-    test_lib
-    test_so
-    vulkan_wrapper
-)
+add_vulkan_static_library(vulkan_wrapper
+    SOURCES
+        library_wrapper.h
+        library_wrapper.cpp
+    LIBS
+        dynamic_loader)
