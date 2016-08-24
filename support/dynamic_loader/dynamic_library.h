@@ -14,8 +14,9 @@
  */
 
 #pragma once
-
 #include <memory>
+
+#include "external/vulkan/vulkan.h"
 
 namespace dynamic_loader {
 // This wraps a system-specific loaded dynamic library.
@@ -28,9 +29,10 @@ public:
   // requested type.
   // Returns true if the function pointer could be correctly resolved.
   template <typename T, typename... Args>
-  bool Resolve(const char *name, T (**val)(Args...)) {
-    *val = reinterpret_cast<T (*)(Args...)>(ResolveFunction(name));
+  bool Resolve(const char *name, T (*VKAPI_PTR*val)(Args...)) {
+    *val = reinterpret_cast<T (VKAPI_PTR*)(Args...)>(ResolveFunction(name));
     return *val != nullptr;
+
   }
   // Returns true if this library is valid.
   virtual bool is_valid() = 0;
