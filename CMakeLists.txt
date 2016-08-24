@@ -47,7 +47,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(support)
 add_subdirectory(vulkan_wrapper)
 
-# Used for testing features, not actually code.
-add_subdirectory(test_lib)
-add_subdirectory(test_so)
-add_subdirectory(test_apk)
+# All of the support code has to go above here, below here should come all of
+# the actual tests.
+add_subdirectory(initialization_tests)

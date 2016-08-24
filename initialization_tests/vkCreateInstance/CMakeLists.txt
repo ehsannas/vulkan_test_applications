@@ -13,5 +13,8 @@
 # limitations under the License.
 #
 
-add_vulkan_static_library(test_lib
-  SOURCES main2.c)
+add_vulkan_executable(vkCreateInstance_test
+  SOURCES main.cpp
+  LIBS
+    vulkan_wrapper
+)
