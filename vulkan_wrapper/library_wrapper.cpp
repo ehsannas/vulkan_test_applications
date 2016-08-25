@@ -34,8 +34,8 @@ LibraryWrapper::LibraryWrapper(logging::Logger *logger) : logger_(logger) {
   }
 }
 
-PFN_vkVoidFunction LibraryWrapper::getInstanceProcAddr(VkInstance instance,
-                                                       const char *function) {
+PFN_vkVoidFunction LibraryWrapper::getProcAddr(::VkInstance instance,
+                                               const char *function) {
   return vkGetInstanceProcAddr(instance, function);
 }
 } // namespace vulkan

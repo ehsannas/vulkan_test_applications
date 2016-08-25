@@ -16,6 +16,10 @@
 #pragma once
 
 #include "external/vulkan/vulkan.h"
+
+#include <cstring>
+
+#include "vulkan_wrapper/lazy_function.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
 namespace vulkan {
@@ -31,9 +35,12 @@ public:
              LibraryWrapper *wrapper)
       : instance_(instance), has_allocator_(allocator != nullptr),
         wrapper_(wrapper), CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance),
-        CONSTRUCT_LAZY_FUNCTION(vkEnumeratePhysicalDevices) {
+        CONSTRUCT_LAZY_FUNCTION(vkEnumeratePhysicalDevices),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateDevice) {
     if (has_allocator_) {
       allocator_ = *allocator;
+    } else {
+      memset(&allocator_, 0, sizeof(allocator_));
     }
   }
 #undef CONSTRUCT_LAZY_FUNCTION
@@ -42,7 +49,8 @@ public:
       : instance_(other.instance_), allocator_(other.allocator_),
         wrapper_(other.wrapper_), has_allocator_(other.has_allocator_),
         vkDestroyInstance(other.vkDestroyInstance),
-        vkEnumeratePhysicalDevices(other.vkEnumeratePhysicalDevices) {
+        vkEnumeratePhysicalDevices(other.vkEnumeratePhysicalDevices),
+        vkCreateDevice(other.vkCreateDevice) {
     other.instance_ = VK_NULL_HANDLE;
   }
 
@@ -54,6 +62,9 @@ public:
       vkDestroyInstance(instance_, has_allocator_ ? &allocator_ : nullptr);
     }
   }
+
+  logging::Logger *GetLogger() { return wrapper_->GetLogger(); }
+  LibraryWrapper *get_wrapper() { return wrapper_; }
 
 private:
   ::VkInstance instance_;
@@ -71,6 +82,7 @@ public:
 #define LAZY_FUNCTION(function) LazyInstanceFunction<PFN_##function> function;
   LAZY_FUNCTION(vkDestroyInstance);
   LAZY_FUNCTION(vkEnumeratePhysicalDevices);
+  LAZY_FUNCTION(vkCreateDevice);
 #undef LAZY_FUNCTION
 };
 

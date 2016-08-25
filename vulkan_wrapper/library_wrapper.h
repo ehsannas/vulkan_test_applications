@@ -17,36 +17,17 @@
 #define VK_NO_PROTOTYPES
 #include "external/vulkan/vulkan.h"
 #undef VK_NO_PROTOTYPES
+
 #include "support/dynamic_loader/dynamic_library.h"
 #include "support/log/log.h"
+
+#include "vulkan_wrapper/lazy_function.h"
 
 namespace vulkan {
 
 class LibraryWrapper;
-
-// This wraps a lazily initialized function pointer. It will be resolved
-// when it is first called.
-template <typename T> class LazyInstanceFunction {
-public:
-// We retain a reference to the function name, so it must remain valid.
-// In practice this is expected to be used with string constants.
-  LazyInstanceFunction(::VkInstance instance, const char *function_name,
-                       LibraryWrapper *wrapper)
-      : instance_(instance), function_name_(function_name), wrapper_(wrapper) {}
-
-  // When this functor is called, it will check if the function pointer
-  // has been resolved. If not it will resolve it and then call the function.
-  // If it could not be resolved, the program will segfault.
-  template <typename... Args>
-  typename std::result_of<T(Args...)>::type operator()(const Args&... args);
-
-private:
-  ::VkInstance instance_;
-  const char *function_name_;
-  LibraryWrapper *wrapper_;
-  T ptr_ = nullptr;
-};
-
+template <typename T>
+using LazyInstanceFunction = LazyFunction<T, ::VkInstance, LibraryWrapper>;
 // This wraps the vulkan library. It provides lazily initialized functions
 // for all global-scope functions.
 class LibraryWrapper {
@@ -61,35 +42,14 @@ public:
   LAZY_FUNCTION(vkEnumerateInstanceExtensionProperties);
   LAZY_FUNCTION(vkEnumerateInstanceLayerProperties);
 #undef LAZY_FUNCTION
-private:
-  template <typename T> friend class LazyInstanceFunction;
-
-  PFN_vkVoidFunction getInstanceProcAddr(VkInstance instance,
-                                         const char *function);
   logging::Logger *GetLogger() { return logger_; }
 
+  PFN_vkVoidFunction getProcAddr(::VkInstance instance, const char *function);
+
+private:
   PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 
   logging::Logger *logger_;
   std::unique_ptr<dynamic_loader::DynamicLibrary> vulkan_lib_;
 };
-
-template <typename T>
-template <typename... Args>
-typename std::result_of<T(Args...)>::type LazyInstanceFunction<T>::
-operator()(const Args&... args) {
-  if (!ptr_) {
-    ptr_ = reinterpret_cast<T>(
-        wrapper_->getInstanceProcAddr(instance_, function_name_));
-    if (ptr_) {
-      wrapper_->GetLogger()->LogInfo(function_name_, " for instance ",
-                                     instance_, " resolved");
-    } else {
-      wrapper_->GetLogger()->LogError(function_name_, " for instance ",
-                                      instance_,
-                                      " could not be resolved, crashing now");
-    }
-  }
-  return ptr_(args...);
-}
 }

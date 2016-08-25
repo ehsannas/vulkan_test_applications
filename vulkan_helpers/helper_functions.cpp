@@ -15,29 +15,43 @@
 
 #include "vulkan_helpers/helper_functions.h"
 
+#include "support/log/log.h"
+
 namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper *wrapper) {
-// Test a non-nullptr pApplicationInfo
-VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                           nullptr,
-                           "TestApplication",
-                           1,
-                           "Engine",
-                           0,
-                           VK_MAKE_VERSION(1, 0, 0)};
+  // Test a non-nullptr pApplicationInfo
+  VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                             nullptr,
+                             "TestApplication",
+                             1,
+                             "Engine",
+                             0,
+                             VK_MAKE_VERSION(1, 0, 0)};
 
-VkInstanceCreateInfo info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                          nullptr,
-                          0,
-                          &app_info,
-                          0,
-                          nullptr,
-                          0,
-                          nullptr};
+  VkInstanceCreateInfo info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                            nullptr,
+                            0,
+                            &app_info,
+                            0,
+                            nullptr,
+                            0,
+                            nullptr};
 
-::VkInstance raw_instance;
-wrapper->vkCreateInstance(&info, nullptr, &raw_instance);
-// vulkan::VkInstance will handle destroying the instance
-return vulkan::VkInstance(raw_instance, nullptr, wrapper);
+  ::VkInstance raw_instance;
+  wrapper->vkCreateInstance(&info, nullptr, &raw_instance);
+  // vulkan::VkInstance will handle destroying the instance
+  return vulkan::VkInstance(raw_instance, nullptr, wrapper);
+}
+
+std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance) {
+  uint32_t device_count = 0;
+  instance.vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
+
+  std::vector<VkPhysicalDevice> physical_devices(device_count);
+  LOG_ASSERT(==, instance.GetLogger(),
+             instance.vkEnumeratePhysicalDevices(
+                 instance, &device_count, physical_devices.data()), VK_SUCCESS);
+
+  return std::move(physical_devices);
 }
 }

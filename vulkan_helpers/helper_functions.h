@@ -14,9 +14,13 @@
  */
 
 #pragma once
-#include "vulkan_wrapper/library_wrapper.h"
+
+#include <vector>
+
 #include "vulkan_wrapper/instance_wrapper.h"
+#include "vulkan_wrapper/library_wrapper.h"
 
 namespace vulkan {
-    VkInstance CreateEmptyInstance(LibraryWrapper* _wrapper);
+VkInstance CreateEmptyInstance(LibraryWrapper *_wrapper);
+std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance);
 }
