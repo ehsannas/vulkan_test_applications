@@ -1,1 +1,2 @@
 add_subdirectory(vkCreateInstance)
+add_subdirectory(vkEnumeratePhysicalDevices)

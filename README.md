@@ -17,7 +17,8 @@ cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DANDROID
 # Support Functionality
 - [cmake](cmake/README.md)
 - [support](support/README.md)
-- [vulkan_function_loader](vulkan_function_loader/README.md)
+- [vulkan_wrapper](vulkan_wrapper/README.md)
+- [vulkan_helpers](vulkan_helpers/README.md)
 
 # Tests
 - [initialization](initialization_tests/README.md)

@@ -30,7 +30,7 @@ template <typename T> class LazyInstanceFunction {
 public:
 // We retain a reference to the function name, so it must remain valid.
 // In practice this is expected to be used with string constants.
-  LazyInstanceFunction(VkInstance instance, const char *function_name,
+  LazyInstanceFunction(::VkInstance instance, const char *function_name,
                        LibraryWrapper *wrapper)
       : instance_(instance), function_name_(function_name), wrapper_(wrapper) {}
 
@@ -38,10 +38,10 @@ public:
   // has been resolved. If not it will resolve it and then call the function.
   // If it could not be resolved, the program will segfault.
   template <typename... Args>
-  typename std::result_of<T(Args...)>::type operator()(Args... args);
+  typename std::result_of<T(Args...)>::type operator()(const Args&... args);
 
 private:
-  VkInstance instance_;
+  ::VkInstance instance_;
   const char *function_name_;
   LibraryWrapper *wrapper_;
   T ptr_ = nullptr;
@@ -77,7 +77,7 @@ private:
 template <typename T>
 template <typename... Args>
 typename std::result_of<T(Args...)>::type LazyInstanceFunction<T>::
-operator()(Args... args) {
+operator()(const Args&... args) {
   if (!ptr_) {
     ptr_ = reinterpret_cast<T>(
         wrapper_->getInstanceProcAddr(instance_, function_name_));

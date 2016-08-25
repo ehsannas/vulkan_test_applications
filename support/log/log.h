@@ -16,13 +16,39 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace logging {
 
-// Logging class base. It provides the functionality to generate log messages
-// for use by any inherited classes.
+// Tests the result of "res op exp" and if the result is not "true"
+// then logs an error to LogError of the given log.
+#define LOG_EXPECT(op, log, res, exp)                                          \
+  do {                                                                         \
+    auto x = exp;                                                              \
+    auto r = res;                                                              \
+    if (!(r op x)) {                                                           \
+      (log)->LogError(__FILE__, ":", __LINE__,                                 \
+                      "\n  Expected " #res " " #op " " #exp "\n  but got ", r, \
+                      " " #op " ", x);                                         \
+    }                                                                          \
+  } while (0);
+
+// The same as LOG_EXPECT but triggers a crash if it did not succeed.
+#define LOG_ASSERT(op, log, res, exp)                                          \
+  do {                                                                         \
+    auto x = exp;                                                              \
+    auto r = res;                                                              \
+    if (!(r op x)) {                                                           \
+      (log)->LogError(__FILE__, ":", __LINE__,                                 \
+                      "\n  Expected " #res " " #op " " #exp "\n  but got ", r, \
+                      " " #op " ", x);                                         \
+      *reinterpret_cast<volatile int *>(size_t(0)) = 4;                        \
+    }                                                                          \
+  } while (0);
+
+// Logging class base. It provides the functionality to
+// generate log messages for use by any inherited classes.
 class Logger {
 public:
   // Logs a set of values to the error stream of the logger.
@@ -43,21 +69,25 @@ public:
 
 private:
   // Helper function, the recursive base of LogHelper.
-  template <typename T> void LogHelper(std::ostringstream *stream, const T &val) {
+  template <typename T>
+  void LogHelper(std::ostringstream *stream, const T &val) {
     *stream << val;
   }
 
-  // Helper function to recursively add elements from Args to the stream.
+  // Helper function to recursively add elements from Args to
+  // the stream.
   template <typename T, typename... Args>
   void LogHelper(std::ostringstream *stream, const T &val, Args... args) {
     *stream << val;
     LogHelper(stream, args...);
   }
 
-  // This should be overriden by child classes to log the input null-terminated
+  // This should be overriden by child classes to log the
+  // input null-terminated
   // string to the STDERR equivalent.
   virtual void LogErrorString(const char *str) = 0;
-  // This should be overriden by child classes to log the input null-terminated
+  // This should be overriden by child classes to log the
+  // input null-terminated
   // string to the STDOUT equivalent.
   virtual void LogInfoString(const char *str) = 0;
 };

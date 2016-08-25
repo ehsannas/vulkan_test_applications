@@ -49,6 +49,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(support)
 add_subdirectory(vulkan_wrapper)
+add_subdirectory(vulkan_helpers)
 
 # All of the support code has to go above here, below here should come all of
 # the actual tests.

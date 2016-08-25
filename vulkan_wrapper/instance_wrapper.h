@@ -30,22 +30,25 @@ public:
   VkInstance(::VkInstance instance, VkAllocationCallbacks *allocator,
              LibraryWrapper *wrapper)
       : instance_(instance), has_allocator_(allocator != nullptr),
-        wrapper_(wrapper), CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance) {
+        wrapper_(wrapper), CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance),
+        CONSTRUCT_LAZY_FUNCTION(vkEnumeratePhysicalDevices) {
     if (has_allocator_) {
       allocator_ = *allocator;
     }
   }
+#undef CONSTRUCT_LAZY_FUNCTION
 
   VkInstance(VkInstance &&other)
       : instance_(other.instance_), allocator_(other.allocator_),
         wrapper_(other.wrapper_), has_allocator_(other.has_allocator_),
-        vkDestroyInstance(other.vkDestroyInstance) {
+        vkDestroyInstance(other.vkDestroyInstance),
+        vkEnumeratePhysicalDevices(other.vkEnumeratePhysicalDevices) {
     other.instance_ = VK_NULL_HANDLE;
   }
 
   VkInstance(const VkInstance &) = delete;
   VkInstance &operator=(const VkInstance &) = delete;
-#undef CONSTRUCT_LAZY_FUNCTION
+
   ~VkInstance() {
     if (instance_ != VK_NULL_HANDLE) {
       vkDestroyInstance(instance_, has_allocator_ ? &allocator_ : nullptr);
@@ -62,11 +65,12 @@ private:
   LibraryWrapper *wrapper_;
 
 public:
-  ::VkInstance get_instance() { return instance_; }
-  operator ::VkInstance() { return instance_; }
+  ::VkInstance get_instance() const { return instance_; }
+  operator ::VkInstance() const { return instance_; }
 
 #define LAZY_FUNCTION(function) LazyInstanceFunction<PFN_##function> function;
   LAZY_FUNCTION(vkDestroyInstance);
+  LAZY_FUNCTION(vkEnumeratePhysicalDevices);
 #undef LAZY_FUNCTION
 };
 

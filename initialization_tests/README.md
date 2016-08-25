@@ -5,3 +5,4 @@ the creation and destruction of Vulkan Objects.
 
 # Tests
 - [vkCreateInstance](vkCreateInstance/README.md)
+- [vkEnumeratePhysicalDevices](vkEnumeratePhysicalDevices/README.md)
