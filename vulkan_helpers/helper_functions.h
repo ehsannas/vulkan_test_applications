@@ -18,12 +18,13 @@
 
 #include <vector>
 
+#include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
 namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper *_wrapper);
 std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance);
+VkDevice CreateDefaultDevice(VkInstance &instance);
 }
-
 #endif //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

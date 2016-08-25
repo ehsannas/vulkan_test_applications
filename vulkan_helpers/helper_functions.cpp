@@ -38,7 +38,9 @@ VkInstance CreateEmptyInstance(LibraryWrapper *wrapper) {
                             nullptr};
 
   ::VkInstance raw_instance;
-  wrapper->vkCreateInstance(&info, nullptr, &raw_instance);
+  LOG_ASSERT(==, wrapper->GetLogger(),
+             wrapper->vkCreateInstance(&info, nullptr, &raw_instance),
+             VK_SUCCESS);
   // vulkan::VkInstance will handle destroying the instance
   return vulkan::VkInstance(raw_instance, nullptr, wrapper);
 }
@@ -49,9 +51,37 @@ std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance) {
 
   std::vector<VkPhysicalDevice> physical_devices(device_count);
   LOG_ASSERT(==, instance.GetLogger(),
-             instance.vkEnumeratePhysicalDevices(
-                 instance, &device_count, physical_devices.data()), VK_SUCCESS);
+             instance.vkEnumeratePhysicalDevices(instance, &device_count,
+                                                 physical_devices.data()),
+             VK_SUCCESS);
 
   return std::move(physical_devices);
+}
+
+VkDevice CreateDefaultDevice(VkInstance &instance) {
+  std::vector<VkPhysicalDevice> physical_devices = GetPhysicalDevices(instance);
+  float priority = 1.f;
+
+  // TODO(awoloszyn): Return the first graphics + compute queue.
+  VkDeviceQueueCreateInfo queue_info{
+      VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, nullptr, 0, 0, 1, &priority};
+
+  VkDeviceCreateInfo info{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                          nullptr,
+                          0,
+                          1,
+                          &queue_info,
+                          0,
+                          nullptr,
+                          0,
+                          nullptr,
+                          nullptr};
+
+  ::VkDevice raw_device;
+  LOG_ASSERT(
+      ==, instance.GetLogger(),
+      instance.vkCreateDevice(physical_devices[0], &info, nullptr, &raw_device),
+      VK_SUCCESS);
+  return vulkan::VkDevice(raw_device, nullptr, &instance);
 }
 }

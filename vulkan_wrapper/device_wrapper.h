@@ -20,6 +20,7 @@
 
 #include <cstring>
 
+#include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/lazy_function.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
@@ -30,7 +31,6 @@ namespace vulkan {
 // methods. It will automatically call VkDestroyDevice when it
 // goes out of scope.
 class VkDevice;
-
 template <typename T>
 using LazyDeviceFunction = LazyFunction<T, ::VkDevice, VkDevice>;
 
@@ -42,7 +42,11 @@ public:
   VkDevice(::VkDevice device, VkAllocationCallbacks *allocator,
            VkInstance *instance)
       : device_(device), has_allocator_(allocator != nullptr),
-        log_(instance->GetLogger()), CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice) {
+        log_(instance->GetLogger()), CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateCommandPool),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyCommandPool),
+        CONSTRUCT_LAZY_FUNCTION(vkAllocateCommandBuffers),
+        CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers) {
 
     if (has_allocator_) {
       allocator_ = *allocator;
@@ -63,6 +67,9 @@ public:
 
 #undef CONSTRUCT_LAZY_FUNCTION
 
+  PFN_vkGetDeviceProcAddr get_device_proc_addr_function() {
+    return vkGetDeviceProcAddr;
+  }
   logging::Logger *GetLogger() { return log_; }
 
 private:
@@ -84,6 +91,10 @@ public:
 
 #define LAZY_FUNCTION(function) LazyDeviceFunction<PFN_##function> function;
   LAZY_FUNCTION(vkDestroyDevice);
+  LAZY_FUNCTION(vkCreateCommandPool);
+  LAZY_FUNCTION(vkDestroyCommandPool);
+  LAZY_FUNCTION(vkAllocateCommandBuffers);
+  LAZY_FUNCTION(vkFreeCommandBuffers);
 #undef LAZY_FUNCTION
 };
 
