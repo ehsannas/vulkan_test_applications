@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef VULKAN_WRAPPER_LAZY_FUNCTION_H_
+#define VULKAN_WRAPPER_LAZY_FUNCTION_H_
 
 // This wraps a lazily initialized function pointer. It will be resolved
 // when it is first called.
@@ -57,3 +58,5 @@ operator()(const Args &... args) {
   }
   return ptr_(args...);
 }
+
+#endif //  VULKAN_WRAPPER_LAZY_FUNCTION_H_

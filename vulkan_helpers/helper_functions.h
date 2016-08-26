@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef VULKAN_HELPERS_HELPER_FUNCTIONS_H_
+#define VULKAN_HELPERS_HELPER_FUNCTIONS_H_
 
 #include <vector>
 
@@ -24,3 +25,5 @@ namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper *_wrapper);
 std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance);
 }
+
+#endif //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef SUPPORT_DYNAMIC_LOADER_DYNAMIC_LIBRARY_H_
+#define SUPPORT_DYNAMIC_LOADER_DYNAMIC_LIBRARY_H_
+
 #include <memory>
 
 #include "external/vulkan/vulkan.h"
@@ -29,10 +31,9 @@ public:
   // requested type.
   // Returns true if the function pointer could be correctly resolved.
   template <typename T, typename... Args>
-  bool Resolve(const char *name, T (*VKAPI_PTR*val)(Args...)) {
-    *val = reinterpret_cast<T (VKAPI_PTR*)(Args...)>(ResolveFunction(name));
+  bool Resolve(const char *name, T (*VKAPI_PTR *val)(Args...)) {
+    *val = reinterpret_cast<T(VKAPI_PTR *)(Args...)>(ResolveFunction(name));
     return *val != nullptr;
-
   }
   // Returns true if this library is valid.
   virtual bool is_valid() = 0;
@@ -49,3 +50,5 @@ private:
 std::unique_ptr<DynamicLibrary> OpenLibrary(const char *name);
 
 } // namespace dynamic_loader
+
+#endif // SUPPORT_DYNAMIC_LOADER_DYNAMIC_LIBRARY_H_

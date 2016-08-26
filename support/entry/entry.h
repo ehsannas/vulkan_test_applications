@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef SUPPORT_ENTRY_ENTRY_H_
+#define SUPPORT_ENTRY_ENTRY_H_
 
 #include <functional>
 #include <memory>
@@ -65,3 +66,5 @@ struct entry_data {
 
 // This is the entry-point that every application should define.
 int main_entry(const entry::entry_data *data);
+
+#endif // SUPPORT_ENTRY_ENTRY_H_

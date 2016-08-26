@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef VULKAN_WRAPPER_LIBRARY_WRAPPER_H_
+#define VULKAN_WRAPPER_LIBRARY_WRAPPER_H_
+
 #define VK_NO_PROTOTYPES
 #include "external/vulkan/vulkan.h"
 #undef VK_NO_PROTOTYPES
@@ -53,3 +55,5 @@ private:
   std::unique_ptr<dynamic_loader::DynamicLibrary> vulkan_lib_;
 };
 }
+
+#endif // VULKAN_WRAPPER_LIBRARY_WRAPPER_H_

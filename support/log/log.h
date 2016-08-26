@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef SUPPORT_LOG_LOG_H_
+#define SUPPORT_LOG_LOG_H_
 
 #include <memory>
 #include <sstream>
@@ -95,3 +96,5 @@ private:
 // Returns a platform-specific logger.
 std::unique_ptr<Logger> GetLogger();
 }
+
+#endif // SUPPORT_LOG_LOG_H_

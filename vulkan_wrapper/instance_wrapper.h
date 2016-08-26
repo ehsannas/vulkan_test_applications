@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef VULKAN_WRAPPER_INSTANCE_WRAPPER_H_
+#define VULKAN_WRAPPER_INSTANCE_WRAPPER_H_
 
 #include "external/vulkan/vulkan.h"
 
@@ -87,3 +88,5 @@ public:
 };
 
 } // namespace vulkan
+
+#endif // VULKAN_WRAPPER_INSTANCE_WRAPPER_H_
