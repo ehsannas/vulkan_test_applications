@@ -31,37 +31,43 @@ namespace vulkan {
 // goes out of scope.
 class VkInstance {
  public:
-#define CONSTRUCT_LAZY_FUNCTION(function) function(instance, #function, wrapper)
   VkInstance(::VkInstance instance, VkAllocationCallbacks* allocator,
              LibraryWrapper* wrapper)
       : instance_(instance),
         has_allocator_(allocator != nullptr),
         wrapper_(wrapper),
+#define CONSTRUCT_LAZY_FUNCTION(function) function(instance, #function, wrapper)
         CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance),
         CONSTRUCT_LAZY_FUNCTION(vkEnumeratePhysicalDevices),
         CONSTRUCT_LAZY_FUNCTION(vkCreateDevice),
         CONSTRUCT_LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkEnumerateDeviceLayerProperties) {
+        CONSTRUCT_LAZY_FUNCTION(vkEnumerateDeviceLayerProperties),
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceFeatures),
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
+#undef CONSTRUCT_LAZY_FUNCTION
+  {
     if (has_allocator_) {
       allocator_ = *allocator;
     } else {
       memset(&allocator_, 0, sizeof(allocator_));
     }
   }
-#undef CONSTRUCT_LAZY_FUNCTION
 
   VkInstance(VkInstance&& other)
       : instance_(other.instance_),
         allocator_(other.allocator_),
         wrapper_(other.wrapper_),
         has_allocator_(other.has_allocator_),
-        vkDestroyInstance(other.vkDestroyInstance),
-        vkEnumeratePhysicalDevices(other.vkEnumeratePhysicalDevices),
-        vkCreateDevice(other.vkCreateDevice),
-        vkEnumerateDeviceExtensionProperties(
-            other.vkEnumerateDeviceExtensionProperties),
-        vkEnumerateDeviceLayerProperties(
-            other.vkEnumerateDeviceLayerProperties) {
+#define MOVE_LAZY_FUNCTION(function) function(other.function)
+        MOVE_LAZY_FUNCTION(vkDestroyInstance),
+        MOVE_LAZY_FUNCTION(vkEnumeratePhysicalDevices),
+        MOVE_LAZY_FUNCTION(vkCreateDevice),
+        MOVE_LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties),
+        MOVE_LAZY_FUNCTION(vkEnumerateDeviceLayerProperties),
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceFeatures),
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
+#undef COPY_LAZY_FUNCTION
+  {
     other.instance_ = VK_NULL_HANDLE;
   }
 
@@ -96,6 +102,8 @@ class VkInstance {
   LAZY_FUNCTION(vkCreateDevice);
   LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties);
   LAZY_FUNCTION(vkEnumerateDeviceLayerProperties);
+  LAZY_FUNCTION(vkGetPhysicalDeviceFeatures);
+  LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
 #undef LAZY_FUNCTION
 };
 
