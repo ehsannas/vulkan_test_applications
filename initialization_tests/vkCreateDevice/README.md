@@ -1,4 +1,4 @@
-# vkCreateInstance / vkDestroyInstance
+# vkCreateDevice / vkDestroyDevice
 
 ## Signatures
 ```c++
