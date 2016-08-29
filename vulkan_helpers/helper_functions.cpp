@@ -15,6 +15,7 @@
 
 #include "vulkan_helpers/helper_functions.h"
 
+#include "support/containers/vector.h"
 #include "support/log/log.h"
 
 namespace vulkan {
@@ -45,11 +46,13 @@ VkInstance CreateEmptyInstance(LibraryWrapper *wrapper) {
   return vulkan::VkInstance(raw_instance, nullptr, wrapper);
 }
 
-std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance) {
+containers::vector<VkPhysicalDevice>
+GetPhysicalDevices(containers::Allocator *allocator, VkInstance &instance) {
   uint32_t device_count = 0;
   instance.vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
 
-  std::vector<VkPhysicalDevice> physical_devices(device_count);
+  containers::vector<VkPhysicalDevice> physical_devices(device_count,
+                                                        allocator);
   LOG_ASSERT(==, instance.GetLogger(),
              instance.vkEnumeratePhysicalDevices(instance, &device_count,
                                                  physical_devices.data()),
@@ -58,8 +61,10 @@ std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance) {
   return std::move(physical_devices);
 }
 
-VkDevice CreateDefaultDevice(VkInstance &instance) {
-  std::vector<VkPhysicalDevice> physical_devices = GetPhysicalDevices(instance);
+VkDevice CreateDefaultDevice(containers::Allocator *allocator,
+                             VkInstance &instance) {
+  containers::vector<VkPhysicalDevice> physical_devices =
+      GetPhysicalDevices(allocator, instance);
   float priority = 1.f;
 
   // TODO(awoloszyn): Return the first graphics + compute queue.

@@ -14,6 +14,7 @@
  */
 
 #include "support/dynamic_loader/dynamic_library.h"
+#include "support/containers/allocator.h"
 
 #if defined __linux__
 #include <dlfcn.h>
@@ -33,20 +34,23 @@ public:
     lib_ = dlopen(lib_with_extension.c_str(), RTLD_LAZY);
   }
 
-  void* ResolveFunction(const char *function_name) override {
+  void *ResolveFunction(const char *function_name) override {
     return dlsym(lib_, function_name);
   }
   bool is_valid() override { return nullptr != lib_; }
 
 private:
-  void* lib_;
+  void *lib_;
 };
 #elif defined _WIN32
 #error TODO(awoloszyn): Implement on Windows.
 #endif
 
-std::unique_ptr<DynamicLibrary> OpenLibrary(const char *name) {
-  std::unique_ptr<DynamicLibrary> lib(new InternalDynamicLibrary(name));
+containers::unique_ptr<DynamicLibrary>
+OpenLibrary(containers::Allocator *allocator, const char *name) {
+  containers::unique_ptr<InternalDynamicLibrary> lib(
+      containers::make_unique<InternalDynamicLibrary>(
+          allocator, InternalDynamicLibrary(name)));
   if (!lib->is_valid()) {
     return nullptr;
   }

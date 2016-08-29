@@ -20,6 +20,9 @@
 
 #include "external/vulkan/vulkan.h"
 
+#include "support/containers/allocator.h"
+#include "support/containers/unique_ptr.h"
+
 namespace dynamic_loader {
 // This wraps a system-specific loaded dynamic library.
 class DynamicLibrary {
@@ -47,7 +50,8 @@ private:
 // Returns a DynamicLibrary that has been opened using the system's internal
 // library resolution. If a library could not be opened, it returns
 // nullptr.
-std::unique_ptr<DynamicLibrary> OpenLibrary(const char *name);
+containers::unique_ptr<DynamicLibrary>
+OpenLibrary(containers::Allocator *allocator, const char *name);
 
 } // namespace dynamic_loader
 

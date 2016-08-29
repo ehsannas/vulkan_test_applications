@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <vector>
-
 #include "support/entry/entry.h"
 #include "support/log/log.h"
 #include "vulkan_helpers/helper_functions.h"
@@ -24,9 +22,10 @@
 
 int main_entry(const entry::entry_data *data) {
   data->log->LogInfo("Application Startup");
-  vulkan::LibraryWrapper wrapper(data->log.get());
+  vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
   vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
-  vulkan::VkDevice device(vulkan::CreateDefaultDevice(instance));
+  vulkan::VkDevice device(
+      vulkan::CreateDefaultDevice(data->root_allocator, instance));
 
   {
     VkCommandPoolCreateInfo pool_info{

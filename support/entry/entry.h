@@ -19,6 +19,8 @@
 #include <functional>
 #include <memory>
 
+#include "support/containers/allocator.h"
+#include "support/containers/unique_ptr.h"
 #include "support/log/log.h"
 
 #if defined __linux__ || defined __ANDROID__
@@ -60,7 +62,8 @@ struct entry_data {
   xcb_connection_t *native_connection;
 #endif
   // This is never null.
-  std::unique_ptr<logging::Logger> log;
+  containers::unique_ptr<logging::Logger> log;
+  containers::Allocator* root_allocator;
 };
 } // namespace entry
 

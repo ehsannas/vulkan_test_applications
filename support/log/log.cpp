@@ -39,7 +39,7 @@ public:
 };
 #endif
 
-std::unique_ptr<Logger> GetLogger() {
-  return std::unique_ptr<Logger>(new InternalLogger());
+containers::unique_ptr<Logger> GetLogger(containers::Allocator* allocator) {
+  return containers::make_unique<InternalLogger>(allocator);
 }
 }

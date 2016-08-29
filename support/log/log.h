@@ -20,6 +20,8 @@
 #include <sstream>
 #include <string>
 
+#include "support/containers/unique_ptr.h"
+
 namespace logging {
 
 // Tests the result of "res op exp" and if the result is not "true"
@@ -50,6 +52,10 @@ namespace logging {
 
 // Logging class base. It provides the functionality to
 // generate log messages for use by any inherited classes.
+// Ideally this would take an allocator and do all memory
+// allocations (in stringstream) using that. Unfortunately
+// the c++11 spec is missing allocator-aware streams. :(
+// We will have to assume that the STL is doing the right thing here.
 class Logger {
 public:
   // Logs a set of values to the error stream of the logger.
@@ -94,7 +100,7 @@ private:
 };
 
 // Returns a platform-specific logger.
-std::unique_ptr<Logger> GetLogger();
+containers::unique_ptr<Logger> GetLogger(containers::Allocator *allocator);
 }
 
 #endif // SUPPORT_LOG_LOG_H_

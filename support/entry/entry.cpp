@@ -15,6 +15,7 @@
 
 #include "support/entry/entry.h"
 #include "support/log/log.h"
+#include <cassert>
 #include <chrono>
 #include <thread>
 
@@ -32,9 +33,11 @@ void dummy_function() {}
 void android_main(android_app *app) {
   // Hack to make sure android_native_app_glue is not stripped.
   app_dummy();
+  containers::Allocator root_allocator;
 
   std::thread main_thread([&]() {
-    entry::entry_data data{app, logging::GetLogger()};
+    entry::entry_data data{app, logging::GetLogger(&root_allocator),
+                           &root_allocator};
     main_entry(&data);
   });
 
@@ -57,12 +60,14 @@ void android_main(android_app *app) {
     }
   }
   main_thread.join();
+  assert(root_allocator.currently_allocated_bytes_.load() == 0);
 }
 #elif defined __linux__
 
 // This creates an XCB connection and window for the application.
 // It maps it onto the screen and passes it on to the main_entry function.
 int main(int argc, char **argv) {
+  containers::Allocator root_allocator;
   xcb_connection_t *connection = xcb_connect(NULL, NULL);
   const xcb_setup_t *setup = xcb_get_setup(connection);
   xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
@@ -77,12 +82,15 @@ int main(int argc, char **argv) {
   xcb_flush(connection);
 
   std::thread main_thread([&]() {
-    entry::entry_data data{window, connection, logging::GetLogger()};
+    entry::entry_data data{window, connection,
+                           logging::GetLogger(&root_allocator),
+                           &root_allocator};
     main_entry(&data);
   });
   main_thread.join();
   // TODO(awoloszyn): Handle other events here.
   xcb_disconnect(connection);
+  assert(root_allocator.currently_allocated_bytes_.load() == 0);
   return 0;
 }
 #elif defined _WIN32

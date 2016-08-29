@@ -20,6 +20,8 @@
 #include "external/vulkan/vulkan.h"
 #undef VK_NO_PROTOTYPES
 
+#include "support/containers/allocator.h"
+#include "support/containers/unique_ptr.h"
 #include "support/dynamic_loader/dynamic_library.h"
 #include "support/log/log.h"
 
@@ -34,7 +36,7 @@ using LazyInstanceFunction = LazyFunction<T, ::VkInstance, LibraryWrapper>;
 // for all global-scope functions.
 class LibraryWrapper {
 public:
-  LibraryWrapper(logging::Logger *logger);
+  LibraryWrapper(containers::Allocator *allocator, logging::Logger *logger);
   bool is_valid() { return vulkan_lib_ && vulkan_lib_->is_valid(); }
 
 #define LAZY_FUNCTION(function)                                                \
@@ -52,7 +54,7 @@ private:
   PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 
   logging::Logger *logger_;
-  std::unique_ptr<dynamic_loader::DynamicLibrary> vulkan_lib_;
+  containers::unique_ptr<dynamic_loader::DynamicLibrary> vulkan_lib_;
 };
 }
 

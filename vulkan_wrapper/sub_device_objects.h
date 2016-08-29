@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#ifdef VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_
+#ifndef VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_
 #define VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_
 
 #include "external/vulkan/vulkan.h"
@@ -101,4 +101,4 @@ using VkCommandPool = VkSubDeviceObject<CommandPoolTraits>;
 
 } // namespace vulkan
 
-#endif VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_
+#endif // VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_

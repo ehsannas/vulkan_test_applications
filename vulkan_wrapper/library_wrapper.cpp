@@ -17,8 +17,10 @@
 
 namespace vulkan {
 
-LibraryWrapper::LibraryWrapper(logging::Logger *logger) : logger_(logger) {
-  vulkan_lib_ = dynamic_loader::OpenLibrary("libvulkan");
+LibraryWrapper::LibraryWrapper(containers::Allocator *allocator,
+                               logging::Logger *logger)
+    : logger_(logger) {
+  vulkan_lib_ = dynamic_loader::OpenLibrary(allocator, "libvulkan");
   if (vulkan_lib_ && vulkan_lib_->is_valid()) {
     logger_->LogInfo("Successfully opened vulkan library");
     vulkan_lib_->Resolve("vkGetInstanceProcAddr", &vkGetInstanceProcAddr);

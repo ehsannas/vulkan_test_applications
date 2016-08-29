@@ -16,15 +16,16 @@
 #ifndef VULKAN_HELPERS_HELPER_FUNCTIONS_H_
 #define VULKAN_HELPERS_HELPER_FUNCTIONS_H_
 
-#include <vector>
-
+#include "support/containers/vector.h"
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
 namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper *_wrapper);
-std::vector<VkPhysicalDevice> GetPhysicalDevices(VkInstance &instance);
-VkDevice CreateDefaultDevice(VkInstance &instance);
+containers::vector<VkPhysicalDevice>
+GetPhysicalDevices(containers::Allocator *allocator, VkInstance &instance);
+VkDevice CreateDefaultDevice(containers::Allocator *allocator,
+                             VkInstance &instance);
 }
 #endif //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

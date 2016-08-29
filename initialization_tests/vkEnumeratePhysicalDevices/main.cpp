@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-#include <vector>
-
+#include "support/containers/vector.h"
 #include "support/entry/entry.h"
 #include "support/log/log.h"
 #include "vulkan_helpers/helper_functions.h"
@@ -23,7 +22,7 @@
 
 int main_entry(const entry::entry_data *data) {
   data->log->LogInfo("Application Startup");
-  vulkan::LibraryWrapper wrapper(data->log.get());
+  vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
   vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
 
   uint32_t device_count = 0;
@@ -38,13 +37,14 @@ int main_entry(const entry::entry_data *data) {
   LOG_ASSERT(>, data->log, device_count, 0);
   data->log->LogInfo("Device Count is ", device_count);
 
-  std::vector<VkPhysicalDevice> physical_devices(device_count);
+  containers::vector<VkPhysicalDevice> physical_devices(device_count,
+                                                        data->root_allocator);
   LOG_ASSERT(==, data->log,
              instance.vkEnumeratePhysicalDevices(instance, &device_count,
                                                  physical_devices.data()),
              VK_SUCCESS);
 
-  for(size_t i = 0; i < device_count; ++i) {
+  for (size_t i = 0; i < device_count; ++i) {
     LOG_ASSERT(!=, data->log, physical_devices[i], VkPhysicalDevice(nullptr));
   }
 

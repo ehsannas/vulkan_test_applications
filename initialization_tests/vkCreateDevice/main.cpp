@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-#include <vector>
-
+#include "support/containers/vector.h"
 #include "support/entry/entry.h"
 #include "support/log/log.h"
 #include "vulkan_helpers/helper_functions.h"
@@ -24,9 +23,11 @@
 
 int main_entry(const entry::entry_data *data) {
   data->log->LogInfo("Application Startup");
-  vulkan::LibraryWrapper wrapper(data->log.get());
+  vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
   vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
-  std::vector<VkPhysicalDevice> devices(vulkan::GetPhysicalDevices(instance));
+  containers::vector<VkPhysicalDevice> devices(
+      vulkan::GetPhysicalDevices(data->root_allocator, instance),
+      data->root_allocator);
 
   float priority = 1.f;
   VkDeviceQueueCreateInfo queue_info{
@@ -35,7 +36,7 @@ int main_entry(const entry::entry_data *data) {
   VkDeviceCreateInfo info{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                           nullptr,
                           0,
-                          0, // Start with 0 queues
+                          0,       // Start with 0 queues
                           nullptr, // we will update this in the next test.
                           0,
                           nullptr,

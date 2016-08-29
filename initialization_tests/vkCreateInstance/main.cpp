@@ -20,7 +20,7 @@
 
 int main_entry(const entry::entry_data *data) {
   data->log->LogInfo("Application Startup");
-  vulkan::LibraryWrapper wrapper(data->log.get());
+  vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
 
   {
     // Test a nullptr pApplicationInfo
@@ -41,15 +41,13 @@ int main_entry(const entry::entry_data *data) {
 
   {
     // Test a non-nullptr pApplicationInfo
-    VkApplicationInfo app_info{
-      VK_STRUCTURE_TYPE_APPLICATION_INFO,
-      nullptr,
-      "Application",
-      1,
-      "Engine",
-      0,
-      VK_MAKE_VERSION(1, 0, 0)
-    };
+    VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                               nullptr,
+                               "Application",
+                               1,
+                               "Engine",
+                               0,
+                               VK_MAKE_VERSION(1, 0, 0)};
 
     VkInstanceCreateInfo info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
                               nullptr,
