@@ -7,3 +7,4 @@ the creation and destruction of Vulkan Objects.
 - [vkCreateInstance](vkCreateInstance/README.md)
 - [vkEnumeratePhysicalDevices](vkEnumeratePhysicalDevices/README.md)
 - [vkCreateDevice](vkCreateDevice/README.md)
+- [EnumerateLayersAndExtensions](EnumerateLayersAndExtensions/README.md)

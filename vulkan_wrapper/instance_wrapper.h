@@ -39,7 +39,9 @@ class VkInstance {
         wrapper_(wrapper),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance),
         CONSTRUCT_LAZY_FUNCTION(vkEnumeratePhysicalDevices),
-        CONSTRUCT_LAZY_FUNCTION(vkCreateDevice) {
+        CONSTRUCT_LAZY_FUNCTION(vkCreateDevice),
+        CONSTRUCT_LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties),
+        CONSTRUCT_LAZY_FUNCTION(vkEnumerateDeviceLayerProperties) {
     if (has_allocator_) {
       allocator_ = *allocator;
     } else {
@@ -55,7 +57,11 @@ class VkInstance {
         has_allocator_(other.has_allocator_),
         vkDestroyInstance(other.vkDestroyInstance),
         vkEnumeratePhysicalDevices(other.vkEnumeratePhysicalDevices),
-        vkCreateDevice(other.vkCreateDevice) {
+        vkCreateDevice(other.vkCreateDevice),
+        vkEnumerateDeviceExtensionProperties(
+            other.vkEnumerateDeviceExtensionProperties),
+        vkEnumerateDeviceLayerProperties(
+            other.vkEnumerateDeviceLayerProperties) {
     other.instance_ = VK_NULL_HANDLE;
   }
 
@@ -88,6 +94,8 @@ class VkInstance {
   LAZY_FUNCTION(vkDestroyInstance);
   LAZY_FUNCTION(vkEnumeratePhysicalDevices);
   LAZY_FUNCTION(vkCreateDevice);
+  LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties);
+  LAZY_FUNCTION(vkEnumerateDeviceLayerProperties);
 #undef LAZY_FUNCTION
 };
 
