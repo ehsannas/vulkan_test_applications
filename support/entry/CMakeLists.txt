@@ -14,7 +14,7 @@
 #
 
 if(ANDROID)
-set(ADDITIONAL_LIBS android android_native_app_glue)
+set(ADDITIONAL_LIBS android android_native_app_glue atomic)
 elseif(UNIX)
 set(ADDITIONAL_LIBS xcb pthread)
 endif()

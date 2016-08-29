@@ -39,6 +39,7 @@ class UniqueDeleter {
   UniqueDeleter& operator=(const UniqueDeleter& other) {
     alloc_ = other.alloc_;
     original_size_ = other.original_size_;
+    return *this;
   }
 
   // Since unique_ptr can be cast, the UniqueDeleter will get
