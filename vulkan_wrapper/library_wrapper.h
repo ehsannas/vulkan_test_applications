@@ -35,27 +35,27 @@ using LazyInstanceFunction = LazyFunction<T, ::VkInstance, LibraryWrapper>;
 // This wraps the vulkan library. It provides lazily initialized functions
 // for all global-scope functions.
 class LibraryWrapper {
-public:
-  LibraryWrapper(containers::Allocator *allocator, logging::Logger *logger);
+ public:
+  LibraryWrapper(containers::Allocator* allocator, logging::Logger* logger);
   bool is_valid() { return vulkan_lib_ && vulkan_lib_->is_valid(); }
 
-#define LAZY_FUNCTION(function)                                                \
-  LazyInstanceFunction<PFN_##function> function =                              \
+#define LAZY_FUNCTION(function)                   \
+  LazyInstanceFunction<PFN_##function> function = \
       LazyInstanceFunction<PFN_##function>(nullptr, #function, this)
   LAZY_FUNCTION(vkCreateInstance);
   LAZY_FUNCTION(vkEnumerateInstanceExtensionProperties);
   LAZY_FUNCTION(vkEnumerateInstanceLayerProperties);
 #undef LAZY_FUNCTION
-  logging::Logger *GetLogger() { return logger_; }
+  logging::Logger* GetLogger() { return logger_; }
 
-  PFN_vkVoidFunction getProcAddr(::VkInstance instance, const char *function);
+  PFN_vkVoidFunction getProcAddr(::VkInstance instance, const char* function);
 
-private:
+ private:
   PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 
-  logging::Logger *logger_;
+  logging::Logger* logger_;
   containers::unique_ptr<dynamic_loader::DynamicLibrary> vulkan_lib_;
 };
 }
 
-#endif // VULKAN_WRAPPER_LIBRARY_WRAPPER_H_
+#endif  // VULKAN_WRAPPER_LIBRARY_WRAPPER_H_

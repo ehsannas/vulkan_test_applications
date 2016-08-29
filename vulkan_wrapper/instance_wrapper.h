@@ -30,12 +30,14 @@ namespace vulkan {
 // methods. It will automatically call VkDestroyInstance when it
 // goes out of scope.
 class VkInstance {
-public:
+ public:
 #define CONSTRUCT_LAZY_FUNCTION(function) function(instance, #function, wrapper)
-  VkInstance(::VkInstance instance, VkAllocationCallbacks *allocator,
-             LibraryWrapper *wrapper)
-      : instance_(instance), has_allocator_(allocator != nullptr),
-        wrapper_(wrapper), CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance),
+  VkInstance(::VkInstance instance, VkAllocationCallbacks* allocator,
+             LibraryWrapper* wrapper)
+      : instance_(instance),
+        has_allocator_(allocator != nullptr),
+        wrapper_(wrapper),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance),
         CONSTRUCT_LAZY_FUNCTION(vkEnumeratePhysicalDevices),
         CONSTRUCT_LAZY_FUNCTION(vkCreateDevice) {
     if (has_allocator_) {
@@ -46,17 +48,19 @@ public:
   }
 #undef CONSTRUCT_LAZY_FUNCTION
 
-  VkInstance(VkInstance &&other)
-      : instance_(other.instance_), allocator_(other.allocator_),
-        wrapper_(other.wrapper_), has_allocator_(other.has_allocator_),
+  VkInstance(VkInstance&& other)
+      : instance_(other.instance_),
+        allocator_(other.allocator_),
+        wrapper_(other.wrapper_),
+        has_allocator_(other.has_allocator_),
         vkDestroyInstance(other.vkDestroyInstance),
         vkEnumeratePhysicalDevices(other.vkEnumeratePhysicalDevices),
         vkCreateDevice(other.vkCreateDevice) {
     other.instance_ = VK_NULL_HANDLE;
   }
 
-  VkInstance(const VkInstance &) = delete;
-  VkInstance &operator=(const VkInstance &) = delete;
+  VkInstance(const VkInstance&) = delete;
+  VkInstance& operator=(const VkInstance&) = delete;
 
   ~VkInstance() {
     if (instance_ != VK_NULL_HANDLE) {
@@ -64,19 +68,19 @@ public:
     }
   }
 
-  logging::Logger *GetLogger() { return wrapper_->GetLogger(); }
-  LibraryWrapper *get_wrapper() { return wrapper_; }
+  logging::Logger* GetLogger() { return wrapper_->GetLogger(); }
+  LibraryWrapper* get_wrapper() { return wrapper_; }
 
-private:
+ private:
   ::VkInstance instance_;
   bool has_allocator_;
   // Intentionally keep a copy of the callbacks, they are just a bunch of
   // pointers, but it means we don't force our user to keep the allocator struct
   // around forever.
   VkAllocationCallbacks allocator_;
-  LibraryWrapper *wrapper_;
+  LibraryWrapper* wrapper_;
 
-public:
+ public:
   ::VkInstance get_instance() const { return instance_; }
   operator ::VkInstance() const { return instance_; }
 
@@ -87,6 +91,6 @@ public:
 #undef LAZY_FUNCTION
 };
 
-} // namespace vulkan
+}  // namespace vulkan
 
-#endif // VULKAN_WRAPPER_INSTANCE_WRAPPER_H_
+#endif  // VULKAN_WRAPPER_INSTANCE_WRAPPER_H_

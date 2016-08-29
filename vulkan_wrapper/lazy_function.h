@@ -20,43 +20,40 @@
 // when it is first called.
 template <typename T, typename HANDLE, typename WRAPPER>
 class LazyFunction {
-public:
+ public:
   // We retain a reference to the function name, so it must remain valid.
   // In practice this is expected to be used with string constants.
-  LazyFunction(HANDLE handle, const char *function_name,
-                       WRAPPER *wrapper)
+  LazyFunction(HANDLE handle, const char* function_name, WRAPPER* wrapper)
       : handle_(handle), function_name_(function_name), wrapper_(wrapper) {}
 
   // When this functor is called, it will check if the function pointer
   // has been resolved. If not it will resolve it and then call the function.
   // If it could not be resolved, the program will segfault.
   template <typename... Args>
-  typename std::result_of<T(Args...)>::type operator()(const Args &... args);
+  typename std::result_of<T(Args...)>::type operator()(const Args&... args);
 
-private:
+ private:
   HANDLE handle_;
-  const char *function_name_;
-  WRAPPER *wrapper_;
+  const char* function_name_;
+  WRAPPER* wrapper_;
   T ptr_ = nullptr;
 };
 
 template <typename T, typename HANDLE, typename WRAPPER>
 template <typename... Args>
 typename std::result_of<T(Args...)>::type LazyFunction<T, HANDLE, WRAPPER>::
-operator()(const Args &... args) {
+operator()(const Args&... args) {
   if (!ptr_) {
-    ptr_ =
-        reinterpret_cast<T>(wrapper_->getProcAddr(handle_, function_name_));
+    ptr_ = reinterpret_cast<T>(wrapper_->getProcAddr(handle_, function_name_));
     if (ptr_) {
-      wrapper_->GetLogger()->LogInfo(function_name_, " for instance ",
-                                     handle_, " resolved");
+      wrapper_->GetLogger()->LogInfo(function_name_, " for instance ", handle_,
+                                     " resolved");
     } else {
-      wrapper_->GetLogger()->LogError(function_name_, " for instance ",
-                                      handle_,
+      wrapper_->GetLogger()->LogError(function_name_, " for instance ", handle_,
                                       " could not be resolved, crashing now");
     }
   }
   return ptr_(args...);
 }
 
-#endif //  VULKAN_WRAPPER_LAZY_FUNCTION_H_
+#endif  //  VULKAN_WRAPPER_LAZY_FUNCTION_H_

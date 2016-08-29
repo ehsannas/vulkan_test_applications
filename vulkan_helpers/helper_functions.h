@@ -22,10 +22,10 @@
 #include "vulkan_wrapper/library_wrapper.h"
 
 namespace vulkan {
-VkInstance CreateEmptyInstance(LibraryWrapper *_wrapper);
-containers::vector<VkPhysicalDevice>
-GetPhysicalDevices(containers::Allocator *allocator, VkInstance &instance);
-VkDevice CreateDefaultDevice(containers::Allocator *allocator,
-                             VkInstance &instance);
+VkInstance CreateEmptyInstance(LibraryWrapper* _wrapper);
+containers::vector<VkPhysicalDevice> GetPhysicalDevices(
+    containers::Allocator* allocator, VkInstance& instance);
+VkDevice CreateDefaultDevice(containers::Allocator* allocator,
+                             VkInstance& instance);
 }
-#endif //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_
+#endif  //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

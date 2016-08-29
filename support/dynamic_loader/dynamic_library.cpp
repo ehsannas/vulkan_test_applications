@@ -22,11 +22,11 @@
 
 namespace dynamic_loader {
 class InternalDynamicLibrary : public DynamicLibrary {
-public:
+ public:
   // This will search using the default search operations,
   // which is to say, absolute, if the path was absolute, followed
   // by LD_LIBRARY_PATH.
-  InternalDynamicLibrary(const char *lib_name) {
+  InternalDynamicLibrary(const char* lib_name) {
     std::string lib_with_extension = lib_name;
     lib_with_extension += ".so";
     // We choose RTLD_LAZY because we expect most of the functions
@@ -34,20 +34,20 @@ public:
     lib_ = dlopen(lib_with_extension.c_str(), RTLD_LAZY);
   }
 
-  void *ResolveFunction(const char *function_name) override {
+  void* ResolveFunction(const char* function_name) override {
     return dlsym(lib_, function_name);
   }
   bool is_valid() override { return nullptr != lib_; }
 
-private:
-  void *lib_;
+ private:
+  void* lib_;
 };
 #elif defined _WIN32
 #error TODO(awoloszyn): Implement on Windows.
 #endif
 
-containers::unique_ptr<DynamicLibrary>
-OpenLibrary(containers::Allocator *allocator, const char *name) {
+containers::unique_ptr<DynamicLibrary> OpenLibrary(
+    containers::Allocator* allocator, const char* name) {
   containers::unique_ptr<InternalDynamicLibrary> lib(
       containers::make_unique<InternalDynamicLibrary>(
           allocator, InternalDynamicLibrary(name)));
@@ -56,4 +56,4 @@ OpenLibrary(containers::Allocator *allocator, const char *name) {
   }
   return std::move(lib);
 }
-} // namespace  dynamic_loader
+}  // namespace  dynamic_loader

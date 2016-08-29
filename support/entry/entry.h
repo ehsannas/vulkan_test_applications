@@ -43,31 +43,31 @@ void dummy_function();
 struct dummy {
   dummy() { dummy_function(); }
 };
-} // namespace internal
+}  // namespace internal
 
 static internal::dummy __attribute__((used)) test_dummy;
 #elif defined _WIN32
-typedef void *HANDLE;
+typedef void* HANDLE;
 #else
 #error "Unsupported platform"
 #endif
 
 struct entry_data {
 #if defined __ANDROID__
-  android_app *native_window_handle;
+  android_app* native_window_handle;
 #elif defined _WIN32
   HANDLE native_window_handle;
 #elif defined __linux__
   xcb_window_t native_window_handle;
-  xcb_connection_t *native_connection;
+  xcb_connection_t* native_connection;
 #endif
   // This is never null.
   containers::unique_ptr<logging::Logger> log;
   containers::Allocator* root_allocator;
 };
-} // namespace entry
+}  // namespace entry
 
 // This is the entry-point that every application should define.
-int main_entry(const entry::entry_data *data);
+int main_entry(const entry::entry_data* data);
 
-#endif // SUPPORT_ENTRY_ENTRY_H_
+#endif  // SUPPORT_ENTRY_ENTRY_H_

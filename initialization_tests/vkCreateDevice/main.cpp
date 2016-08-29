@@ -21,7 +21,7 @@
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
-int main_entry(const entry::entry_data *data) {
+int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
   vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
@@ -36,8 +36,8 @@ int main_entry(const entry::entry_data *data) {
   VkDeviceCreateInfo info{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                           nullptr,
                           0,
-                          0,       // Start with 0 queues
-                          nullptr, // we will update this in the next test.
+                          0,        // Start with 0 queues
+                          nullptr,  // we will update this in the next test.
                           0,
                           nullptr,
                           0,

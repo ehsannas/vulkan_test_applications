@@ -20,22 +20,22 @@ namespace logging {
 #include <android/log.h>
 
 class InternalLogger : public Logger {
-public:
-  void LogErrorString(const char *str) override {
+ public:
+  void LogErrorString(const char* str) override {
     __android_log_print(ANDROID_LOG_ERROR, "NativeApp", "%s", str);
   }
-  void LogInfoString(const char *str) override {
+  void LogInfoString(const char* str) override {
     __android_log_print(ANDROID_LOG_INFO, "NativeApp", "%s", str);
   }
 };
 #else
 #include <cstdio>
 class InternalLogger : public Logger {
-public:
-  void LogErrorString(const char *str) override {
+ public:
+  void LogErrorString(const char* str) override {
     fprintf(stderr, "error: %s", str);
   }
-  void LogInfoString(const char *str) override { fprintf(stdout, "%s", str); }
+  void LogInfoString(const char* str) override { fprintf(stdout, "%s", str); }
 };
 #endif
 

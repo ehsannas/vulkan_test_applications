@@ -19,7 +19,7 @@
 #include "support/log/log.h"
 
 namespace vulkan {
-VkInstance CreateEmptyInstance(LibraryWrapper *wrapper) {
+VkInstance CreateEmptyInstance(LibraryWrapper* wrapper) {
   // Test a non-nullptr pApplicationInfo
   VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
                              nullptr,
@@ -46,8 +46,8 @@ VkInstance CreateEmptyInstance(LibraryWrapper *wrapper) {
   return vulkan::VkInstance(raw_instance, nullptr, wrapper);
 }
 
-containers::vector<VkPhysicalDevice>
-GetPhysicalDevices(containers::Allocator *allocator, VkInstance &instance) {
+containers::vector<VkPhysicalDevice> GetPhysicalDevices(
+    containers::Allocator* allocator, VkInstance& instance) {
   uint32_t device_count = 0;
   instance.vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
 
@@ -61,8 +61,8 @@ GetPhysicalDevices(containers::Allocator *allocator, VkInstance &instance) {
   return std::move(physical_devices);
 }
 
-VkDevice CreateDefaultDevice(containers::Allocator *allocator,
-                             VkInstance &instance) {
+VkDevice CreateDefaultDevice(containers::Allocator* allocator,
+                             VkInstance& instance) {
   containers::vector<VkPhysicalDevice> physical_devices =
       GetPhysicalDevices(allocator, instance);
   float priority = 1.f;

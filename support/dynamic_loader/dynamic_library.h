@@ -26,7 +26,7 @@
 namespace dynamic_loader {
 // This wraps a system-specific loaded dynamic library.
 class DynamicLibrary {
-public:
+ public:
   // This resolves a pointer from the opened dynamic library.
   // It automatically casts it to a function pointer of the passed
   // in pointer type.
@@ -34,25 +34,25 @@ public:
   // requested type.
   // Returns true if the function pointer could be correctly resolved.
   template <typename T, typename... Args>
-  bool Resolve(const char *name, T (*VKAPI_PTR *val)(Args...)) {
-    *val = reinterpret_cast<T(VKAPI_PTR *)(Args...)>(ResolveFunction(name));
+  bool Resolve(const char* name, T (*VKAPI_PTR* val)(Args...)) {
+    *val = reinterpret_cast<T(VKAPI_PTR*)(Args...)>(ResolveFunction(name));
     return *val != nullptr;
   }
   // Returns true if this library is valid.
   virtual bool is_valid() = 0;
 
-private:
+ private:
   // Given a function name, this must return a pointer to the function,
   // or nullptr if the symbol could not be resolved.
-  virtual void *ResolveFunction(const char *name) = 0;
+  virtual void* ResolveFunction(const char* name) = 0;
 };
 
 // Returns a DynamicLibrary that has been opened using the system's internal
 // library resolution. If a library could not be opened, it returns
 // nullptr.
-containers::unique_ptr<DynamicLibrary>
-OpenLibrary(containers::Allocator *allocator, const char *name);
+containers::unique_ptr<DynamicLibrary> OpenLibrary(
+    containers::Allocator* allocator, const char* name);
 
-} // namespace dynamic_loader
+}  // namespace dynamic_loader
 
-#endif // SUPPORT_DYNAMIC_LOADER_DYNAMIC_LIBRARY_H_
+#endif  // SUPPORT_DYNAMIC_LOADER_DYNAMIC_LIBRARY_H_

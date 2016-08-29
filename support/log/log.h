@@ -46,7 +46,7 @@ namespace logging {
       (log)->LogError(__FILE__, ":", __LINE__,                                 \
                       "\n  Expected " #res " " #op " " #exp "\n  but got ", r, \
                       " " #op " ", x);                                         \
-      *reinterpret_cast<volatile int *>(size_t(0)) = 4;                        \
+      *reinterpret_cast<volatile int*>(size_t(0)) = 4;                         \
     }                                                                          \
   } while (0);
 
@@ -57,9 +57,10 @@ namespace logging {
 // the c++11 spec is missing allocator-aware streams. :(
 // We will have to assume that the STL is doing the right thing here.
 class Logger {
-public:
+ public:
   // Logs a set of values to the error stream of the logger.
-  template <typename... Args> void LogError(Args... args) {
+  template <typename... Args>
+  void LogError(Args... args) {
     std::ostringstream str;
     LogHelper(&str, args...);
     str << "\n";
@@ -67,24 +68,25 @@ public:
   }
 
   // Logs a set of values to the info stream of the logger.
-  template <typename... Args> void LogInfo(Args... args) {
+  template <typename... Args>
+  void LogInfo(Args... args) {
     std::ostringstream str;
     LogHelper(&str, args...);
     str << "\n";
     LogInfoString(str.str().c_str());
   }
 
-private:
+ private:
   // Helper function, the recursive base of LogHelper.
   template <typename T>
-  void LogHelper(std::ostringstream *stream, const T &val) {
+  void LogHelper(std::ostringstream* stream, const T& val) {
     *stream << val;
   }
 
   // Helper function to recursively add elements from Args to
   // the stream.
   template <typename T, typename... Args>
-  void LogHelper(std::ostringstream *stream, const T &val, Args... args) {
+  void LogHelper(std::ostringstream* stream, const T& val, Args... args) {
     *stream << val;
     LogHelper(stream, args...);
   }
@@ -92,15 +94,15 @@ private:
   // This should be overriden by child classes to log the
   // input null-terminated
   // string to the STDERR equivalent.
-  virtual void LogErrorString(const char *str) = 0;
+  virtual void LogErrorString(const char* str) = 0;
   // This should be overriden by child classes to log the
   // input null-terminated
   // string to the STDOUT equivalent.
-  virtual void LogInfoString(const char *str) = 0;
+  virtual void LogInfoString(const char* str) = 0;
 };
 
 // Returns a platform-specific logger.
-containers::unique_ptr<Logger> GetLogger(containers::Allocator *allocator);
+containers::unique_ptr<Logger> GetLogger(containers::Allocator* allocator);
 }
 
-#endif // SUPPORT_LOG_LOG_H_
+#endif  // SUPPORT_LOG_LOG_H_

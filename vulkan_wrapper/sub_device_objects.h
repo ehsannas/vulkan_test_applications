@@ -37,17 +37,20 @@ using LazySubDeviceFunction = LazyFunction<T, ::VkDevice, F>;
 //      return "vkDestroyVulkanType";
 //   }
 //}
-template <typename T> class VkSubDeviceObject {
+template <typename T>
+class VkSubDeviceObject {
   using type = typename T::type;
 
-public:
+ public:
   // This does not retain a reference to the Device, or the
   // VkAllocationCallbacks object, it does take ownership of the object in
   // question.
-  VkSubDeviceObject(type raw_object, VkAllocationCallbacks *allocator,
-                    VkDevice *device)
-      : device_(*device), log_(device->GetLogger()),
-        has_allocator_(allocator != nullptr), raw_object_(raw_object),
+  VkSubDeviceObject(type raw_object, VkAllocationCallbacks* allocator,
+                    VkDevice* device)
+      : device_(*device),
+        log_(device->GetLogger()),
+        has_allocator_(allocator != nullptr),
+        raw_object_(raw_object),
         destruction_function(*device, T::function_name(), this) {
     if (allocator) {
       allocator_ = *allocator;
@@ -62,20 +65,22 @@ public:
     }
   }
 
-  VkSubDeviceObject(VkSubDeviceObject<T> &&other)
-      : device_(other._device), log_(other.log_),
+  VkSubDeviceObject(VkSubDeviceObject<T>&& other)
+      : device_(other._device),
+        log_(other.log_),
         vkGetDeviceProcAddr(other.vkGetDeviceProcAddr),
-        allocator_(other.allocator_), has_allocator_(other.has_allocator_),
+        allocator_(other.allocator_),
+        has_allocator_(other.has_allocator_),
         raw_object_(other.raw_object_),
         destruction_function(other.destruction_function) {
     other.raw_object_ = VK_NULL_HANDLE;
   }
 
-  logging::Logger *GetLogger() { return log_; }
+  logging::Logger* GetLogger() { return log_; }
 
-private:
+ private:
   ::VkDevice device_;
-  logging::Logger *log_;
+  logging::Logger* log_;
   PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
   VkAllocationCallbacks allocator_;
   bool has_allocator_;
@@ -83,11 +88,12 @@ private:
 
   LazySubDeviceFunction<typename T::destruction_function, VkSubDeviceObject<T>>
       destruction_function;
-public:
+
+ public:
   operator T() { return raw_object_; }
   T get_raw_object() { return raw_object_; }
 
-  PFN_vkVoidFunction getProcAddr(::VkDevice device, const char *function) {
+  PFN_vkVoidFunction getProcAddr(::VkDevice device, const char* function) {
     return vkGetDeviceProcAddr(device, function);
   }
 };
@@ -95,10 +101,10 @@ public:
 struct CommandPoolTraits {
   using type = ::VkCommandPool;
   using destruction_function = PFN_vkDestroyCommandPool;
-  static const char *function_name() { return "vkDestroyCommandPool"; }
+  static const char* function_name() { return "vkDestroyCommandPool"; }
 };
 using VkCommandPool = VkSubDeviceObject<CommandPoolTraits>;
 
-} // namespace vulkan
+}  // namespace vulkan
 
-#endif // VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_
+#endif  // VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_

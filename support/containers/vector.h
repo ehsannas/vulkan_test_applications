@@ -21,7 +21,8 @@
 #include "support/containers/stl_compatible_allocator.h"
 
 namespace containers {
-template <typename T> using vector = std::vector<T, StlCompatibleAllocator<T>>;
-} // namespace containers
+template <typename T>
+using vector = std::vector<T, StlCompatibleAllocator<T>>;
+}  // namespace containers
 
-#endif // SUPPORT_CONTAINERS_VECTOR_H_
+#endif  // SUPPORT_CONTAINERS_VECTOR_H_

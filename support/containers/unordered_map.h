@@ -27,6 +27,7 @@ namespace containers {
 // of the object.
 template <typename Key, typename T, typename Hash = std::hash<Key>,
           typename KeyEqual = std::equal_to<Key>>
+
 class unordered_map : public std::unordered_map<
                           Key, T, Hash, KeyEqual,
                           StlCompatibleAllocator<std::pair<const Key, T>>> {

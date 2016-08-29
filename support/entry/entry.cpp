@@ -14,10 +14,10 @@
  */
 
 #include "support/entry/entry.h"
-#include "support/log/log.h"
 #include <cassert>
 #include <chrono>
 #include <thread>
+#include "support/log/log.h"
 
 namespace entry {
 namespace internal {
@@ -30,7 +30,7 @@ void dummy_function() {}
 
 // This method is called by android_native_app_glue. This is the main entry
 // point for any native android activity.
-void android_main(android_app *app) {
+void android_main(android_app* app) {
   // Hack to make sure android_native_app_glue is not stripped.
   app_dummy();
   containers::Allocator root_allocator;
@@ -45,9 +45,8 @@ void android_main(android_app *app) {
     // Read all pending events.
     int ident = 0;
     int events = 0;
-    struct android_poll_source *source = nullptr;
-    while ((ident = ALooper_pollAll(-1, NULL, &events, (void **)&source)) >=
-           0) {
+    struct android_poll_source* source = nullptr;
+    while ((ident = ALooper_pollAll(-1, NULL, &events, (void**)&source)) >= 0) {
       if (source) {
         source->process(app, source);
       }
@@ -66,12 +65,12 @@ void android_main(android_app *app) {
 
 // This creates an XCB connection and window for the application.
 // It maps it onto the screen and passes it on to the main_entry function.
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   containers::Allocator root_allocator;
-  xcb_connection_t *connection = xcb_connect(NULL, NULL);
-  const xcb_setup_t *setup = xcb_get_setup(connection);
+  xcb_connection_t* connection = xcb_connect(NULL, NULL);
+  const xcb_setup_t* setup = xcb_get_setup(connection);
   xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
-  xcb_screen_t *screen = iter.data;
+  xcb_screen_t* screen = iter.data;
 
   xcb_window_t window = xcb_generate_id(connection);
   xcb_create_window(connection, XCB_COPY_FROM_PARENT, window, screen->root, 0,

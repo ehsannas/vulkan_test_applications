@@ -35,19 +35,20 @@ template <typename T>
 using LazyDeviceFunction = LazyFunction<T, ::VkDevice, VkDevice>;
 
 class VkDevice {
-public:
+ public:
 // This does not retain a reference to the VkInstance, or the
 // VkAllocationCallbacks object, it does take ownership of the device.
 #define CONSTRUCT_LAZY_FUNCTION(function) function(device, #function, this)
-  VkDevice(::VkDevice device, VkAllocationCallbacks *allocator,
-           VkInstance *instance)
-      : device_(device), has_allocator_(allocator != nullptr),
-        log_(instance->GetLogger()), CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice),
+  VkDevice(::VkDevice device, VkAllocationCallbacks* allocator,
+           VkInstance* instance)
+      : device_(device),
+        has_allocator_(allocator != nullptr),
+        log_(instance->GetLogger()),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice),
         CONSTRUCT_LAZY_FUNCTION(vkCreateCommandPool),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyCommandPool),
         CONSTRUCT_LAZY_FUNCTION(vkAllocateCommandBuffers),
         CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers) {
-
     if (has_allocator_) {
       allocator_ = *allocator;
     } else {
@@ -70,20 +71,20 @@ public:
   PFN_vkGetDeviceProcAddr get_device_proc_addr_function() {
     return vkGetDeviceProcAddr;
   }
-  logging::Logger *GetLogger() { return log_; }
+  logging::Logger* GetLogger() { return log_; }
 
-private:
+ private:
   ::VkDevice device_;
   bool has_allocator_;
   // Intentionally keep a copy of the callbacks, they are just a bunch of
   // pointers, but it means we don't force our user to keep the allocator struct
   // around forever.
   VkAllocationCallbacks allocator_;
-  logging::Logger *log_;
+  logging::Logger* log_;
   PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
 
-public:
-  PFN_vkVoidFunction getProcAddr(::VkDevice device, const char *function) {
+ public:
+  PFN_vkVoidFunction getProcAddr(::VkDevice device, const char* function) {
     return vkGetDeviceProcAddr(device, function);
   }
   ::VkDevice get_device() const { return device_; }
@@ -98,6 +99,6 @@ public:
 #undef LAZY_FUNCTION
 };
 
-} // namespace vulkan
+}  // namespace vulkan
 
-#endif // VULKAN_WRAPPER_DEVICE_WRAPPER_H_
+#endif  // VULKAN_WRAPPER_DEVICE_WRAPPER_H_

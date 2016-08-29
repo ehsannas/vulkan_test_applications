@@ -17,8 +17,8 @@
 
 namespace vulkan {
 
-LibraryWrapper::LibraryWrapper(containers::Allocator *allocator,
-                               logging::Logger *logger)
+LibraryWrapper::LibraryWrapper(containers::Allocator* allocator,
+                               logging::Logger* logger)
     : logger_(logger) {
   vulkan_lib_ = dynamic_loader::OpenLibrary(allocator, "libvulkan");
   if (vulkan_lib_ && vulkan_lib_->is_valid()) {
@@ -37,7 +37,7 @@ LibraryWrapper::LibraryWrapper(containers::Allocator *allocator,
 }
 
 PFN_vkVoidFunction LibraryWrapper::getProcAddr(::VkInstance instance,
-                                               const char *function) {
+                                               const char* function) {
   return vkGetInstanceProcAddr(instance, function);
 }
-} // namespace vulkan
+}  // namespace vulkan

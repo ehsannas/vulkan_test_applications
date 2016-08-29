@@ -22,5 +22,5 @@
 namespace containers {
 using string = std::basic_string<char, std::char_traits<char>,
                                  StlCompatibleAllocator<char>>;
-} // namespace containers
-#endif // SUPPORT_CONTAINERS_STRING_H_
+}  // namespace containers
+#endif  // SUPPORT_CONTAINERS_STRING_H_

@@ -22,16 +22,20 @@ namespace containers {
 
 // This allocator implements the allocator interface
 // as needed by STL objects.
-template <typename T> struct StlCompatibleAllocator {
+template <typename T>
+struct StlCompatibleAllocator {
   typedef T value_type;
-  typedef T *pointer;
-  typedef const T *const_pointer;
-  typedef T &reference;
-  typedef const T &const_reference;
+  typedef T* pointer;
+  typedef const T* const_pointer;
+  typedef T& reference;
+  typedef const T& const_reference;
   typedef size_t size_type;
   typedef size_t difference_type;
   // An equivalent STL allocator for a different type.
-  template <class U> struct rebind { typedef StlCompatibleAllocator<U> other; };
+  template <class U>
+  struct rebind {
+    typedef StlCompatibleAllocator<U> other;
+  };
 
   // Creation of the allocator is allowed, but if anyone were to try to use
   // an object with a null allocator, it would fail. This however allows us to
@@ -42,10 +46,10 @@ template <typename T> struct StlCompatibleAllocator {
   // All allocations will be done through this allocator. It must remain
   // valid until this StlCompatibleAllocator and all allocators created
   // from it have been destroyed.
-  StlCompatibleAllocator(Allocator *allocator) : allocator_(allocator) {}
+  StlCompatibleAllocator(Allocator* allocator) : allocator_(allocator) {}
 
   template <typename U>
-  StlCompatibleAllocator(const StlCompatibleAllocator<U> &other) {
+  StlCompatibleAllocator(const StlCompatibleAllocator<U>& other) {
     allocator_ = other.allocator_;
   }
 
@@ -55,44 +59,48 @@ template <typename T> struct StlCompatibleAllocator {
   // Constructs an object of Type U a the location given by P passing
   // through all other arguments to the constructor.
   template <typename U, typename... Args>
-  void construct(U *p, Args &&... args) {
-    ::new ((void *)p) U(std::forward<Args>(args)...);
+  void construct(U* p, Args&&... args) {
+    ::new ((void*)p) U(std::forward<Args>(args)...);
   }
 
   // Deconstructs the object at p. It does not free the memory.
-  void destroy(pointer p) { ((T *)p)->~T(); }
+  void destroy(pointer p) { ((T*)p)->~T(); }
 
   // Deconstructs the object at p. It does not free the memory.
-  template <typename U> void destroy(U *p) { p->~U(); }
+  template <typename U>
+  void destroy(U* p) {
+    p->~U();
+  }
 
   // Allocates the memory for n objects of type T. Does not
   // actually construct the objects.
-  T *allocate(std::size_t n) {
-    return reinterpret_cast<T *>(allocator_->malloc(sizeof(T) * n));
+  T* allocate(std::size_t n) {
+    return reinterpret_cast<T*>(allocator_->malloc(sizeof(T) * n));
   }
   // Deallocates the memory for n Objects of size T.
-  void deallocate(T *p, std::size_t n) { allocator_->free(p, sizeof(T) * n); }
+  void deallocate(T* p, std::size_t n) { allocator_->free(p, sizeof(T) * n); }
 
   // Returns the internal allocator. This is useful to get at the allocation
   // information.
-  const Allocator *get_internal() const { return allocator_; }
+  const Allocator* get_internal() const { return allocator_; }
 
-private:
-  template <typename U> friend class StlCompatibleAllocator;
-  Allocator *allocator_;
+ private:
+  template <typename U>
+  friend class StlCompatibleAllocator;
+  Allocator* allocator_;
 };
 
 template <typename T, typename U>
-bool operator==(const StlCompatibleAllocator<T> &a,
-                const StlCompatibleAllocator<U> &b) {
+bool operator==(const StlCompatibleAllocator<T>& a,
+                const StlCompatibleAllocator<U>& b) {
   return a.get_internal() == b.get_internal();
 }
 
 template <typename T, typename U>
-bool operator!=(const StlCompatibleAllocator<T> &a,
-                const StlCompatibleAllocator<U> &b) {
+bool operator!=(const StlCompatibleAllocator<T>& a,
+                const StlCompatibleAllocator<U>& b) {
   return !(a == b);
 }
-} // namespace containers
+}  // namespace containers
 
-#endif //  SUPPORT_CONTAINERS_STL_COMPATIBLE_ALLOCATOR_H_
+#endif  //  SUPPORT_CONTAINERS_STL_COMPATIBLE_ALLOCATOR_H_
