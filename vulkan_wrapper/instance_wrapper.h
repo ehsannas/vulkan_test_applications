@@ -45,7 +45,8 @@ class VkInstance {
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceFeatures),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties)
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties),
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
     if (has_allocator_) {
@@ -69,7 +70,8 @@ class VkInstance {
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceFeatures),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties)
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties),
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties)
 #undef COPY_LAZY_FUNCTION
   {
     other.instance_ = VK_NULL_HANDLE;
@@ -110,6 +112,7 @@ class VkInstance {
   LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
   LAZY_FUNCTION(vkGetPhysicalDeviceProperties);
   LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
+  LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties);
 #undef LAZY_FUNCTION
 };
 
