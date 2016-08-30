@@ -1,7 +1,2 @@
-add_subdirectory(EnumerateLayersAndExtensions)
 add_subdirectory(vkCreateDevice)
 add_subdirectory(vkCreateInstance)
-add_subdirectory(vkEnumeratePhysicalDevices)
-add_subdirectory(PhysicalDeviceTraits)
-add_subdirectory(vkGetPhysicalDeviceQueueFamilyProperties)
-add_subdirectory(vkGetPhysicalDeviceFormatProperties)

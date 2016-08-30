@@ -59,3 +59,4 @@ add_subdirectory(vulkan_helpers)
 # the actual tests.
 add_subdirectory(initialization_tests)
 add_subdirectory(resource_creation_tests)
+add_subdirectory(traits_query_tests)
