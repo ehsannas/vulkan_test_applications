@@ -24,11 +24,11 @@ namespace containers {
 // When a user allocates/frees memory from this allocator,
 // it tracks the total number of allocations made, the total
 // number of bytes current in allocation, and the total number
-// of bytes that have ever been allocated. when queried
+// of bytes that have ever been allocated. When queried
 // from the object, the values are not guaranteed be
 // in sync with each other, although each may be correct.
 // These numbers are particularly useful at the end of
-// this allocators lifetime, where all child objects
+// this allocator's lifetime, where all child objects
 // should have already been destroyed.
 struct Allocator {
   Allocator() {
