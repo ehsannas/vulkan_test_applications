@@ -19,6 +19,8 @@
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
+inline const char* BoolString(bool value) { return value ? "true" : "false"; }
+
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
@@ -27,16 +29,39 @@ int main_entry(const entry::entry_data* data) {
       vulkan::GetPhysicalDevices(data->root_allocator, instance));
 
   {
+    data->log->LogInfo("API: vkGetPhysicalDeviceFeatures");
     VkPhysicalDeviceFeatures features;
     for (const auto& device : physical_devices) {
+      data->log->LogInfo("  Phyiscal Device: ", device);
       instance.vkGetPhysicalDeviceFeatures(device, &features);
+      data->log->LogInfo("    shaderInt16: ", BoolString(features.shaderInt16));
+      data->log->LogInfo("    shaderInt64: ", BoolString(features.shaderInt64));
+      data->log->LogInfo("    logicOp: ", BoolString(features.logicOp));
     }
   }
 
   {
+    data->log->LogInfo("API: vkGetPhysicalDeviceMemoryProperties");
     VkPhysicalDeviceMemoryProperties properties;
     for (const auto& device : physical_devices) {
+      data->log->LogInfo("  Phyiscal Device: ", device);
       instance.vkGetPhysicalDeviceMemoryProperties(device, &properties);
+      data->log->LogInfo("    # memory types: ", properties.memoryTypeCount);
+      data->log->LogInfo("    # memory heaps: ", properties.memoryHeapCount);
+    }
+  }
+
+  {
+    data->log->LogInfo("API: vkGetPhysicalDeviceProperties");
+    VkPhysicalDeviceProperties properties;
+    for (const auto& device : physical_devices) {
+      data->log->LogInfo("  Phyiscal Device: ", device);
+      instance.vkGetPhysicalDeviceProperties(device, &properties);
+      data->log->LogInfo("    apiVersion: ", properties.apiVersion);
+      data->log->LogInfo("    driverVersion: ", properties.driverVersion);
+      data->log->LogInfo("    vendorID: ", properties.vendorID);
+      data->log->LogInfo("    deviceID: ", properties.deviceID);
+      data->log->LogInfo("    deviceName: ", properties.deviceName);
     }
   }
 
