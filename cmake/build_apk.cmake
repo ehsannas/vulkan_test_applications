@@ -93,7 +93,7 @@ function(add_vulkan_executable target)
     endforeach()
 
     set(apk_build_location "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/app/build/outputs/apk/app-debug.apk")
-    set(target_apk ${CMAKE_CURRENT_BINARY_DIR}/${target}.apk)
+    set(target_apk ${VulkanTestApplications_BINARY_DIR}/apk/${target}.apk)
 
     add_custom_target(${target}_sources)
     set(ABSOLUTE_SOURCES)
