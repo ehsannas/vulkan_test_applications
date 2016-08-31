@@ -1,7 +1,13 @@
 build/
 build-*/
-.vscode/
 
 # Vim swap
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
+
+# Python compiled files
+*.pyc
+
+# VSCode config files
+.vscode/
+

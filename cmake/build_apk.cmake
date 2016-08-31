@@ -80,6 +80,10 @@ function(add_vulkan_executable target)
     set(ANDROID_TARGET_NAME ${target})
     set(${target}_SOURCES ${EXE_SOURCES})
     set(${target}_LIBS ${EXE_LIBS})
+    set(ANDROID_ADDITIONAL_PARAMS)
+    if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+      set(ANDROID_ADDITIONAL_PARAMS "android:debuggable=\"true\"")
+    endif()
 
     foreach(source ${CONFIGURABLE_ANDROID_SOURCES})
       file(RELATIVE_PATH rooted_source ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template ${source})
@@ -92,7 +96,15 @@ function(add_vulkan_executable target)
       list(APPEND TARGET_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/${rooted_source})
     endforeach()
 
-    set(apk_build_location "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/app/build/outputs/apk/app-debug.apk")
+
+    if (CMAKE_BUILD_TYPE STREQUAL Debug)
+      set(apk_build_location "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/app/build/outputs/apk/app-debug.apk")
+      set(ASSEMBLE_COMMAND assembleDebug)
+    else()
+      set(apk_build_location "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/app/build/outputs/apk/app-release-unsigned.apk")
+      set(ASSEMBLE_COMMAND assembleRelease)
+    endif()
+
     set(target_apk ${VulkanTestApplications_BINARY_DIR}/apk/${target}.apk)
 
     add_custom_target(${target}_sources)
@@ -110,7 +122,7 @@ function(add_vulkan_executable target)
 
     add_custom_command(
       OUTPUT ${target_apk}
-      COMMAND ./gradlew build
+      COMMAND ./gradlew ${ASSEMBLE_COMMAND}
       COMMAND ${CMAKE_COMMAND} -E copy ${apk_build_location} ${target_apk}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk
       DEPENDS ${SOURCE_DEPS}

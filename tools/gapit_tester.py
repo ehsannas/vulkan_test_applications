@@ -1,31 +1,28 @@
 #!/usr/bin/python
 
-'''This runs a given APK that was compiled from this repository.
-
-This runs a given APK on the connected Android device. It makes assumptions
-about log output and package names that means it is only useful
-for this repository
-'''
+'''This runs a single apk through gapit trace and gapit dump.'''
 
 import argparse
 import os
 import subprocess
 import sys
-
 import android
 
+
 def run_on_single_apk(apk, args):
-    '''Installs, runs and optionally uninstalls a single APK from an android device.'''
+    '''Installs, traces and optionally uninstalls a single APK from an android device.'''
     apk_info = android.get_apk_info(apk)
     android.adb(['install', '-r', apk], args)
     android.adb(['logcat', '-c'], args)
-    android.adb(['shell', 'am', 'start', '-n', apk_info.package_name + '/' + apk_info.activity_name], args)
 
-    return_value = android.watch_process(False, args)
+    gapit_args = ['gapit']
+    if args.verbose:
+        gapit_args.extend(['-log-level' 'Debug'])
+    gapit_args.extend(['trace', apk_info.package_name])
+    p = subprocess.Popen(gapit_args)
+    android.watch_process(True, args)
+    p.terminate()
 
-    android.adb(['shell', 'am', 'force-stop', apk_info.package_name], args)
-    if not args.keep:
-        android.adb(['uninstall', apk_info.package_name], args)
     sys.exit(return_value)
 
 def main():
@@ -40,3 +37,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

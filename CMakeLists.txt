@@ -32,12 +32,17 @@ cmake_minimum_required(VERSION 3.1)
 option(BUILD_APKS "Should we be building Android apks for our project"
   ${BUILD_APKS})
 
+if (NOT CMAKE_BUILD_TYPE)
+  message(FATAL_ERROR "Please specify -DCMAKE_BUILD_TYPE")
+endif()
+
 if (BUILD_APKS)
   set(ANDROID_SDK "" CACHE STRING "Location of the Android SDK (Sdk must contain gradle support)")
   set(ANDROID_NDK ${ANDROID_SDK}/ndk-bundle CACHE STRING "Location of the Android NDK (required r12b or higher)")
   set(ANDROID_ABIS "armeabi-v7a;arm64-v8a;x86" CACHE STRING "What abis to build the apk for")
   # Turn ANDROID_ABIS into a comma-separated list
   string(REPLACE ";" "\",\"" ANDROID_ABIS "${ANDROID_ABIS}")
+  message(STATUS "Compiling for ${ANDROID_ABIS}")
   get_filename_component(ANDROID_SDK ${ANDROID_SDK} ABSOLUTE)
   get_filename_component(ANDROID_NDK ${ANDROID_NDK} ABSOLUTE)
 endif()
