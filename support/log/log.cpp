@@ -22,10 +22,10 @@ namespace logging {
 class InternalLogger : public Logger {
  public:
   void LogErrorString(const char* str) override {
-    __android_log_print(ANDROID_LOG_ERROR, "NativeApp", "%s", str);
+    __android_log_print(ANDROID_LOG_ERROR, "VulkanTestApplication", "%s", str);
   }
   void LogInfoString(const char* str) override {
-    __android_log_print(ANDROID_LOG_INFO, "NativeApp", "%s", str);
+    __android_log_print(ANDROID_LOG_INFO, "VulkanTestApplication", "%s", str);
   }
 };
 #else

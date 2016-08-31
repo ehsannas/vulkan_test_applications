@@ -38,7 +38,9 @@ void android_main(android_app* app) {
   std::thread main_thread([&]() {
     entry::entry_data data{app, logging::GetLogger(&root_allocator),
                            &root_allocator};
-    main_entry(&data);
+    int return_value = main_entry(&data);
+    // Do not modify this line, scripts may look for it in the output.
+    data.log->LogInfo("RETURN: ", return_value);
   });
 
   while (1) {
@@ -80,17 +82,19 @@ int main(int argc, char** argv) {
   xcb_map_window(connection, window);
   xcb_flush(connection);
 
+  int return_value = 0;
+
   std::thread main_thread([&]() {
     entry::entry_data data{window, connection,
                            logging::GetLogger(&root_allocator),
                            &root_allocator};
-    main_entry(&data);
+    return_value = main_entry(&data);
   });
   main_thread.join();
   // TODO(awoloszyn): Handle other events here.
   xcb_disconnect(connection);
   assert(root_allocator.currently_allocated_bytes_.load() == 0);
-  return 0;
+  return return_value;
 }
 #elif defined _WIN32
 #error TODO(awoloszyn): Handle the win32 entry point.

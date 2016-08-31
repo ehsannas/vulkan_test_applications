@@ -14,9 +14,6 @@
 #
 
 project(VulkanTestApplications)
-set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${VulkanTestApplications_BINARY_DIR}/lib)
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${VulkanTestApplications_BINARY_DIR}/lib)
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${VulkanTestApplications_BINARY_DIR}/bin)
 
 cmake_minimum_required(VERSION 3.1)
 
@@ -43,6 +40,12 @@ if (BUILD_APKS)
   string(REPLACE ";" "\",\"" ANDROID_ABIS "${ANDROID_ABIS}")
   get_filename_component(ANDROID_SDK ${ANDROID_SDK} ABSOLUTE)
   get_filename_component(ANDROID_NDK ${ANDROID_NDK} ABSOLUTE)
+endif()
+
+if (NOT ANDROID)
+  set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${VulkanTestApplications_BINARY_DIR}/lib)
+  set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${VulkanTestApplications_BINARY_DIR}/lib)
+  set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${VulkanTestApplications_BINARY_DIR}/bin)
 endif()
 
 set(CMAKE_CXX_STANDARD 11)

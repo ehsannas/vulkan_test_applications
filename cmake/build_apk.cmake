@@ -106,6 +106,7 @@ function(add_vulkan_executable target)
 
     set(SOURCE_DEPS)
     gather_deps(${target}_sources)
+    gather_deps(entry)
 
     add_custom_command(
       OUTPUT ${target_apk}
