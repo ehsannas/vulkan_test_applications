@@ -96,4 +96,27 @@ containers::vector<::VkSampleCountFlagBits> DecomposeVkSmapleCountFlagBits(
   return std::move(bits);
 }
 
+containers::vector<::VkCommandBufferLevel> AllVkCommandBufferLevels(
+    containers::Allocator* allocator) {
+  containers::vector<::VkCommandBufferLevel> levels(allocator);
+  levels.reserve(VK_COMMAND_BUFFER_LEVEL_RANGE_SIZE);
+  for (uint64_t i = VK_COMMAND_BUFFER_LEVEL_BEGIN_RANGE;
+       i <= VK_COMMAND_BUFFER_LEVEL_END_RANGE; ++i) {
+    levels.push_back(static_cast<::VkCommandBufferLevel>(i));
+  }
+  return std::move(levels);
+}
+
+containers::vector<::VkCommandBufferResetFlags>
+AllVkCommandBufferResetFlagCombinations(containers::Allocator* allocator) {
+  containers::vector<::VkCommandBufferResetFlags> flags(allocator);
+  const uint64_t min = 0;
+  const uint64_t max = VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT << 1;
+  flags.reserve(max);
+  for (uint64_t i = min; i < max; ++i) {
+    flags.push_back(static_cast<::VkCommandBufferResetFlags>(i));
+  }
+  return std::move(flags);
+}
+
 }  // namespace vulkan

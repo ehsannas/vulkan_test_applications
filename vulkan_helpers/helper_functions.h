@@ -20,6 +20,7 @@
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
+#include "vulkan_wrapper/sub_device_objects.h"
 
 namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper* _wrapper);
@@ -27,5 +28,7 @@ containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance);
 VkDevice CreateDefaultDevice(containers::Allocator* allocator,
                              VkInstance& instance);
+VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
+                                       VkDevice& device);
 }
 #endif  //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

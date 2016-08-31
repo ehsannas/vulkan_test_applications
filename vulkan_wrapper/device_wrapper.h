@@ -36,19 +36,22 @@ using LazyDeviceFunction = LazyFunction<T, ::VkDevice, VkDevice>;
 
 class VkDevice {
  public:
-// This does not retain a reference to the VkInstance, or the
-// VkAllocationCallbacks object, it does take ownership of the device.
-#define CONSTRUCT_LAZY_FUNCTION(function) function(device, #function, this)
+  // This does not retain a reference to the VkInstance, or the
+  // VkAllocationCallbacks object, it does take ownership of the device.
   VkDevice(::VkDevice device, VkAllocationCallbacks* allocator,
            VkInstance* instance)
       : device_(device),
         has_allocator_(allocator != nullptr),
         log_(instance->GetLogger()),
+#define CONSTRUCT_LAZY_FUNCTION(function) function(device, #function, this)
         CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice),
         CONSTRUCT_LAZY_FUNCTION(vkCreateCommandPool),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyCommandPool),
         CONSTRUCT_LAZY_FUNCTION(vkAllocateCommandBuffers),
-        CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers) {
+        CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer),
+        CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers)
+#undef CONSTRUCT_LAZY_FUNCTION
+  {
     if (has_allocator_) {
       allocator_ = *allocator;
     } else {
@@ -65,8 +68,6 @@ class VkDevice {
       vkDestroyDevice(device_, has_allocator_ ? &allocator_ : nullptr);
     }
   }
-
-#undef CONSTRUCT_LAZY_FUNCTION
 
   PFN_vkGetDeviceProcAddr get_device_proc_addr_function() {
     return vkGetDeviceProcAddr;
@@ -95,6 +96,7 @@ class VkDevice {
   LAZY_FUNCTION(vkCreateCommandPool);
   LAZY_FUNCTION(vkDestroyCommandPool);
   LAZY_FUNCTION(vkAllocateCommandBuffers);
+  LAZY_FUNCTION(vkResetCommandBuffer);
   LAZY_FUNCTION(vkFreeCommandBuffers);
 #undef LAZY_FUNCTION
 };

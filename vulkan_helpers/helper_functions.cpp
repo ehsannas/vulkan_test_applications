@@ -89,4 +89,22 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
       VK_SUCCESS);
   return vulkan::VkDevice(raw_device, nullptr, &instance);
 }
+
+VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
+                                       VkDevice& device) {
+  VkCommandPoolCreateInfo info = {
+      /* sType = */ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      // TODO(antiagainst): use a graphics + compute queue family.
+      /* queueFamilyIndex = */ 0,
+  };
+
+  ::VkCommandPool raw_command_pool;
+  LOG_ASSERT(
+      ==, device.GetLogger(),
+      device.vkCreateCommandPool(device, &info, nullptr, &raw_command_pool),
+      VK_SUCCESS);
+  return vulkan::VkCommandPool(raw_command_pool, nullptr, &device);
+}
 }

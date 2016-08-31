@@ -49,6 +49,16 @@ containers::vector<::VkImageCreateFlags> AllVkImageCreateFlagCombinations(
 // via a vector allocated from the given allocator.
 containers::vector<::VkSampleCountFlagBits> DecomposeVkSmapleCountFlagBits(
     ::VkSampleCountFlags flags, containers::Allocator* allocator);
+
+// Returns all valid VkCommandBufferLevel values via a vector allocated from the
+// given allocator.
+containers::vector<::VkCommandBufferLevel> AllVkCommandBufferLevels(
+    containers::Allocator* allocator);
+
+// Returns all valid combinations of VkCommandBufferResetFlagBits values via a
+// vector allocated from the given allocator.
+containers::vector<::VkCommandBufferResetFlags>
+AllVkCommandBufferResetFlagCombinations(containers::Allocator* allocator);
 }
 
 #endif  //  VULKAN_HELPERS_STRUCTS_H_
