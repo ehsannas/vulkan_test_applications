@@ -66,7 +66,7 @@ class VkSubDeviceObject {
   }
 
   VkSubDeviceObject(VkSubDeviceObject<T>&& other)
-      : device_(other._device),
+      : device_(other.device_),
         log_(other.log_),
         vkGetDeviceProcAddr(other.vkGetDeviceProcAddr),
         allocator_(other.allocator_),
@@ -90,8 +90,8 @@ class VkSubDeviceObject {
       destruction_function;
 
  public:
-  operator T() { return raw_object_; }
-  T get_raw_object() { return raw_object_; }
+  operator type() { return raw_object_; }
+  type get_raw_object() { return raw_object_; }
 
   PFN_vkVoidFunction getProcAddr(::VkDevice device, const char* function) {
     return vkGetDeviceProcAddr(device, function);
