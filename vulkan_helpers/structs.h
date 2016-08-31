@@ -44,6 +44,11 @@ containers::vector<::VkImageUsageFlags> AllVkImageUsageFlagCombinations(
 // allocated from the given allocator.
 containers::vector<::VkImageCreateFlags> AllVkImageCreateFlagCombinations(
     containers::Allocator* allocator);
+
+// Decomposes the VkSampleCountFlagBits from the given flags and returns them
+// via a vector allocated from the given allocator.
+containers::vector<::VkSampleCountFlagBits> DecomposeVkSmapleCountFlagBits(
+    ::VkSampleCountFlags flags, containers::Allocator* allocator);
 }
 
 #endif  //  VULKAN_HELPERS_STRUCTS_H_

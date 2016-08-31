@@ -85,4 +85,15 @@ containers::vector<::VkImageCreateFlags> AllVkImageCreateFlagCombinations(
   return std::move(flags);
 }
 
+containers::vector<::VkSampleCountFlagBits> DecomposeVkSmapleCountFlagBits(
+    const ::VkSampleCountFlags flags, containers::Allocator* allocator) {
+  containers::vector<::VkSampleCountFlagBits> bits(allocator);
+  bits.reserve(7u);  // We have 7 possible sample count flag bits till now.
+  for (uint64_t i = VK_SAMPLE_COUNT_1_BIT; i <= VK_SAMPLE_COUNT_64_BIT;
+       i <<= 1) {
+    if (flags & i) bits.push_back(static_cast<::VkSampleCountFlagBits>(i));
+  }
+  return std::move(bits);
+}
+
 }  // namespace vulkan

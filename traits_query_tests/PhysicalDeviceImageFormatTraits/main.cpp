@@ -65,6 +65,11 @@ int main_entry(const entry::entry_data* data) {
                 data->log->LogInfo("      maxArrayLayers: ",
                                    properties.maxArrayLayers);
               }
+
+              if (result == VK_SUCCESS) {
+                // TODO(antiagainst): flesh out tests for
+                // vkGetPhysicalDeviceImageFormatProperties here
+              }
             }
           }
         }

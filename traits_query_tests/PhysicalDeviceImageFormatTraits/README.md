@@ -10,10 +10,29 @@ VkResult vkGetPhysicalDeviceImageFormatProperties(
     VkImageUsageFlags                           usage,
     VkImageCreateFlags                          flags,
     VkImageFormatProperties*                    pImageFormatProperties);
+
+void vkGetPhysicalDeviceSparseImageFormatProperties(
+    VkPhysicalDevice                            physicalDevice,
+    VkFormat                                    format,
+    VkImageType                                 type,
+    VkSampleCountFlagBits                       samples,
+    VkImageUsageFlags                           usage,
+    VkImageTiling                               tiling,
+    uint32_t*                                   pPropertyCount,
+    VkSparseImageFormatProperties*              pProperties);
 ```
 
-According to the Vulkan spec:
+For `vkGetPhysicalDeviceImageFormatProperties`, according to the Vulkan spec:
 - `usage` **must not** be 0
+
+For `vkGetPhysicalDeviceSparseImageFormatProperties`, according to
+the Vulkan spec:
+- `usage` **must not** be 0
+- `samples` must be a bit value that is set in
+  `VkImageFormatProperties::sampleCounts` returned by
+  `vkGetPhysicalDeviceImageFormatProperties` with `format`, `type`, `tiling`,
+  and `usage` equal to those in this command and `flags` equal to the value
+  that is set in `VkImageCreateInfo::flags` when the image is created
 
 ## VkQueueFamilyProperties
 ```c++
@@ -26,10 +45,36 @@ typedef struct VkImageFormatProperties {
 } VkImageFormatProperties;
 ```
 
-These tests should test the following cases:
+## VkSparseImageFormatProperties
+```c++
+typedef struct VkSparseImageFormatProperties {
+    VkImageAspectFlags          aspectMask;
+    VkExtent3D                  imageGranularity;
+    VkSparseImageFormatFlags    flags;
+} VkSparseImageFormatProperties;
+```
+
+For `vkGetPhysicalDeviceImageFormatProperties`, these tests should test
+the following cases:
 - [x] All combinations of
   - all valid `VkFormat` values
   - all valid `VkImageType` values
   - all valid `VkImageTiling` values
   - all valid `VkImageUsageFlags` values excluding 0
   - all valid `VkImageCreateFlags` values
+
+For `vkGetPhysicalDeviceSparseImageFormatProperties`, these tests should test
+the following cases:
+- [ ] All combinations of
+  - all valid `VkFormat` values
+  - all valid `VkImageType` values
+  - all valid `VkSampleCountFlagBits` values
+  - all valid `VkImageUsageFlags` values excluding 0
+  - all valid `VkImageTiling` values
+- [ ] And for each of the above combinations:
+  - [ ] `pProperties` == nullptr
+  - [ ] `pProperties` != nullptr
+    - [ ] `pPropertyCount` == 0
+    - [ ] `pPropertyCount` < the number returned by first call
+    - [ ] `pPropertyCount` == the number returned by first call
+    - [ ] `pPropertyCount` > the number returned by first call
