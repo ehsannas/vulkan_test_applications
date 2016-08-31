@@ -16,12 +16,9 @@
 #include "support/entry/entry.h"
 #include "support/log/log.h"
 #include "vulkan_helpers/helper_functions.h"
+#include "vulkan_helpers/structs.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
-
-static_assert(VK_VERSION_1_0 == 1 && VK_HEADER_VERSION == 24,
-              "review the following to make sure that all VkFormat values are "
-              "covered after updating vulkan.h");
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
@@ -46,19 +43,10 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("  Phyiscal Device: ", device);
 
       VkFormatProperties properties;
-      //                       0: VK_FORMAT_UNDEFINED
-      //          1 -        184: assigned
-      // 1000054000 - 1000054007: assigned
-      for (uint64_t i = VK_FORMAT_BEGIN_RANGE; i <= VK_FORMAT_END_RANGE; ++i) {
-        data->log->LogInfo("    VkFormat: ", i);
-        instance.vkGetPhysicalDeviceFormatProperties(
-            device, static_cast<VkFormat>(i), &properties);
-        output_properties(properties);
-      }
-      for (uint64_t i = 1000054000ul; i <= 1000054007ul; ++i) {
-        data->log->LogInfo("    VkFormat: ", i);
-        instance.vkGetPhysicalDeviceFormatProperties(
-            device, static_cast<VkFormat>(i), &properties);
+      for (auto format : vulkan::AllVkFormats(data->root_allocator)) {
+        data->log->LogInfo("    VkFormat: ", format);
+        instance.vkGetPhysicalDeviceFormatProperties(device, format,
+                                                     &properties);
         output_properties(properties);
       }
     }

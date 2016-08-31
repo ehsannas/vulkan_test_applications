@@ -13,11 +13,8 @@
 # limitations under the License.
 #
 
-add_vulkan_static_library(vulkan_helpers
-    SOURCES
-        helper_functions.h
-        helper_functions.cpp
-        structs.h
-        structs.cpp
-    LIBS
-        vulkan_wrapper)
+add_vulkan_executable(PhysicalDeviceImageFormatTraits
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+)

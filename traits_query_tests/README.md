@@ -9,3 +9,4 @@ features/properties of Vulkan objects.
 - [PhysicalDeviceTraits](PhysicalDeviceTraits/README.md)
 - [vkGetPhysicalDeviceFormatProperties](vkGetPhysicalDeviceFormatProperties/README.md)
 - [vkGetPhysicalDeviceQueueFamilyProperties](vkGetPhysicalDeviceQueueFamilyProperties/README.md)
+- [PhysicalDeviceImageFormatTraits](PhysicalDeviceImageFormatTraits/README.md)
