@@ -24,9 +24,7 @@ set(CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/CMakeLists.txt
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/proguard-rules.pro
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/AndroidManifest.xml
-  ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/values/colors.xml
-  ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/values/strings.xml
-  ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/values/styles.xml)
+  ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/values/strings.xml)
 
 set(NON_CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/gradlew
@@ -81,8 +79,14 @@ function(add_vulkan_executable target)
     set(${target}_SOURCES ${EXE_SOURCES})
     set(${target}_LIBS ${EXE_LIBS})
     set(ANDROID_ADDITIONAL_PARAMS)
+    set(APK_BUILD_ROOT "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/")
+    string(REPLACE "\",\"" " " ANDROID_ABIS_SPACES "${ANDROID_ABIS}")
+
     if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
       set(ANDROID_ADDITIONAL_PARAMS "android:debuggable=\"true\"")
+      list(APPEND CONFIGURABLE_ANDROID_SOURCES
+        ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/jni/Android.mk
+        ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/gdb-path.txt)
     endif()
 
     foreach(source ${CONFIGURABLE_ANDROID_SOURCES})
@@ -98,10 +102,10 @@ function(add_vulkan_executable target)
 
 
     if (CMAKE_BUILD_TYPE STREQUAL Debug)
-      set(apk_build_location "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/app/build/outputs/apk/app-debug.apk")
+      set(apk_build_location "${APK_BUILD_ROOT}/app/build/outputs/apk/app-debug.apk")
       set(ASSEMBLE_COMMAND assembleDebug)
     else()
-      set(apk_build_location "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/app/build/outputs/apk/app-release-unsigned.apk")
+      set(apk_build_location "${APK_BUILD_ROOT}/app/build/outputs/apk/app-release-unsigned.apk")
       set(ASSEMBLE_COMMAND assembleRelease)
     endif()
 

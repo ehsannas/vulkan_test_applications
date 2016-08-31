@@ -1,0 +1,1 @@
+set solib-search-path @APK_BUILD_ROOT@app/build/intermediates/cmake/debug/lib/armeabi-v7a:@APK_BUILD_ROOT@app/build/intermediates/cmake/debug/lib/x86:@APK_BUILD_ROOT@app/build/intermediates/cmake/debug/lib/arm64-v8a

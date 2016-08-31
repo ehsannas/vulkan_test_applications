@@ -14,9 +14,11 @@
  */
 
 #include "support/entry/entry.h"
+
 #include <cassert>
 #include <chrono>
 #include <thread>
+
 #include "support/log/log.h"
 
 namespace entry {
@@ -27,10 +29,16 @@ void dummy_function() {}
 
 #if defined __ANDROID__
 #include <android_native_app_glue.h>
+#include <unistd.h>
 
 // This method is called by android_native_app_glue. This is the main entry
 // point for any native android activity.
 void android_main(android_app* app) {
+  // Simply wait for 10 seconds, this is useful if we have to attach late.
+  if (access("/sdcard/wait-for-debugger.txt", F_OK) != -1) {
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+  }
+
   // Hack to make sure android_native_app_glue is not stripped.
   app_dummy();
   containers::Allocator root_allocator;
