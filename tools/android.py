@@ -45,6 +45,14 @@ def adb_stream(params, program_args):
         print args
     return subprocess.Popen(args, stdout=subprocess.PIPE)
 
+def install_apk(apk, program_args):
+    '''Installs an apk. Overwrites existing APK if it exists and grants all permissions.
+
+        program_args must have a .verbose member.
+
+    '''
+    adb(['install', '-r', '-g', apk], program_args)
+
 
 def get_apk_info(apk):
     ''' Returns a named tuple (test_name, package_name, activity_name) for the given apk.'''

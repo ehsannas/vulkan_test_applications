@@ -12,7 +12,7 @@ import android
 def run_on_single_apk(apk, args):
     '''Installs, traces and optionally uninstalls a single APK from an android device.'''
     apk_info = android.get_apk_info(apk)
-    android.adb(['install', '-r', apk], args)
+    android.install_apk(apk, args)
     android.adb(['logcat', '-c'], args)
 
     gapit_args = ['gapit']
@@ -20,8 +20,11 @@ def run_on_single_apk(apk, args):
         gapit_args.extend(['-log-level' 'Debug'])
     gapit_args.extend(['trace', apk_info.package_name])
     p = subprocess.Popen(gapit_args)
-    android.watch_process(True, args)
+    return_value = android.watch_process(True, args)
     p.terminate()
+    android.adb(['shell', 'am', 'force-stop', apk_info.package_name], args)
+    if not args.keep:
+        android.adb(['uninstall', apk_info.package_name], args)
 
     sys.exit(return_value)
 
