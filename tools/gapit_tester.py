@@ -21,7 +21,6 @@ def run_on_single_apk(apk, args):
     gapit_args.extend(['trace', apk_info.package_name])
     p = subprocess.Popen(gapit_args)
     return_value = android.watch_process(True, args)
-    p.terminate()
     android.adb(['shell', 'am', 'force-stop', apk_info.package_name], args)
     if not args.keep:
         android.adb(['uninstall', apk_info.package_name], args)
