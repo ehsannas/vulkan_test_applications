@@ -49,7 +49,8 @@ class VkDevice {
         CONSTRUCT_LAZY_FUNCTION(vkDestroyCommandPool),
         CONSTRUCT_LAZY_FUNCTION(vkAllocateCommandBuffers),
         CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer),
-        CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers)
+        CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers),
+        CONSTRUCT_LAZY_FUNCTION(vkGetDeviceQueue)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
     if (has_allocator_) {
@@ -98,6 +99,7 @@ class VkDevice {
   LAZY_FUNCTION(vkAllocateCommandBuffers);
   LAZY_FUNCTION(vkResetCommandBuffer);
   LAZY_FUNCTION(vkFreeCommandBuffers);
+  LAZY_FUNCTION(vkGetDeviceQueue);
 #undef LAZY_FUNCTION
 };
 
