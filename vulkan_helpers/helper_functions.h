@@ -24,10 +24,31 @@
 
 namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper* _wrapper);
+
 containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance);
+
+// Gets all queue family properties for the given physical |device| from the
+// given |instance|. Queue family properties will be returned in a vector
+// allocated from the given |allocator|.
+containers::vector<VkQueueFamilyProperties> GetQueueFamilyProperties(
+    containers::Allocator* allocator, VkInstance& instance,
+    ::VkPhysicalDevice device);
+
+// Returns the index for the first queue family with both graphics and compute
+// capabilities for the given physical |device|. Returns the max unit32_t value
+// if no such queue.
+uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
+                                          VkInstance& instance,
+                                          ::VkPhysicalDevice device);
+
+// Creates a device from the given |instance| with one queue. If
+// |require_graphics_and_compute_queue| is true, the queue is of both graphics
+// and compute capabilities.
 VkDevice CreateDefaultDevice(containers::Allocator* allocator,
-                             VkInstance& instance);
+                             VkInstance& instance,
+                             bool require_graphics_compute_queue = false);
+
 VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
                                        VkDevice& device);
 }

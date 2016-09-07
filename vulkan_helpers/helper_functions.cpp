@@ -61,15 +61,62 @@ containers::vector<VkPhysicalDevice> GetPhysicalDevices(
   return std::move(physical_devices);
 }
 
+containers::vector<VkQueueFamilyProperties> GetQueueFamilyProperties(
+    containers::Allocator* allocator, VkInstance& instance,
+    ::VkPhysicalDevice device) {
+  uint32_t count = 0;
+  instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
+
+  LOG_ASSERT(>, instance.GetLogger(), count, 0u);
+  containers::vector<VkQueueFamilyProperties> properties(allocator);
+  properties.resize(count);
+  instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
+                                                    properties.data());
+  return std::move(properties);
+}
+
+inline bool HasGraphicsAndComputeQueue(
+    const VkQueueFamilyProperties& property) {
+  return property.queueCount > 0 &&
+         (property.queueFlags & VK_QUEUE_GRAPHICS_BIT & VK_QUEUE_COMPUTE_BIT);
+}
+
+uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
+                                          VkInstance& instance,
+                                          ::VkPhysicalDevice device) {
+  uint32_t queue_family_index = ~0u;
+
+  auto properties = GetQueueFamilyProperties(allocator, instance, device);
+  // We use the max uint32_t value to mean failure.
+  LOG_ASSERT(!=, instance.GetLogger(), properties.size(), ~0u);
+
+  for (uint32_t i = 0; i < properties.size(); ++i) {
+    if (HasGraphicsAndComputeQueue(properties[i])) break;
+  }
+  return queue_family_index;
+}
+
 VkDevice CreateDefaultDevice(containers::Allocator* allocator,
-                             VkInstance& instance) {
+                             VkInstance& instance,
+                             bool require_graphics_compute_queue) {
   containers::vector<VkPhysicalDevice> physical_devices =
       GetPhysicalDevices(allocator, instance);
   float priority = 1.f;
 
-  // TODO(awoloszyn): Return the first graphics + compute queue.
+  VkPhysicalDevice physical_device = physical_devices.front();
+  const uint32_t queue_family_index =
+      require_graphics_compute_queue ? GetGraphicsAndComputeQueueFamily(
+                                           allocator, instance, physical_device)
+                                     : 0;
+  LOG_ASSERT(!=, instance.GetLogger(), queue_family_index, ~0u);
+
   VkDeviceQueueCreateInfo queue_info{
-      VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, nullptr, 0, 0, 1, &priority};
+      /* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ 0,
+      /* queueFamilyIndex = */ queue_family_index,
+      /* queueCount */ 1,
+      /* pQueuePriorities = */ &priority};
 
   VkDeviceCreateInfo info{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                           nullptr,
@@ -85,7 +132,7 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
   ::VkDevice raw_device;
   LOG_ASSERT(
       ==, instance.GetLogger(),
-      instance.vkCreateDevice(physical_devices[0], &info, nullptr, &raw_device),
+      instance.vkCreateDevice(physical_device, &info, nullptr, &raw_device),
       VK_SUCCESS);
   return vulkan::VkDevice(raw_device, nullptr, &instance);
 }
