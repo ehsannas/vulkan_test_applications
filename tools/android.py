@@ -82,6 +82,9 @@ def watch_process(silent, program_args):
     while True:
         line = p.stdout.readline()
         if line != '':
+            if 'beginning of crash' in line:
+                print "**Application Crashed**"
+                return -1
             split_line = line.split(':')[1:]
             if not split_line:
                 continue
