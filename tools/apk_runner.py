@@ -1,5 +1,17 @@
 #!/usr/bin/python
-
+# Copyright 2016 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 '''This runs a given APK that was compiled from this repository.
 
 This runs a given APK on the connected Android device. It makes assumptions
@@ -14,12 +26,14 @@ import sys
 
 import android
 
+
 def run_on_single_apk(apk, args):
-    '''Installs, runs and optionally uninstalls a single APK from an android device.'''
+    """Installs, runs and optionally uninstalls a single APK from an android device."""
     apk_info = android.get_apk_info(apk)
     android.install_apk(apk, args)
     android.adb(['logcat', '-c'], args)
-    android.adb(['shell', 'am', 'start', '-n', apk_info.package_name + '/' + apk_info.activity_name], args)
+    android.adb(['shell', 'am', 'start', '-n',
+                 apk_info.package_name + '/' + apk_info.activity_name], args)
 
     return_value = android.watch_process(False, args)
 
@@ -28,12 +42,15 @@ def run_on_single_apk(apk, args):
         android.adb(['uninstall', apk_info.package_name], args)
     sys.exit(return_value)
 
+
 def main():
     parser = argparse.ArgumentParser(
-                description='Run a .apk file on an android device')
+        description='Run a .apk file on an android device')
     parser.add_argument('apk', help='apk to run')
-    parser.add_argument('--keep', action='store_true', help='do not uninstall on completion')
-    parser.add_argument('--verbose',  action='store_true', help='enable verbose output')
+    parser.add_argument(
+        '--keep', action='store_true', help='do not uninstall on completion')
+    parser.add_argument(
+        '--verbose', action='store_true', help='enable verbose output')
     args = parser.parse_args()
     run_on_single_apk(args.apk, args)
 

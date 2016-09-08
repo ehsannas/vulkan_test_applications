@@ -1,12 +1,23 @@
-#!/usr/bin/python
-
+# Copyright 2016 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 '''This contains useful functions for talking to android devices and getting
 information about .apks'''
 
 import collections
 import os
 import subprocess
-import sys
+
 
 def adb(params, program_args):
     '''Runs a single command through ADB.
@@ -17,7 +28,8 @@ def adb(params, program_args):
 
         program_args must contain a .verbose member.
 
-        If program_args.verbose is true, then the command and the output is printed,
+        If program_args.verbose is true, then the command and the output is
+          printed,
         otherwise no output is present.
     '''
     args = ['adb']
@@ -26,10 +38,13 @@ def adb(params, program_args):
         print args
         subprocess.check_call(args)
     else:
-        subprocess.check_call(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.check_call(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
 
 def adb_stream(params, program_args):
-    '''Runs a single command through ADB, returns the process with stdout redirected.
+    '''Runs a single command through ADB, returns the process with stdout
+    redirected.
 
     Arguments:
         params: A list of the parameters to pass to adb
@@ -45,8 +60,11 @@ def adb_stream(params, program_args):
         print args
     return subprocess.Popen(args, stdout=subprocess.PIPE)
 
+
 def install_apk(apk, program_args):
-    '''Installs an apk. Overwrites existing APK if it exists and grants all permissions.
+    '''Installs an apk.
+
+    Overwrites existing APK if it exists and grants all permissions.
 
         program_args must have a .verbose member.
 
@@ -55,12 +73,15 @@ def install_apk(apk, program_args):
 
 
 def get_apk_info(apk):
-    ''' Returns a named tuple (test_name, package_name, activity_name) for the given apk.'''
+    """Returns a named tuple (test_name, package_name, activity_name) for the
+    given apk."""
     test_name = os.path.splitext(os.path.basename(apk))[0]
     package_name = 'com.example.test.' + test_name
     activity_name = 'android.app.NativeActivity'
-    apk_info = collections.namedtuple('ApkInfo', ['test_name', 'package_name', 'activity_name'])
+    apk_info = collections.namedtuple(
+        'ApkInfo', ['test_name', 'package_name', 'activity_name'])
     return apk_info(test_name, package_name, activity_name)
+
 
 def watch_process(silent, program_args):
     ''' Watches the output of a running android process.
@@ -76,14 +97,16 @@ def watch_process(silent, program_args):
     Returns the return code that it produced
 
     '''
-    p = adb_stream(['logcat', '-s', '-v', 'brief', 'VulkanTestApplication:V'], program_args)
+    proc = adb_stream(
+        ['logcat', '-s', '-v', 'brief', 'VulkanTestApplication:V'],
+        program_args)
     return_value = 0
 
     while True:
-        line = p.stdout.readline()
+        line = proc.stdout.readline()
         if line != '':
             if 'beginning of crash' in line:
-                print "**Application Crashed**"
+                print '**Application Crashed**'
                 return -1
             split_line = line.split(':')[1:]
             if not split_line:
