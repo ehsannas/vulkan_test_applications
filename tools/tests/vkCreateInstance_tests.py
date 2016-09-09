@@ -9,18 +9,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from gapit_test_framework import gapit_test, require, require_not
+from gapit_test_framework import gapit_test, require, require_not, require_equal
+from gapit_test_framework import require_not_equal, little_endian_bytes_to_int
 from gapit_test_framework import GapitTest
+from vulkan_constants import *
 
 
 @gapit_test("vkCreateInstance_test.apk")
 class NullObjectTest(GapitTest):
 
     def expect(self):
-        """Expect that there is a call with a null argument"""
-        require(self.next_call_of("vkCreateInstance"))
-        require(self.next_call_of("vkDestroyInstance"))
-        # In this test there should be 2 more vkCreateInstance calls
-        require(self.nth_call_of("vkCreateInstance", 2))
-        # There should be no more calls to vkCreateInstance
-        require_not(self.next_call_of("vkCreateInstance"))
+        """Expect that the applicationInfoPointer is null for the first
+         vkCreateInstance"""
+        architecture = require(self.next_call_of("architecture"))
+
+        create_instance = require(self.next_call_of("vkCreateInstance"))
+        require_not_equal(create_instance.hex_PCreateInfo, 0)
+
+        create_info_memory = require(
+            create_instance.get_read_data(create_instance.hex_PCreateInfo,
+                                          architecture.int_IntegerSize))
+        require_equal(
+            little_endian_bytes_to_int(create_info_memory),
+            VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO)
+
+        applicationInfoPointer = require(
+            create_instance.get_read_data(create_instance.hex_PCreateInfo +
+                                          architecture.int_PointerSize * 3,
+                                          architecture.int_PointerSize))
+        require_equal(little_endian_bytes_to_int(applicationInfoPointer), 0)

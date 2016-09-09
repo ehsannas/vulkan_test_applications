@@ -27,7 +27,7 @@ class Observation(object):
     the memory that was actually observed.'''
 
     def __init__(self, memory_start, memory_end, memory_id):
-        self.contents = bytes()
+        self.contents = []
         self.memory_start = memory_start
         self.memory_end = memory_end
         self.memory_id = memory_id
@@ -39,6 +39,31 @@ class Observation(object):
     def get_memory(self):
         """ Returns the bytes inside the range"""
         return self.contents
+
+
+def find_memory_in_observations(observations, address, num_bytes):
+    '''Searches for the given range of bytes in the given array of observations.
+
+    Returns the bytes if they exist, or returns None if they could not be
+    found
+    '''
+
+    for observation in observations:
+        rng = observation.get_memory_range()
+        last_address = address + num_bytes - 1
+        if (address <= rng[1] and address >= rng[0] and
+                last_address <= rng[1] and last_address >= rng[0]):
+            return observation.get_memory()[address - rng[0]:address - rng[0] +
+                                            num_bytes]
+    return None
+
+
+class AtomAttributeError(AttributeError):
+    """An exception that is thrown when trying to access a parameter from an
+    atom"""
+
+    def __init__(self, message):
+        super(AtomAttributeError, self).__init__(message)
 
 
 class Atom(object):
@@ -55,16 +80,70 @@ class Atom(object):
         self.name = name
         self.return_val = return_val
 
+    def __getattr__(self, name):
+        """Returns parameters that were on this atom.
+
+        Based on the prefix (hex_, int_, <none>) we convert the parameter
+        from a string with the given formatting.
+        """
+
+        if name.startswith('hex_') or name.startswith('int_'):
+            if name[4:] in self.parameters:
+                if name.startswith('hex_'):
+                    return int(self.parameters[name[4:]], 16)
+                elif name.startswith('int_'):
+                    return int(self.parameters[name[4:]])
+
+        if name in self.parameters:
+            return self.parameters[name]
+        raise AtomAttributeError('Could not find parameter ' + name +
+                                 ' on atom [' + str(self.index) + ']' +
+                                 self.name + '\n')
+
+    def get_read_data(self, address, num_bytes):
+        """Returns num_bytes from the starting address in the read observations.
+
+        If the range address->address + num_bytes is not contained in a read
+        Observation (None, "Error_Message") is returned, otherwise (bytes, "")
+        is returned
+        """
+        mem = find_memory_in_observations(self.read_observations, address,
+                                          num_bytes)
+        if mem is not None:
+            return (mem, '')
+        else:
+            return (None, 'Could not find a read observation starting at ',
+                    address, ' containing ', num_bytes, ' bytes')
+
+    def get_write_data(self, address, num_bytes):
+        """Returns num_bytes from the starting address in the write
+        observations.
+
+        If the range address->address + num_bytes is not contained in a write
+        Observation (None, "Error_Message") is returned, otherwise (bytes, "")
+        is returned
+        """
+        mem = find_memory_in_observations(self.write_observations, address,
+                                          num_bytes)
+        if mem is not None:
+            return (mem, '')
+        else:
+            return (None, 'Could not find a read observation starting at ',
+                    address, ' containing ', num_bytes, ' bytes')
+
     def add_parameter(self, name, value):
         """Adds a parameter with the given name and value to the atom."""
         self.parameters[name] = value
 
-    def get_parameter(self, name):
-        """Returns the parameter with the given name if it exists, or
-        None otherwise"""
-        if name in self.parameters:
-            return self.parameters[name]
-        return None
+    def get_parameter(self, parameter_name):
+        '''Expects there to be a paramter of the given name on the given atom.
+        Returns (parmeter, "") if it exists, and (None, "Error_message") if it
+        does not'''
+        if parameter_name in self.parameters:
+            return (self.parameters[parameter_name], '')
+        else:
+            return (None, 'Could not find paramter ' + parameter_name +
+                    ' on atom [' + str(self.index) + '] ' + self.name())
 
     def add_read_observation(self, memory_start, memory_end, memory_id):
         '''Adds a read observation to the atom. Does not associate any memory
@@ -168,7 +247,7 @@ def parse_memory_line(line):
     [0 23 254 0]
     """
     match = re.match(r'\s*\[([0-9a-f ]*)\]', line)
-    return bytes([int(x, 16) for x in match.group(1).split(' ')])
+    return [int(x, 10) for x in match.group(1).split(' ')]
 
 # These are the states that we use when parsing.
 # FIRST_LINE is the first line in the entire file

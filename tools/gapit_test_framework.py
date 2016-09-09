@@ -27,7 +27,7 @@ import traceback
 
 from gapit_tester import run_on_single_apk
 from gapit_tester import RunArgs
-from gapit_trace_reader import parse_trace_file
+from gapit_trace_reader import parse_trace_file, AtomAttributeError
 
 SUCCESS = 0
 FAILURE = 1
@@ -36,6 +36,17 @@ FAILURE = 1
 class GapitTestException(Exception):
     """Base test exception"""
     pass
+
+
+def little_endian_bytes_to_int(val):
+    '''Takes a sequence of bytes in little-endian format, and turns
+    them into an integer'''
+    total = 0
+    place = 1
+    for byte in val:
+        total = total + (byte * place)
+        place *= 256
+    return total
 
 
 def require(val):
@@ -49,6 +60,26 @@ def require(val):
     else:
         call_site = traceback.format_list(traceback.extract_stack(limit=2))
         raise GapitTestException(val[1] + "\n" + call_site[0])
+
+
+def require_equal(param, val):
+    """Takes 2 values. If they are equal, does nothing, otherwise
+    throws an exception with an error message"""
+    if type(val)(param) == val:
+        return
+    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    raise GapitTestException("Expected:" + str(param) + "==" + str(val) + "\n" +
+                             call_site[0])
+
+
+def require_not_equal(param, val):
+    """Takes 2 values. If they are not equal, does nothing, otherwise
+    throws an exception with an error message"""
+    if type(val)(param) != val:
+        return
+    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    raise GapitTestException("Expected:" + str(param) + "==" + str(val) + "\n" +
+                             call_site[0])
 
 
 def require_not(val):
@@ -144,6 +175,12 @@ class GapitTest(object):
             print "[ " + "FAILED".rjust(10) + " ] " + test_name
             print "     " + error.message
             return (FAILURE, error.message)
+        except AtomAttributeError as error:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            print "[ " + "FAILED".rjust(10) + " ] " + test_name
+            call_site = traceback.format_exception(
+                exc_type, exc_value, exc_tb, limit=2)
+            print "    " + error.message + call_site[1]
         print "[ " + "OK".rjust(10) + " ] " + test_name
         return (SUCCESS, None)
 
