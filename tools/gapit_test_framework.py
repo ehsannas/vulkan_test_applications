@@ -222,6 +222,11 @@ class TestManager(object):
         include_matcher = re.compile(include_regex)
         exclude_matcher = re.compile(exclude_regex)
 
+        # __import__ does not re-generated *.pyc files correctly,
+        # so remove it all-together, it would be best to not clutter
+        # our directory anyway
+        sys.dont_write_bytecode = True
+
         default_path = sys.path
         for root, _, filenames in os.walk(self.root_directory):
             for filename in fnmatch.filter(filenames, "*.py"):
