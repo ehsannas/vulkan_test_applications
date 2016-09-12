@@ -122,11 +122,11 @@ class GapitTest(object):
         '''Consumes atoms until the nth call of the given type is found,
            returns a tuple (Atom, ""). Returns (None, "error_message") if
            the atom could not be found'''
-        atom = None
+        atom = (None, "")
         for _ in range(0, index):
             atom = self.next_call_of(call_name)
-        if atom:
-            return (atom, "")
+        if atom[0]:
+            return (atom[0], "")
         else:
             return (None,
                     "Could not find " + index + " atoms of type " + call_name)

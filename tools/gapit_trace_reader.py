@@ -58,6 +58,23 @@ def find_memory_in_observations(observations, address, num_bytes):
     return None
 
 
+def find_string_in_observations(observations, address):
+    '''Finds a null-terminated string starting at the given address in
+    the observations. Returns a python string containing all of the non
+    null bytes, or None if it could not be found'''
+    for observation in observations:
+        rng = observation.get_memory_range()
+        if address <= rng[1] and address >= rng[0]:
+            memory = observation.get_memory()
+            string_data = bytearray()
+            for idx in range(address - rng[0], rng[1] - rng[0] + 1):
+                ch = memory[idx]
+                if ch is 0:
+                    return str(string_data)
+                string_data.append(ch)
+    return None
+
+
 class AtomAttributeError(AttributeError):
     """An exception that is thrown when trying to access a parameter from an
     atom"""
@@ -111,9 +128,22 @@ class Atom(object):
                                           num_bytes)
         if mem is not None:
             return (mem, '')
-        else:
-            return (None, 'Could not find a read observation starting at ',
-                    address, ' containing ', num_bytes, ' bytes')
+
+        return (None, 'Could not find a read observation starting at ', address,
+                ' containing ', num_bytes, ' bytes')
+
+    def get_read_string(self, address):
+        """Returns a null-terminated string starting at address in the
+        read observations.
+
+        If there is no null-terminated string at address, then
+        (None, "Error_Message") is returned otherwise (string, "")
+        is returned"""
+        mem = find_string_in_observations(self.read_observations, address)
+        if mem is not None:
+            return mem, ''
+
+        return (None, 'Could not find a string starting at ', address)
 
     def get_write_data(self, address, num_bytes):
         """Returns num_bytes from the starting address in the write
@@ -130,6 +160,19 @@ class Atom(object):
         else:
             return (None, 'Could not find a read observation starting at ',
                     address, ' containing ', num_bytes, ' bytes')
+
+    def get_write_string(self, address):
+        """Returns a null-terminated string starting at address in the
+        read observations.
+
+        If there is no null-terminated string at address, then
+        (None, "Error_Message") is returned otherwise (string, "")
+        is returned"""
+        mem = find_string_in_observations(self.write_observations, address)
+        if mem is not None:
+            return mem, ''
+
+        return (None, 'Could not find a string starting at ', address)
 
     def add_parameter(self, name, value):
         """Adds a parameter with the given name and value to the atom."""
