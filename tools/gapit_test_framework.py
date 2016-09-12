@@ -215,9 +215,13 @@ class TestManager(object):
         self.number_of_tests_run = 0
         self.failed_tests = []
 
-    def gather_all_tests(self):
+    def gather_all_tests(self, include_regex, exclude_regex):
         '''Finds all classes in all python files that contain the attribute
-            @gapit_test'''
+            @gapit_test whose names match include_regex and do not match
+            exclude_regex'''
+        include_matcher = re.compile(include_regex)
+        exclude_matcher = re.compile(exclude_regex)
+
         default_path = sys.path
         for root, _, filenames in os.walk(self.root_directory):
             for filename in fnmatch.filter(filenames, "*.py"):
@@ -233,32 +237,34 @@ class TestManager(object):
                         if self.verbose:
                             print("Found test " + obj.__name__ + " in " +
                                   os.path.join(root, filename))
-                        self.add_test(obj.gapit_test_apk_name, obj())
+                        test_name = os.path.relpath(root, self.root_directory)
+                        test_name = test_name.replace("/", ".")
+                        test_name = test_name.replace("\\", ".")
+                        test = obj()
+                        test_name += "." + test.name()
+                        if (include_matcher.match(test_name) and
+                                None == exclude_matcher.match(test_name)):
+                            self.add_test(obj.gapit_test_apk_name, test_name,
+                                          test)
 
     def print_test_names(self, file_handle):
         """Prints out to the given file handle a list of all tests."""
-        for apk, tests in self.tests.iteritems():
+        for _, tests in self.tests.iteritems():
             for test in tests:
-                file_handle.write(apk + "." + test.name() + "\n")
+                file_handle.write(test[0] + "\n")
 
-    def add_test(self, apk_name, test):
+    def add_test(self, apk_name, test_name, test):
         """Adds a test case to the manager from the given apk"""
         if not apk_name in self.tests:
             self.tests[apk_name] = []
-        self.tests[apk_name].append(test)
+        self.tests[apk_name].append((test_name, test))
 
-    def run_all_tests(self, temp_directory, include_regex, exclude_regex):
-        '''Runs all of the tests that match the given regular expression
-        string'''
-        include_matcher = re.compile(include_regex)
-        exclude_matcher = re.compile(exclude_regex)
+    def run_all_tests(self, temp_directory):
+        """Runs all of the tests"""
         for apk in sorted(self.tests.keys()):
-            for test in sorted(self.tests[apk], key=lambda x: x.name()):
-                if (include_matcher.match(apk + "." + test.name()) and
-                        None == exclude_matcher.match(apk + "." + test.name())):
-                    self.accumulate_result(
-                        apk + "." + test.name(),
-                        test.run_test(self.verbose, temp_directory))
+            for test in sorted(self.tests[apk], key=lambda x: x[0]):
+                self.accumulate_result(
+                    test[0], test[1].run_test(self.verbose, temp_directory))
 
     def accumulate_result(self, test_name, result):
         """Tracks the results for the given test"""
@@ -315,14 +321,14 @@ from a build.
         test_directory = args.test_dir[0]
 
     manager = TestManager(test_directory, args.verbose)
-    manager.gather_all_tests()
+    manager.gather_all_tests(args.include, args.exclude)
 
     if args.list_tests:
         manager.print_test_names(sys.stdout)
         return 0
     else:
         test_directory = tempfile.mkdtemp()
-        manager.run_all_tests(test_directory, args.include, args.exclude)
+        manager.run_all_tests(test_directory)
         shutil.rmtree(test_directory)
         return manager.print_summary_and_return_code()
 
