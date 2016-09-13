@@ -269,6 +269,8 @@ class TestManager(object):
         """root_directory is the directory that contains all of the tests"""
         self.root_directory = root_directory
         self.verbose = verbose
+        # The key is the name of the APK, and the value is a list of tuples
+        # of (name, GapitTest) for the APK
         self.tests = {}
         self.number_of_tests_run = 0
         self.failed_tests = []
