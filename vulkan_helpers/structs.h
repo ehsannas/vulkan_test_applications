@@ -16,9 +16,9 @@
 #ifndef VULKAN_HELPERS_STRUCTS_H_
 #define VULKAN_HELPERS_STRUCTS_H_
 
-#include "external/vulkan/vulkan.h"
 #include "support/containers/allocator.h"
 #include "support/containers/vector.h"
+#include "vulkan_helpers/vulkan_header_wrapper.h"
 
 namespace vulkan {
 // Returns all valid VkFormat values via a vector allocated from the given

@@ -18,10 +18,9 @@
 
 #include <memory>
 
-#include "external/vulkan/vulkan.h"
-
 #include "support/containers/allocator.h"
 #include "support/containers/unique_ptr.h"
+#include "vulkan_helpers/vulkan_header_wrapper.h"
 
 namespace dynamic_loader {
 // This wraps a system-specific loaded dynamic library.

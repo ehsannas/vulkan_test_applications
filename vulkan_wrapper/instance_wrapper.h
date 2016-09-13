@@ -16,10 +16,9 @@
 #ifndef VULKAN_WRAPPER_INSTANCE_WRAPPER_H_
 #define VULKAN_WRAPPER_INSTANCE_WRAPPER_H_
 
-#include "external/vulkan/vulkan.h"
-
 #include <cstring>
 
+#include "vulkan_helpers/vulkan_header_wrapper.h"
 #include "vulkan_wrapper/lazy_function.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
@@ -48,7 +47,18 @@ class VkInstance {
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties)
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroySurfaceKHR)
+#if defined __ANDROID__
+        ,
+        CONSTRUCT_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
+#elif defined __linux__
+        ,
+        CONSTRUCT_LAZY_FUNCTION(vkCreateXcbSurfaceKHR)
+#elif defined __WIN32__
+        ,
+        CONSTRUCT_LAZY_FUNCTION(vkCreateWin32SurfaceKHR)
+#endif
 #undef CONSTRUCT_LAZY_FUNCTION
   {
     if (has_allocator_) {
@@ -75,7 +85,18 @@ class VkInstance {
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties)
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties),
+        MOVE_LAZY_FUNCTION(vkDestroySurfaceKHR)
+#if defined __ANDROID__
+        ,
+        MOVE_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
+#elif defined __linux__
+        ,
+        MOVE_LAZY_FUNCTION(vkCreateXcbSurfaceKHR)
+#elif defined __WIN32__
+        ,
+        MOVE_LAZY_FUNCTION(vkCreateWin32SurfaceKHR)
+#endif
 #undef COPY_LAZY_FUNCTION
   {
     other.instance_ = VK_NULL_HANDLE;
@@ -119,6 +140,14 @@ class VkInstance {
   LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties);
   LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties);
   LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties);
+  LAZY_FUNCTION(vkDestroySurfaceKHR);
+#if defined __ANDROID__
+  LAZY_FUNCTION(vkCreateAndroidSurfaceKHR);
+#elif defined __linux__
+  LAZY_FUNCTION(vkCreateXcbSurfaceKHR);
+#elif defined __WIN32__
+  LAZY_FUNCTION(vkCreateWin32SurfaceKHR);
+#endif
 #undef LAZY_FUNCTION
 };
 

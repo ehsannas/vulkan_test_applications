@@ -46,6 +46,51 @@ VkInstance CreateEmptyInstance(LibraryWrapper* wrapper) {
   return vulkan::VkInstance(raw_instance, nullptr, wrapper);
 }
 
+VkInstance CreateDefaultInstance(LibraryWrapper* wrapper) {
+  // Similar to Empty Instance, but turns on the platform specific
+  // swapchian functions.
+  // Test a non-nullptr pApplicationInfo
+  VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                             nullptr,
+                             "TestApplication",
+                             1,
+                             "Engine",
+                             0,
+                             VK_MAKE_VERSION(1, 0, 0)};
+
+  const char* extensions[] = {
+    VK_KHR_SURFACE_EXTENSION_NAME,
+#if defined __ANDROID__
+    VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
+#elif defined __linux__
+    VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+#elif defined __WIN32__
+    VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+#endif
+  };
+
+  wrapper->GetLogger()->LogInfo("Enabled Extensions: ");
+  for (auto& extension : extensions) {
+    wrapper->GetLogger()->LogInfo("    ", extension);
+  }
+
+  VkInstanceCreateInfo info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                            nullptr,
+                            0,
+                            &app_info,
+                            0,
+                            nullptr,
+                            sizeof(extensions) / sizeof(extensions[0]),
+                            extensions};
+
+  ::VkInstance raw_instance;
+  LOG_ASSERT(==, wrapper->GetLogger(),
+             wrapper->vkCreateInstance(&info, nullptr, &raw_instance),
+             VK_SUCCESS);
+  // vulkan::VkInstance will handle destroying the instance
+  return vulkan::VkInstance(raw_instance, nullptr, wrapper);
+}
+
 containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance) {
   uint32_t device_count = 0;

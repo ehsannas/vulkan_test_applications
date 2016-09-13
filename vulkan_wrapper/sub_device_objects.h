@@ -16,8 +16,7 @@
 #ifndef VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_
 #define VULKAN_WRAPPER_SUB_DEVICE_OBJECTS_H_
 
-#include "external/vulkan/vulkan.h"
-
+#include "vulkan_helpers/vulkan_header_wrapper.h"
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/lazy_function.h"
 

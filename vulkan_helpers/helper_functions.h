@@ -25,6 +25,9 @@
 namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper* _wrapper);
 
+// Creates an instance with the swapchain and surface layers enabled.
+VkInstance CreateDefaultInstance(LibraryWrapper* _wrapper);
+
 containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance);
 

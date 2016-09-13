@@ -16,15 +16,12 @@
 #ifndef VULKAN_WRAPPER_LIBRARY_WRAPPER_H_
 #define VULKAN_WRAPPER_LIBRARY_WRAPPER_H_
 
-#define VK_NO_PROTOTYPES
-#include "external/vulkan/vulkan.h"
-#undef VK_NO_PROTOTYPES
-
 #include "support/containers/allocator.h"
 #include "support/containers/unique_ptr.h"
 #include "support/dynamic_loader/dynamic_library.h"
 #include "support/log/log.h"
 
+#include "vulkan_helpers/vulkan_header_wrapper.h"
 #include "vulkan_wrapper/lazy_function.h"
 
 namespace vulkan {

@@ -13,14 +13,8 @@
 # limitations under the License.
 #
 
-add_vulkan_static_library(vulkan_helpers
-    SOURCES
-        helper_functions.h
-        helper_functions.cpp
-        known_device_infos.h
-        known_device_infos.cpp
-        structs.h
-        structs.cpp
-        vulkan_header_wrapper.h
-    LIBS
-        vulkan_wrapper)
+add_vulkan_executable(SurfaceCreation_test
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+)

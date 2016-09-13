@@ -16,10 +16,9 @@
 #ifndef VULKAN_WRAPPER_DEVICE_WRAPPER_H_
 #define VULKAN_WRAPPER_DEVICE_WRAPPER_H_
 
-#include "external/vulkan/vulkan.h"
-
 #include <cstring>
 
+#include "vulkan_helpers/vulkan_header_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/lazy_function.h"
 #include "vulkan_wrapper/library_wrapper.h"

@@ -17,6 +17,8 @@
 
 #include <cassert>
 #include <chrono>
+#include <cstdint>
+#include <mutex>
 #include <thread>
 
 #include "support/log/log.h"
@@ -31,6 +33,27 @@ void dummy_function() {}
 #include <android_native_app_glue.h>
 #include <unistd.h>
 
+struct AppData {
+  // Poor-man's semaphore, c++11 is missing a semaphore.
+  std::mutex start_mutex;
+};
+
+// This is a  handler for all android app commands.
+// Only handles APP_CMD_INIT_WINDOW right now, which unblocks
+// the main thread, which needs the main window to be open
+// before it does any WSI integration.
+void HandleAppCommand(android_app* app, int32_t cmd) {
+  AppData* data = (AppData*)app->userData;
+  switch (cmd) {
+    case APP_CMD_INIT_WINDOW:
+      if (app->window != NULL) {
+        // Wake the thread that is ready to go.
+        data->start_mutex.unlock();
+      }
+      break;
+  }
+};
+
 // This method is called by android_native_app_glue. This is the main entry
 // point for any native android activity.
 void android_main(android_app* app) {
@@ -41,15 +64,24 @@ void android_main(android_app* app) {
 
   // Hack to make sure android_native_app_glue is not stripped.
   app_dummy();
-  containers::Allocator root_allocator;
+  AppData data;
+  data.start_mutex.lock();
 
   std::thread main_thread([&]() {
-    entry::entry_data data{app, logging::GetLogger(&root_allocator),
-                           &root_allocator};
-    int return_value = main_entry(&data);
-    // Do not modify this line, scripts may look for it in the output.
-    data.log->LogInfo("RETURN: ", return_value);
+    data.start_mutex.lock();
+    containers::Allocator root_allocator;
+    {
+      entry::entry_data data{app->window, logging::GetLogger(&root_allocator),
+                             &root_allocator};
+      int return_value = main_entry(&data);
+      // Do not modify this line, scripts may look for it in the output.
+      data.log->LogInfo("RETURN: ", return_value);
+    }
+    assert(root_allocator.currently_allocated_bytes_.load() == 0);
   });
+
+  app->userData = &data;
+  app->onAppCmd = &HandleAppCommand;
 
   while (1) {
     // Read all pending events.
@@ -68,8 +100,8 @@ void android_main(android_app* app) {
       break;
     }
   }
+
   main_thread.join();
-  assert(root_allocator.currently_allocated_bytes_.load() == 0);
 }
 #elif defined __linux__
 

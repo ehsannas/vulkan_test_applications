@@ -28,6 +28,7 @@
 #if defined __ANDROID__
 
 struct android_app;
+struct ANativeWindow;
 
 #else
 
@@ -54,8 +55,9 @@ typedef void* HANDLE;
 
 struct entry_data {
 #if defined __ANDROID__
-  android_app* native_window_handle;
+  ANativeWindow* native_window_handle;
 #elif defined _WIN32
+  HINSTANCE native_hinstance;
   HANDLE native_window_handle;
 #elif defined __linux__
   xcb_window_t native_window_handle;
