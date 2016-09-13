@@ -56,7 +56,9 @@ class VkDevice {
         CONSTRUCT_LAZY_FUNCTION(vkAllocateCommandBuffers),
         CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers),
-        CONSTRUCT_LAZY_FUNCTION(vkGetDeviceQueue)
+        CONSTRUCT_LAZY_FUNCTION(vkGetDeviceQueue),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateSemaphore),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroySemaphore)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
     if (has_allocator_) {
@@ -120,6 +122,8 @@ class VkDevice {
   LAZY_FUNCTION(vkResetCommandBuffer);
   LAZY_FUNCTION(vkFreeCommandBuffers);
   LAZY_FUNCTION(vkGetDeviceQueue);
+  LAZY_FUNCTION(vkCreateSemaphore);
+  LAZY_FUNCTION(vkDestroySemaphore);
 #undef LAZY_FUNCTION
 };
 

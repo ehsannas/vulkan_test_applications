@@ -1,2 +1,3 @@
 add_subdirectory(vkCreateCommandPool)
 add_subdirectory(AllocateResetFreeCommandBuffer)
+add_subdirectory(SynchronizationCreationDestruction_test)

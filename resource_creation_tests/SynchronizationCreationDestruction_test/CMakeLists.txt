@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Copyright 2016 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This contains a bunch of named vulkan constants."""
+#
 
-VK_NULL_HANDLE = 0
-
-VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO = 1
-VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO = 9
+add_vulkan_executable(SynchronizationCreationDestruction_test
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+)
