@@ -48,7 +48,10 @@ class VkInstance {
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroySurfaceKHR)
+        CONSTRUCT_LAZY_FUNCTION(vkDestroySurfaceKHR),
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR),
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR),
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR)
 #if defined __ANDROID__
         ,
         CONSTRUCT_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
@@ -86,7 +89,10 @@ class VkInstance {
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties),
-        MOVE_LAZY_FUNCTION(vkDestroySurfaceKHR)
+        MOVE_LAZY_FUNCTION(vkDestroySurfaceKHR),
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR),
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR),
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR)
 #if defined __ANDROID__
         ,
         MOVE_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
@@ -113,6 +119,11 @@ class VkInstance {
 
   logging::Logger* GetLogger() { return wrapper_->GetLogger(); }
   LibraryWrapper* get_wrapper() { return wrapper_; }
+
+  // To conform to the VkSubObjects::Traits interface
+  PFN_vkGetInstanceProcAddr getProcAddrFunction() {
+    return wrapper_->getProcAddrFunction();
+  }
 
  private:
   ::VkInstance instance_;
@@ -141,6 +152,9 @@ class VkInstance {
   LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties);
   LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties);
   LAZY_FUNCTION(vkDestroySurfaceKHR);
+  LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR);
+  LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+  LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR);
 #if defined __ANDROID__
   LAZY_FUNCTION(vkCreateAndroidSurfaceKHR);
 #elif defined __linux__

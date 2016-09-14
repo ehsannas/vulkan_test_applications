@@ -47,6 +47,10 @@ class LibraryWrapper {
 
   PFN_vkVoidFunction getProcAddr(::VkInstance instance, const char* function);
 
+  PFN_vkGetInstanceProcAddr getProcAddrFunction() {
+    return vkGetInstanceProcAddr;
+  }
+
  private:
   PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 

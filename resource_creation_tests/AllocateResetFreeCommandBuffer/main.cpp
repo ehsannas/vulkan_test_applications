@@ -19,7 +19,7 @@
 #include "vulkan_helpers/structs.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
-#include "vulkan_wrapper/sub_device_objects.h"
+#include "vulkan_wrapper/sub_objects.h"
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");

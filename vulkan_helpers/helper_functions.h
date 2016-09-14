@@ -17,10 +17,11 @@
 #define VULKAN_HELPERS_HELPER_FUNCTIONS_H_
 
 #include "support/containers/vector.h"
+#include "support/entry/entry.h"
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
-#include "vulkan_wrapper/sub_device_objects.h"
+#include "vulkan_wrapper/sub_objects.h"
 
 namespace vulkan {
 VkInstance CreateEmptyInstance(LibraryWrapper* _wrapper);
@@ -52,7 +53,15 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
                              VkInstance& instance,
                              bool require_graphics_compute_queue = false);
 
+// Creates a command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+// set.
 VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
                                        VkDevice& device);
+
+// Creates a surface to render into the the default window
+// provided in entry_data.
+VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
+                                  const entry::entry_data* entry_data);
 }
+
 #endif  //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

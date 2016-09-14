@@ -129,16 +129,12 @@ inline bool HasGraphicsAndComputeQueue(
 uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
                                           VkInstance& instance,
                                           ::VkPhysicalDevice device) {
-  uint32_t queue_family_index = ~0u;
-
   auto properties = GetQueueFamilyProperties(allocator, instance, device);
-  // We use the max uint32_t value to mean failure.
-  LOG_ASSERT(!=, instance.GetLogger(), properties.size(), ~0u);
 
   for (uint32_t i = 0; i < properties.size(); ++i) {
-    if (HasGraphicsAndComputeQueue(properties[i])) break;
+    if (HasGraphicsAndComputeQueue(properties[i])) return i;
   }
-  return queue_family_index;
+  return ~0u;
 }
 
 VkDevice CreateDefaultDevice(containers::Allocator* allocator,
@@ -202,5 +198,32 @@ VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
       device.vkCreateCommandPool(device, &info, nullptr, &raw_command_pool),
       VK_SUCCESS);
   return vulkan::VkCommandPool(raw_command_pool, nullptr, &device);
+}
+
+VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
+                                  const entry::entry_data* data) {
+  ::VkSurfaceKHR surface;
+#if defined __ANDROID__
+  VkAndroidSurfaceCreateInfoKHR create_info{
+      VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR, 0, 0,
+      data->native_window_handle};
+
+  instance->vkCreateAndroidSurfaceKHR(*instance, &create_info, nullptr,
+                                      &surface);
+#elif defined __linux__
+  VkXcbSurfaceCreateInfoKHR create_info{
+      VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR, 0, 0,
+      data->native_connection, data->native_window_handle};
+
+  instance->vkCreateXcbSurfaceKHR(*instance, &create_info, nullptr, &surface);
+#elif defined __WIN32__
+  VkWin32SurfaceCreateInfo create_info{
+      VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0,
+      data->native_hinstance, data->nativE_window_handle};
+
+  instance->vkCreateWin32SurfaceKHR(*instance, &create_info, nullptr, &surface);
+#endif
+
+  return VkSurfaceKHR(surface, nullptr, instance);
 }
 }

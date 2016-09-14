@@ -82,7 +82,8 @@ class VkDevice {
     }
   }
 
-  PFN_vkGetDeviceProcAddr get_device_proc_addr_function() {
+  // To conform to the VkSubObjects::Traits interface
+  PFN_vkGetDeviceProcAddr getProcAddrFunction() {
     return vkGetDeviceProcAddr;
   }
 
