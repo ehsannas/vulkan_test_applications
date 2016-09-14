@@ -31,6 +31,9 @@ from gapit_trace_reader import parse_trace_file, AtomAttributeError
 
 SUCCESS = 0
 FAILURE = 1
+WARNING = 2
+
+PIXEL_C = {"vendor_id": 0x10DE, "device_id": 0x92BA03D7}
 
 
 class GapitTestException(Exception):
@@ -101,6 +104,7 @@ class GapitTest(object):
 
     def __init__(self):
         self.atom_generator = None
+        self.warnings = []
 
     def name(self):
         """Returns the name of this class."""
@@ -143,9 +147,58 @@ class GapitTest(object):
         except StopIteration:
             return (None, "The next atom was not of type " + call_name)
 
+    def not_device(self, device_properties, driver, device):
+        """If the device_properties matches the given
+        device, and the device_properties driver_version is less
+        than driver, Emits a warning, and returns False, otherwise
+        returns True.
+
+        device_properties is expected to be a valid
+        vkGetPhysicalDeviceProperties
+        Atom.
+
+        driver is expected to be a numerical value.
+
+        device is expected to be a map containing
+            { "vendor_id": int, "device_id": int }
+        """
+
+        # VkPhysicalDeviceProperties looks like:
+        # typedef struct VkPhysicalDeviceProperties {
+        #     uint32_t                            apiVersion;
+        #     uint32_t                            driverVersion;
+        #     uint32_t                            vendorID;
+        #     uint32_t                            deviceID;
+        #     VkPhysicalDeviceType                deviceType;
+        #     char                                deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];
+        #     uint8_t                             pipelineCacheUUID[VK_UUID_SIZE];
+        #     VkPhysicalDeviceLimits              limits;
+        #     VkPhysicalDeviceSparseProperties    sparseProperties;
+        # } VkPhysicalDeviceProperties;
+
+        driver_version = little_endian_bytes_to_int(
+            require(
+                device_properties.get_write_data(
+                    device_properties.hex_PProperties + 4, 4)))
+        vendor_id = little_endian_bytes_to_int(
+            require(
+                device_properties.get_write_data(
+                    device_properties.hex_PProperties + 2 * 4, 4)))
+        device_id = little_endian_bytes_to_int(
+            require(
+                device_properties.get_write_data(
+                    device_properties.hex_PProperties + 3 * 4, 4)))
+        if (device["vendor_id"] == vendor_id and
+                device["device_id"] == device_id and driver_version <= driver):
+            call_site = traceback.format_list(traceback.extract_stack(limit=2))
+            self.warnings.append("Code block disabled due to known driver bug\n"
+                                 + call_site[0])
+            return False
+        return True
+
     def run_test(self, verbose, capture_directory):
-        '''Runs this test case. Returns a tuple, (FAILURE|SUCCESS, message) on
-           completion.'''
+        '''Runs this test case. Returns a tuple,
+            (FAILURE|SUCCESS|WARNING, message) on completion.'''
         apk_name = getattr(self, "gapit_test_apk_name")
         capture_name = os.path.join(capture_directory, apk_name + ".gfxtrace")
         if not os.path.isfile(capture_name):
@@ -181,8 +234,13 @@ class GapitTest(object):
             call_site = traceback.format_exception(
                 exc_type, exc_value, exc_tb, limit=2)
             print "    " + error.message + call_site[1]
+        return_val = WARNING if len(self.warnings) > 0 else SUCCESS
+        if return_val == WARNING:
+            print "[ " + "WARNING".rjust(10) + " ]"
+            for warning in self.warnings:
+                print warning
         print "[ " + "OK".rjust(10) + " ] " + test_name
-        return (SUCCESS, None)
+        return (return_val, None)
 
 
 def gapit_test(gapit_test_apk_name):
@@ -214,6 +272,7 @@ class TestManager(object):
         self.tests = {}
         self.number_of_tests_run = 0
         self.failed_tests = []
+        self.warned_tests = []
 
     def gather_all_tests(self, include_regex, exclude_regex):
         '''Finds all classes in all python files that contain the attribute
@@ -276,13 +335,20 @@ class TestManager(object):
         self.number_of_tests_run += 1
         if result[0] == FAILURE:
             self.failed_tests.append((test_name, result[1]))
+        if result[0] == WARNING:
+            self.warned_tests.append(test_name)
 
     def print_summary_and_return_code(self):
         '''Prints a summary of the test results. Returns 0 if every test
-        was successful and -1 if any test failed'''
+        was successful and -1 if any test failed.
+        Warnings do not count as failure, but are printed out in the summary.'''
         print "Total Tests Run: " + str(self.number_of_tests_run)
         print("Total Tests Passed: " +
               str(self.number_of_tests_run - len(self.failed_tests)))
+        if self.warned_tests:
+            print "Total Test Warnings: " + str(len(self.warned_tests))
+        for warning in self.warned_tests:
+            print "[ " + "WARNING".rjust(10) + " ] " + warning
         for failure in self.failed_tests:
             print "[ " + "FAILED".rjust(10) + " ] " + failure[0]
             print "     " + failure[1]

@@ -38,11 +38,17 @@ class VkDevice {
  public:
   // This does not retain a reference to the VkInstance, or the
   // VkAllocationCallbacks object, it does take ownership of the device.
+  // If properties is not nullptr, then the device_id, vendor_id and
+  // driver_version will be copied out of it.
   VkDevice(::VkDevice device, VkAllocationCallbacks* allocator,
-           VkInstance* instance)
+           VkInstance* instance,
+           VkPhysicalDeviceProperties* properties = nullptr)
       : device_(device),
         has_allocator_(allocator != nullptr),
         log_(instance->GetLogger()),
+        device_id_(0),
+        vendor_id_(0),
+        driver_version_(0),
 #define CONSTRUCT_LAZY_FUNCTION(function) function(device, #function, this)
         CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice),
         CONSTRUCT_LAZY_FUNCTION(vkCreateCommandPool),
@@ -62,6 +68,11 @@ class VkDevice {
         instance->get_wrapper()->getProcAddr(*instance, "vkGetDeviceProcAddr"));
     LOG_ASSERT(!=, log_, vkGetDeviceProcAddr,
                static_cast<PFN_vkGetDeviceProcAddr>(nullptr));
+    if (properties) {
+      device_id_ = properties->deviceID;
+      vendor_id_ = properties->vendorID;
+      driver_version_ = properties->driverVersion;
+    }
   }
 
   ~VkDevice() {
@@ -73,6 +84,11 @@ class VkDevice {
   PFN_vkGetDeviceProcAddr get_device_proc_addr_function() {
     return vkGetDeviceProcAddr;
   }
+
+  uint32_t device_id() { return device_id_; }
+  uint32_t vendor_id() { return vendor_id_; }
+  uint32_t driver_version() { return driver_version_; }
+
   logging::Logger* GetLogger() { return log_; }
 
  private:
@@ -84,6 +100,10 @@ class VkDevice {
   VkAllocationCallbacks allocator_;
   logging::Logger* log_;
   PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+
+  uint32_t device_id_;
+  uint32_t vendor_id_;
+  uint32_t driver_version_;
 
  public:
   PFN_vkVoidFunction getProcAddr(::VkDevice device, const char* function) {

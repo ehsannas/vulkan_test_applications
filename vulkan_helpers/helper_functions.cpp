@@ -104,6 +104,10 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
   float priority = 1.f;
 
   VkPhysicalDevice physical_device = physical_devices.front();
+
+  VkPhysicalDeviceProperties properties;
+  instance.vkGetPhysicalDeviceProperties(physical_device, &properties);
+
   const uint32_t queue_family_index =
       require_graphics_compute_queue ? GetGraphicsAndComputeQueueFamily(
                                            allocator, instance, physical_device)
@@ -134,7 +138,7 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
       ==, instance.GetLogger(),
       instance.vkCreateDevice(physical_device, &info, nullptr, &raw_device),
       VK_SUCCESS);
-  return vulkan::VkDevice(raw_device, nullptr, &instance);
+  return vulkan::VkDevice(raw_device, nullptr, &instance, &properties);
 }
 
 VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
