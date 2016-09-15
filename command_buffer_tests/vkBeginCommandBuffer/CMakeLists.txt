@@ -13,14 +13,8 @@
 # limitations under the License.
 #
 
-add_vulkan_static_library(vulkan_wrapper
-    SOURCES
-		    command_buffer_wrapper.h
-		    device_wrapper.h
-        instance_wrapper.h
-        lazy_function.h
-        library_wrapper.h
-        library_wrapper.cpp
-        sub_objects.h
-    LIBS
-        dynamic_loader)
+add_vulkan_executable(vkBeginCommandBuffer_tests
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+)

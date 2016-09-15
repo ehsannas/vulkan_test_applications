@@ -18,6 +18,7 @@
 
 #include "support/containers/vector.h"
 #include "support/entry/entry.h"
+#include "vulkan_wrapper/command_buffer_wrapper.h"
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
@@ -62,6 +63,11 @@ VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
 // provided in entry_data.
 VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
                                   const entry::entry_data* entry_data);
+// Creates a default command buffer from the given command pool and the device
+// with primary level.
+// TODO(qining): Remove the redundant argument: device
+VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
+                                           VkDevice* device);
 }
 
 #endif  //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

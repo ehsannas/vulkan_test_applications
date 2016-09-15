@@ -65,6 +65,7 @@ add_subdirectory(vulkan_helpers)
 
 # All of the support code has to go above here, below here should come all of
 # the actual tests.
+add_subdirectory(command_buffer_tests)
 add_subdirectory(initialization_tests)
 add_subdirectory(resource_acquisition_tests)
 add_subdirectory(resource_creation_tests)

@@ -226,4 +226,20 @@ VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
 
   return VkSurfaceKHR(surface, nullptr, instance);
 }
+
+VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool, VkDevice* device) {
+  VkCommandBufferAllocateInfo info = {
+    /* sType = */ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    /* pNext = */ nullptr,
+    /* commandPool = */ pool->get_raw_object(),
+    /* level = */ VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    /* commandBufferCount = */ 1,
+  };
+  ::VkCommandBuffer raw_command_buffer;
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      device->vkAllocateCommandBuffers(*device, &info, &raw_command_buffer),
+      VK_SUCCESS);
+  return vulkan::VkCommandBuffer(raw_command_buffer, pool, device);
+}
 }
