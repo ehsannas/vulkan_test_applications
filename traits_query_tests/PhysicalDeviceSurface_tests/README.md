@@ -18,6 +18,12 @@ VkResult vkGetPhysicalDeviceSurfaceFormatsKHR(
     VkSurfaceKHR                                surface,
     uint32_t*                                   pSurfaceFormatCount,
     VkSurfaceFormatKHR*                         pSurfaceFormats);
+
+VkResult vkGetPhysicalDeviceSurfacePresentModesKHR(
+    VkPhysicalDevice                            physicalDevice,
+    VkSurfaceKHR                                surface,
+    uint32_t*                                   pPresentModeCount,
+    VkPresentModeKHR*                           pPresentModes);
 ```
 
 According to the Vulkan spec:
@@ -36,6 +42,12 @@ According to the Vulkan spec:
     - `pSurfaceFormatCount` must be a valid pointer
     - `pSurfaceFormats` is either nullptr or a pointer to `*pSurfaceFormatCount`
             `VkSurfaceFormatKHR` structures.
+- vkGetPhysicalDeviceSurfacePresentModesKHR
+    - `physicalDevice` **must** be valid
+    - `surface` **must** be valid
+    - `pPresentModeCount` must be a valid pointer
+    - `pPresentModes` is either nullptr or a pointer to `*pPresentModeCount`
+            `VkPresentModeKHR` values.
 
 ## VkSurfaceCapabilitiesKHR
 ```c++
@@ -61,6 +73,16 @@ typedef struct VkSurfaceFormatKHR {
 } VkSurfaceFormatKHR;
 ```
 
+## VkPresentModeKHR
+```
+typedef enum VkPresentModeKHR {
+    VK_PRESENT_MODE_IMMEDIATE_KHR = 0,
+    VK_PRESENT_MODE_MAILBOX_KHR = 1,
+    VK_PRESENT_MODE_FIFO_KHR = 2,
+    VK_PRESENT_MODE_FIFO_RELAXED_KHR = 3,
+} VkPresentModeKHR;
+```
+
 These tests should test the following cases:
 - [x] Valid `vkGetPhysicalDeviceSurfaceSupportKHR`
 - [x] Valid `vkGetPhysicalDeviceSurfaceCapabilitiesKHR`
@@ -68,3 +90,7 @@ These tests should test the following cases:
 - [x] `vkGetPhysicalDeviceSurfaceFormatsKHR:pSurfaceFormatCount` returned_value
 - [x] `vkGetPhysicalDeviceSurfaceFormatsKHR:pSurfaceFormatCount`
         0 < val < returned_value
+- [x] `pPresentModeCount` 0
+- [x] `pPresentModeCount` returned_value
+- [x] `pPresentModeCount` 0 < val < returned_value
+

@@ -93,6 +93,32 @@ int main_entry(const entry::entry_data* data) {
         LOG_EXPECT(!=, data->log, (size_t)surface_formats.data(),
                    (size_t) nullptr);
       }
+
+      uint32_t num_present_modes = 0;
+      LOG_EXPECT(==, data->log,
+                 instance.vkGetPhysicalDeviceSurfacePresentModesKHR(
+                     device, surface, &num_present_modes, nullptr),
+                 VK_SUCCESS);
+
+      containers::vector<VkPresentModeKHR> present_modes(num_formats,
+                                                         data->root_allocator);
+
+      LOG_EXPECT(==, data->log,
+                 instance.vkGetPhysicalDeviceSurfacePresentModesKHR(
+                     device, surface, &num_present_modes, present_modes.data()),
+                 VK_SUCCESS);
+
+      if (num_present_modes > 1) {
+        num_present_modes -= 1;
+        uint32_t expected_num_present_modes = num_present_modes;
+        LOG_EXPECT(
+            ==, data->log,
+            instance.vkGetPhysicalDeviceSurfacePresentModesKHR(
+                device, surface, &num_present_modes, present_modes.data()),
+            VK_INCOMPLETE);
+        LOG_EXPECT(==, data->log, expected_num_present_modes,
+                   num_present_modes);
+      }
     }
   }
 

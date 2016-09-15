@@ -51,7 +51,8 @@ class VkInstance {
         CONSTRUCT_LAZY_FUNCTION(vkDestroySurfaceKHR),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR),
         CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR)
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR),
+        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR)
 #if defined __ANDROID__
         ,
         CONSTRUCT_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
@@ -92,7 +93,8 @@ class VkInstance {
         MOVE_LAZY_FUNCTION(vkDestroySurfaceKHR),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR),
         MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR)
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR),
+        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR)
 #if defined __ANDROID__
         ,
         MOVE_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
@@ -155,6 +157,7 @@ class VkInstance {
   LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR);
   LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
   LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR);
+  LAZY_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR);
 #if defined __ANDROID__
   LAZY_FUNCTION(vkCreateAndroidSurfaceKHR);
 #elif defined __linux__
