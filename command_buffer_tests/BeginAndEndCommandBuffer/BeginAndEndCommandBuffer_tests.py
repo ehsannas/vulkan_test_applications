@@ -18,7 +18,7 @@ from gapit_test_framework import GapitTest
 from vulkan_constants import *
 
 
-@gapit_test("vkBeginCommandBuffer_tests.apk")
+@gapit_test("BeginAndEndCommandBuffer_tests.apk")
 class NullInheritanceInfoTest(GapitTest):
     def expect(self):
         """Expect that the pInheritanceInfo is null for the first
@@ -27,7 +27,8 @@ class NullInheritanceInfoTest(GapitTest):
 
         begin_command_buffer = require(self.next_call_of(
             "vkBeginCommandBuffer"))
-        require_not_equal(begin_command_buffer.int_CommandBuffer, 0)
+        command_buffer_value = begin_command_buffer.int_CommandBuffer
+        require_not_equal(command_buffer_value, 0)
 
         # The command buffer begin info struct should start with correct
         # sType value.
@@ -46,8 +47,14 @@ class NullInheritanceInfoTest(GapitTest):
         require_equal(
             little_endian_bytes_to_int(inheritance_info_pointer_memory), 0)
 
+        # vkEndCommandBuffer() returns correctly
+        end_command_buffer = require(self.next_call_of("vkEndCommandBuffer"))
+        require_equal(end_command_buffer.int_CommandBuffer,
+                      command_buffer_value)
+        require_equal(VK_SUCCESS, int(end_command_buffer.return_val))
 
-@gapit_test("vkBeginCommandBuffer_tests.apk")
+
+@gapit_test("BeginAndEndCommandBuffer_tests.apk")
 class NonNullInheritanceInfoTest(GapitTest):
     def expect(self):
         """Expect that the pInheritanceInfo is not null for the second
@@ -56,7 +63,8 @@ class NonNullInheritanceInfoTest(GapitTest):
 
         begin_command_buffer = require(self.nth_call_of("vkBeginCommandBuffer",
                                                         2))
-        require_not_equal(begin_command_buffer.int_CommandBuffer, 0)
+        command_buffer_value = begin_command_buffer.int_CommandBuffer
+        require_not_equal(command_buffer_value, 0)
 
         # The command buffer begin info struct should start with correct sType
         # value.
@@ -95,3 +103,9 @@ class NonNullInheritanceInfoTest(GapitTest):
         require_equal(
             little_endian_bytes_to_int(
                 inheritance_info_pipeline_statistics_memory), 0)
+
+        # vkEndCommandBuffer() returns correctly
+        end_command_buffer = require(self.next_call_of("vkEndCommandBuffer"))
+        require_equal(end_command_buffer.int_CommandBuffer,
+                      command_buffer_value)
+        require_equal(VK_SUCCESS, int(end_command_buffer.return_val))

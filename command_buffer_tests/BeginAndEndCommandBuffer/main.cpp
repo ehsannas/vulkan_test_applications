@@ -42,6 +42,7 @@ int main_entry(const entry::entry_data* data) {
         /* pInheritanceInfo = */ nullptr,
     };
     command_buffer->vkBeginCommandBuffer(command_buffer, &info);
+    command_buffer->vkEndCommandBuffer(command_buffer);
   }
 
   {
@@ -63,6 +64,7 @@ int main_entry(const entry::entry_data* data) {
         /* pInheritanceInfo = */ &hinfo,
     };
     command_buffer->vkBeginCommandBuffer(command_buffer, &info);
+    command_buffer->vkEndCommandBuffer(command_buffer);
   }
 
   data->log->LogInfo("Application Shutdown");

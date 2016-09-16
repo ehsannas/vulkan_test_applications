@@ -1,10 +1,13 @@
-# vkBeginCommandBuffer
+# vkBeginCommandBuffer / vkEndCommandBuffer
 
 ## Signatures
 ```c++
 VkResult vkBeginCommandBuffer(
     VkCommandBuffer                             commandBuffer,
     const VkCommandBufferBeginInfo*             pBeginInfo);
+
+VkResult vkEndCommandBuffer(
+    VkCommandBuffer                  commandBuffer);
 ```
 
 According to the Vulkan spec:
@@ -24,6 +27,8 @@ According to the Vulkan spec:
     `pBeginInfo` is `VK_FALSE`, or the precise occlusion queries feature is
     not enabled, the `queryFlags` member of the `pInheritanceInfo` member
     `pBeginInfo` **must** not contain `VK_QUERY_CONTROL_PRECISE_BIT`
+- vkEndCommandBuffer
+  - `commandBuffer` must be a valid `VkCommandBuffer` in recording state.
 
 ## VkCommandBufferBeginInfo
 ```c++
@@ -83,3 +88,4 @@ These tests should test the following cases:
 - [ ] `framebuffer` `VK_NULL_HANDLE` or valid handle
 - [ ] `subpass` 0 or valid number
 - [ ] `occlusionQueryEnable` true or false
+- [x] `vkEndCommandBuffer()` with a valid `VkCommandBuffer` in recording state.

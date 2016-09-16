@@ -1,1 +1,1 @@
-add_subdirectory(vkBeginCommandBuffer)
+add_subdirectory(BeginAndEndCommandBuffer)

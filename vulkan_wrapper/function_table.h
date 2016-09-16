@@ -132,6 +132,7 @@ struct CommandBufferFunctions {
 #define CONSTRUCT_LAZY_FUNCTION(function) \
   function(device, #function, device_functions)
         CONSTRUCT_LAZY_FUNCTION(vkBeginCommandBuffer),
+        CONSTRUCT_LAZY_FUNCTION(vkEndCommandBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
@@ -140,6 +141,7 @@ struct CommandBufferFunctions {
  public:
 #define LAZY_FUNCTION(function) LazyDeviceFunction<PFN_##function> function;
   LAZY_FUNCTION(vkBeginCommandBuffer);
+  LAZY_FUNCTION(vkEndCommandBuffer);
   LAZY_FUNCTION(vkResetCommandBuffer);
 #undef LAZY_FUNCTION
 };
