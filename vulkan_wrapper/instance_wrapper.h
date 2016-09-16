@@ -17,8 +17,13 @@
 #define VULKAN_WRAPPER_INSTANCE_WRAPPER_H_
 
 #include <cstring>
+#include <memory>
+
+#include "support/containers/unique_ptr.h"
+#include "support/log/log.h"
 
 #include "vulkan_helpers/vulkan_header_wrapper.h"
+#include "vulkan_wrapper/function_table.h"
 #include "vulkan_wrapper/lazy_function.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
@@ -30,46 +35,21 @@ namespace vulkan {
 // goes out of scope.
 class VkInstance {
  public:
-  VkInstance(::VkInstance instance, VkAllocationCallbacks* allocator,
-             LibraryWrapper* wrapper)
+  VkInstance(containers::Allocator* container_allocator, ::VkInstance instance,
+             VkAllocationCallbacks* allocator, LibraryWrapper* wrapper)
       : instance_(instance),
         has_allocator_(allocator != nullptr),
-        wrapper_(wrapper),
-#define CONSTRUCT_LAZY_FUNCTION(function) function(instance, #function, wrapper)
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyInstance),
-        CONSTRUCT_LAZY_FUNCTION(vkEnumeratePhysicalDevices),
-        CONSTRUCT_LAZY_FUNCTION(vkCreateDevice),
-        CONSTRUCT_LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkEnumerateDeviceLayerProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceFeatures),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroySurfaceKHR),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR),
-        CONSTRUCT_LAZY_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR)
-#if defined __ANDROID__
-        ,
-        CONSTRUCT_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
-#elif defined __linux__
-        ,
-        CONSTRUCT_LAZY_FUNCTION(vkCreateXcbSurfaceKHR)
-#elif defined __WIN32__
-        ,
-        CONSTRUCT_LAZY_FUNCTION(vkCreateWin32SurfaceKHR)
-#endif
-#undef CONSTRUCT_LAZY_FUNCTION
-  {
+        wrapper_(wrapper) {
     if (has_allocator_) {
       allocator_ = *allocator;
     } else {
       memset(&allocator_, 0, sizeof(allocator_));
     }
+    functions_ = containers::make_unique<InstanceFunctions>(
+        container_allocator, instance_, getProcAddrFunction(),
+        wrapper_->GetLogger());
+    // functions_.reset(new InstanceFunctions(instance_, getProcAddrFunction(),
+    // wrapper_->GetLogger()));
   }
 
   VkInstance(VkInstance&& other)
@@ -77,36 +57,7 @@ class VkInstance {
         allocator_(other.allocator_),
         wrapper_(other.wrapper_),
         has_allocator_(other.has_allocator_),
-#define MOVE_LAZY_FUNCTION(function) function(other.function)
-        MOVE_LAZY_FUNCTION(vkDestroyInstance),
-        MOVE_LAZY_FUNCTION(vkEnumeratePhysicalDevices),
-        MOVE_LAZY_FUNCTION(vkCreateDevice),
-        MOVE_LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties),
-        MOVE_LAZY_FUNCTION(vkEnumerateDeviceLayerProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceFeatures),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties),
-        MOVE_LAZY_FUNCTION(vkDestroySurfaceKHR),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR),
-        MOVE_LAZY_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR)
-#if defined __ANDROID__
-        ,
-        MOVE_LAZY_FUNCTION(vkCreateAndroidSurfaceKHR)
-#elif defined __linux__
-        ,
-        MOVE_LAZY_FUNCTION(vkCreateXcbSurfaceKHR)
-#elif defined __WIN32__
-        ,
-        MOVE_LAZY_FUNCTION(vkCreateWin32SurfaceKHR)
-#endif
-#undef COPY_LAZY_FUNCTION
-  {
+        functions_(std::move(other.functions_)) {
     other.instance_ = VK_NULL_HANDLE;
   }
 
@@ -115,7 +66,8 @@ class VkInstance {
 
   ~VkInstance() {
     if (instance_ != VK_NULL_HANDLE) {
-      vkDestroyInstance(instance_, has_allocator_ ? &allocator_ : nullptr);
+      functions_->vkDestroyInstance(instance_,
+                                    has_allocator_ ? &allocator_ : nullptr);
     }
   }
 
@@ -127,6 +79,8 @@ class VkInstance {
     return wrapper_->getProcAddrFunction();
   }
 
+  InstanceFunctions* functions() { return functions_.get(); }
+
  private:
   ::VkInstance instance_;
   bool has_allocator_;
@@ -135,37 +89,13 @@ class VkInstance {
   // around forever.
   VkAllocationCallbacks allocator_;
   LibraryWrapper* wrapper_;
+  containers::unique_ptr<InstanceFunctions> functions_;
 
  public:
   ::VkInstance get_instance() const { return instance_; }
   operator ::VkInstance() const { return instance_; }
-
-#define LAZY_FUNCTION(function) LazyInstanceFunction<PFN_##function> function;
-  LAZY_FUNCTION(vkDestroyInstance);
-  LAZY_FUNCTION(vkEnumeratePhysicalDevices);
-  LAZY_FUNCTION(vkCreateDevice);
-  LAZY_FUNCTION(vkEnumerateDeviceExtensionProperties);
-  LAZY_FUNCTION(vkEnumerateDeviceLayerProperties);
-  LAZY_FUNCTION(vkGetPhysicalDeviceFeatures);
-  LAZY_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
-  LAZY_FUNCTION(vkGetPhysicalDeviceProperties);
-  LAZY_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
-  LAZY_FUNCTION(vkGetPhysicalDeviceFormatProperties);
-  LAZY_FUNCTION(vkGetPhysicalDeviceImageFormatProperties);
-  LAZY_FUNCTION(vkGetPhysicalDeviceSparseImageFormatProperties);
-  LAZY_FUNCTION(vkDestroySurfaceKHR);
-  LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR);
-  LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-  LAZY_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR);
-  LAZY_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR);
-#if defined __ANDROID__
-  LAZY_FUNCTION(vkCreateAndroidSurfaceKHR);
-#elif defined __linux__
-  LAZY_FUNCTION(vkCreateXcbSurfaceKHR);
-#elif defined __WIN32__
-  LAZY_FUNCTION(vkCreateWin32SurfaceKHR);
-#endif
-#undef LAZY_FUNCTION
+  InstanceFunctions* operator->() { return functions_.get(); }
+  InstanceFunctions& operator*() { return *functions_.get(); }
 };
 
 }  // namespace vulkan

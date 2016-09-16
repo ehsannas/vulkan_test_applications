@@ -16,7 +16,7 @@
 #ifndef VULKAN_WRAPPER_COMMAND_BUFFER_WRAPPER_H_
 #define VULKAN_WRAPPER_COMMAND_BUFFER_WRAPPER_H_
 
-#include <cstring>
+#include <memory>
 
 #include "vulkan_helpers/vulkan_header_wrapper.h"
 #include "vulkan_wrapper/device_wrapper.h"
@@ -25,35 +25,24 @@
 
 namespace vulkan {
 
-class VkCommandBuffer;
-template <typename T>
-using LazyCommandBufferFunction = LazyFunction<T, ::VkDevice, VkCommandBuffer>;
-
 // VkCommandBuffer takes the ownership and wraps a native VkCommandBuffer
 // object. It provides lazily initialized function pointers for all of its
 // methods. It will automatically call VkFreeCommandBuffers when it goes out of
 // scope.
 class VkCommandBuffer {
  public:
+  VkCommandBuffer(VkCommandBuffer&& other) = default;
   VkCommandBuffer(::VkCommandBuffer command_buffer, VkCommandPool* pool,
                   VkDevice* device)
       : command_buffer_(command_buffer),
         pool_(*pool),
         device_(*device),
         log_(device->GetLogger()),
-#define CONSTRUCT_LAZY_FUNCTION(function) function(device_, #function, this)
-        CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers),
-        CONSTRUCT_LAZY_FUNCTION(vkBeginCommandBuffer)
-#undef CONSTRUCT_LAZY_FUNCTION
-  {
-    // Command buffer related functions are resolved by get_proc_addr_fn_().
-    get_proc_addr_fn_ = device->getProcAddrFunction();
-    LOG_ASSERT(!=, log_, get_proc_addr_fn_,
-               static_cast<PFN_vkGetDeviceProcAddr>(nullptr));
-  }
+        destruction_function_(&(*device)->vkFreeCommandBuffers),
+        functions_((*device)->command_buffer_functions()) {}
 
   ~VkCommandBuffer() {
-    vkFreeCommandBuffers(device_, pool_, 1, &command_buffer_);
+    (*destruction_function_)(device_, pool_, 1, &command_buffer_);
   }
 
   logging::Logger* GetLogger() { return log_; }
@@ -63,20 +52,15 @@ class VkCommandBuffer {
   ::VkCommandPool pool_;
   ::VkDevice device_;
   logging::Logger* log_;
-  PFN_vkGetDeviceProcAddr get_proc_addr_fn_;
+  LazyFunction<PFN_vkFreeCommandBuffers, ::VkDevice, DeviceFunctions>*
+      destruction_function_;
+  CommandBufferFunctions* functions_;
 
  public:
-  PFN_vkVoidFunction getProcAddr(::VkDevice device, const char* function) {
-    return get_proc_addr_fn_(device, function);
-  }
   ::VkCommandBuffer get_command_buffer() const { return command_buffer_; }
   operator ::VkCommandBuffer() const { return command_buffer_; }
-
-#define LAZY_FUNCTION(function) \
-  LazyCommandBufferFunction<PFN_##function> function;
-  LAZY_FUNCTION(vkFreeCommandBuffers);
-  LAZY_FUNCTION(vkBeginCommandBuffer);
-#undef LAZY_FUNCTION
+  CommandBufferFunctions* operator->() { return functions_; }
+  CommandBufferFunctions& operator*() { return *functions_; }
 };
 
 }  // namespace vulkan

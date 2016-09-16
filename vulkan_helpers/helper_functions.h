@@ -25,10 +25,18 @@
 #include "vulkan_wrapper/sub_objects.h"
 
 namespace vulkan {
-VkInstance CreateEmptyInstance(LibraryWrapper* _wrapper);
+// Create an empty instance. Vulkan functions that are resolved by the created
+// instance will be stored in the space allocated by the given |allocator|. The
+// |allocator| must continue to exist until the instance is destroied.
+VkInstance CreateEmptyInstance(containers::Allocator* allocator,
+                               LibraryWrapper* _wrapper);
 
-// Creates an instance with the swapchain and surface layers enabled.
-VkInstance CreateDefaultInstance(LibraryWrapper* _wrapper);
+// Creates an instance with the swapchain and surface layers enabled. Vulkan
+// functions that are resolved through the created instance will be stored in
+// the space allocated by the given |allocator|. The |allocator| must continue
+// to exist until the instance is destroied.
+VkInstance CreateDefaultInstance(containers::Allocator* allocator,
+                                 LibraryWrapper* _wrapper);
 
 containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance);
@@ -49,7 +57,9 @@ uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
 
 // Creates a device from the given |instance| with one queue. If
 // |require_graphics_and_compute_queue| is true, the queue is of both graphics
-// and compute capabilities.
+// and compute capabilities. Vulkan functions that are resolved through the
+// create device will be stored in the space allocated by the given |allocator|.
+// The |allocator| must continue to exist until the device is destroied.
 VkDevice CreateDefaultDevice(containers::Allocator* allocator,
                              VkInstance& instance,
                              bool require_graphics_compute_queue = false);
@@ -65,7 +75,6 @@ VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
                                   const entry::entry_data* entry_data);
 // Creates a default command buffer from the given command pool and the device
 // with primary level.
-// TODO(qining): Remove the redundant argument: device
 VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
                                            VkDevice* device);
 }

@@ -23,7 +23,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   containers::vector<VkPhysicalDevice> physical_devices(
       vulkan::GetPhysicalDevices(data->root_allocator, instance));
   const uint32_t physical_device_count = physical_devices.size();
@@ -45,8 +46,8 @@ int main_entry(const entry::entry_data* data) {
       VkFormatProperties properties;
       for (auto format : vulkan::AllVkFormats(data->root_allocator)) {
         data->log->LogInfo("    VkFormat: ", format);
-        instance.vkGetPhysicalDeviceFormatProperties(device, format,
-                                                     &properties);
+        instance->vkGetPhysicalDeviceFormatProperties(device, format,
+                                                      &properties);
         output_properties(properties);
       }
     }

@@ -23,7 +23,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   vulkan::VkDevice device(
       vulkan::CreateDefaultDevice(data->root_allocator, instance));
 
@@ -34,8 +35,8 @@ int main_entry(const entry::entry_data* data) {
 
     ::VkCommandPool raw_command_pool;
     LOG_ASSERT(==, data->log,
-               device.vkCreateCommandPool(device, &pool_info, nullptr,
-                                          &raw_command_pool),
+               device->vkCreateCommandPool(device, &pool_info, nullptr,
+                                           &raw_command_pool),
                VK_SUCCESS);
     vulkan::VkCommandPool command_pool(raw_command_pool, nullptr, &device);
   }
@@ -47,8 +48,8 @@ int main_entry(const entry::entry_data* data) {
 
     ::VkCommandPool raw_command_pool;
     LOG_ASSERT(==, data->log,
-               device.vkCreateCommandPool(device, &pool_info, nullptr,
-                                          &raw_command_pool),
+               device->vkCreateCommandPool(device, &pool_info, nullptr,
+                                           &raw_command_pool),
                VK_SUCCESS);
     vulkan::VkCommandPool command_pool(raw_command_pool, nullptr, &device);
   }
@@ -62,8 +63,8 @@ int main_entry(const entry::entry_data* data) {
 
     ::VkCommandPool raw_command_pool;
     LOG_ASSERT(==, data->log,
-               device.vkCreateCommandPool(device, &pool_info, nullptr,
-                                          &raw_command_pool),
+               device->vkCreateCommandPool(device, &pool_info, nullptr,
+                                           &raw_command_pool),
                VK_SUCCESS);
     vulkan::VkCommandPool command_pool(raw_command_pool, nullptr, &device);
   }
@@ -74,8 +75,8 @@ int main_entry(const entry::entry_data* data) {
 
     ::VkCommandPool raw_command_pool;
     LOG_ASSERT(==, data->log,
-               device.vkCreateCommandPool(device, &pool_info, nullptr,
-                                          &raw_command_pool),
+               device->vkCreateCommandPool(device, &pool_info, nullptr,
+                                           &raw_command_pool),
                VK_SUCCESS);
     vulkan::VkCommandPool command_pool(raw_command_pool, nullptr, &device);
   }

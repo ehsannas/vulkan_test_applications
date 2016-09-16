@@ -22,7 +22,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   containers::vector<VkPhysicalDevice> devices(
       vulkan::GetPhysicalDevices(data->root_allocator, instance));
 
@@ -90,39 +91,39 @@ int main_entry(const entry::entry_data* data) {
   for (const auto& physical_device : devices) {
     data->log->LogInfo("PhysicalDevice ", device_count++);
     LOG_EXPECT(==, data->log, VK_SUCCESS,
-               instance.vkEnumerateDeviceLayerProperties(physical_device,
-                                                         &num_layers, nullptr));
+               instance->vkEnumerateDeviceLayerProperties(
+                   physical_device, &num_layers, nullptr));
     layer_properties.resize(num_layers);
 
     if (num_layers > 1) {
       uint32_t num_reduced_layers = num_layers - 1;
       LOG_EXPECT(
           ==, data->log, VK_INCOMPLETE,
-          instance.vkEnumerateDeviceLayerProperties(
+          instance->vkEnumerateDeviceLayerProperties(
               physical_device, &num_reduced_layers, layer_properties.data()));
     }
 
     LOG_EXPECT(==, data->log, VK_SUCCESS,
-               instance.vkEnumerateDeviceLayerProperties(
+               instance->vkEnumerateDeviceLayerProperties(
                    physical_device, &num_layers, layer_properties.data()));
 
     LOG_EXPECT(
         ==, data->log, VK_SUCCESS,
-        instance.vkEnumerateDeviceExtensionProperties(
+        instance->vkEnumerateDeviceExtensionProperties(
             physical_device, nullptr, &num_extension_properties, nullptr));
 
     if (num_extension_properties > 1) {
       uint32_t num_reduced_extension_properties = num_extension_properties - 1;
       LOG_EXPECT(
           ==, data->log, VK_INCOMPLETE,
-          instance.vkEnumerateDeviceExtensionProperties(
+          instance->vkEnumerateDeviceExtensionProperties(
               physical_device, nullptr, &num_reduced_extension_properties,
               extension_properties.data()));
     }
 
     extension_properties.resize(num_extension_properties);
     LOG_EXPECT(==, data->log, VK_SUCCESS,
-               instance.vkEnumerateDeviceExtensionProperties(
+               instance->vkEnumerateDeviceExtensionProperties(
                    physical_device, nullptr, &num_extension_properties,
                    extension_properties.data()));
 
@@ -134,15 +135,15 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("  Device Layer Found ", layer.layerName);
 
       LOG_EXPECT(==, data->log, VK_SUCCESS,
-                 instance.vkEnumerateDeviceExtensionProperties(
+                 instance->vkEnumerateDeviceExtensionProperties(
                      physical_device, layer.layerName,
                      &num_extension_properties, nullptr));
 
       extension_properties.resize(num_extension_properties);
       LOG_EXPECT(==, data->log, VK_SUCCESS,
-                 instance.vkEnumerateDeviceExtensionProperties(
-                     physical_device, layer.layerName, &num_extension_properties,
-                     extension_properties.data()));
+                 instance->vkEnumerateDeviceExtensionProperties(
+                     physical_device, layer.layerName,
+                     &num_extension_properties, extension_properties.data()));
       for (const auto& extension : extension_properties) {
         data->log->LogInfo("    Extension Found ", extension.extensionName);
       }

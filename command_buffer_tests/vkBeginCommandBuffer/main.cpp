@@ -24,7 +24,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   vulkan::VkDevice device(
       vulkan::CreateDefaultDevice(data->root_allocator, instance));
   vulkan::VkCommandPool pool(
@@ -40,7 +41,7 @@ int main_entry(const entry::entry_data* data) {
         /* flags = */ 0,
         /* pInheritanceInfo = */ nullptr,
     };
-    command_buffer.vkBeginCommandBuffer(command_buffer, &info);
+    command_buffer->vkBeginCommandBuffer(command_buffer, &info);
   }
 
   {
@@ -61,7 +62,7 @@ int main_entry(const entry::entry_data* data) {
         /* flags = */ 0,
         /* pInheritanceInfo = */ &hinfo,
     };
-    command_buffer.vkBeginCommandBuffer(command_buffer, &info);
+    command_buffer->vkBeginCommandBuffer(command_buffer, &info);
   }
 
   data->log->LogInfo("Application Shutdown");

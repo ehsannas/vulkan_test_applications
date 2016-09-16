@@ -26,7 +26,8 @@ int main_entry(const entry::entry_data* data) {
 
   auto& allocator = data->root_allocator;
   vulkan::LibraryWrapper wrapper(allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateDefaultInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateDefaultInstance(allocator, &wrapper));
   VkSurfaceKHR surface;
 
   data->log->LogInfo("Instance: ", (VkInstance)instance);
@@ -36,26 +37,27 @@ int main_entry(const entry::entry_data* data) {
       VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR, 0, 0,
       data->native_window_handle};
 
-  instance.vkCreateAndroidSurfaceKHR(instance, &create_info, nullptr, &surface);
+  instance->vkCreateAndroidSurfaceKHR(instance, &create_info, nullptr,
+                                      &surface);
 #elif defined __linux__
   VkXcbSurfaceCreateInfoKHR create_info{
       VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR, 0, 0,
       data->native_connection, data->native_window_handle};
 
-  instance.vkCreateXcbSurfaceKHR(instance, &create_info, nullptr, &surface);
+  instance->vkCreateXcbSurfaceKHR(instance, &create_info, nullptr, &surface);
 #elif defined __WIN32__
   VkWin32SurfaceCreateInfo create_info{
       VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0,
       data->native_hinstance, data->nativE_window_handle};
 
-  instance.vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &surface);
+  instance->vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &surface);
 #endif
 
   // TODO(awoloszyn): Other platforms
 
-  instance.vkDestroySurfaceKHR(instance, surface, nullptr);
+  instance->vkDestroySurfaceKHR(instance, surface, nullptr);
 
-  instance.vkDestroySurfaceKHR(
+  instance->vkDestroySurfaceKHR(
       instance, static_cast<VkSurfaceKHR>(VK_NULL_HANDLE), nullptr);
   data->log->LogInfo("Application Shutdown");
   return 0;

@@ -26,7 +26,8 @@ int main_entry(const entry::entry_data* data) {
 
   auto& allocator = data->root_allocator;
   vulkan::LibraryWrapper wrapper(allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   vulkan::VkDevice device(vulkan::CreateDefaultDevice(allocator, instance));
   vulkan::VkCommandPool pool(
       vulkan::CreateDefaultCommandPool(allocator, device));
@@ -54,8 +55,8 @@ int main_entry(const entry::entry_data* data) {
           /* commandBufferCount = */ count,
       };
       LOG_EXPECT(==, data->log,
-                 device.vkAllocateCommandBuffers(device, &create_info,
-                                                 command_buffers.data()),
+                 device->vkAllocateCommandBuffers(device, &create_info,
+                                                  command_buffers.data()),
                  VK_SUCCESS);
       for (uint32_t i = 0; i < count; ++i) {
         data->log->LogInfo("    handle: ", command_buffers[i]);
@@ -64,7 +65,7 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("  API: vkResetCommandBuffer");
       for (uint32_t i = 0; i < count; ++i) {
         LOG_EXPECT(==, data->log,
-                   device.vkResetCommandBuffer(
+                   device->command_buffer_functions()->vkResetCommandBuffer(
                        command_buffers[i],
                        // Use reset flags in a circular way.
                        (reset_flag_index =
@@ -73,8 +74,8 @@ int main_entry(const entry::entry_data* data) {
       }
 
       data->log->LogInfo("  API: vkFreeCommandBuffers");
-      device.vkFreeCommandBuffers(device, pool.get_raw_object(), count,
-                                  command_buffers.data());
+      device->vkFreeCommandBuffers(device, pool.get_raw_object(), count,
+                                   command_buffers.data());
     }
   }
 

@@ -23,7 +23,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   containers::vector<VkPhysicalDevice> physical_devices(
       vulkan::GetPhysicalDevices(data->root_allocator, instance));
 
@@ -50,7 +51,7 @@ int main_entry(const entry::entry_data* data) {
             for (auto flags :
                  vulkan::AllVkImageCreateFlagCombinations(allocator)) {
               const VkResult result =
-                  instance.vkGetPhysicalDeviceImageFormatProperties(
+                  instance->vkGetPhysicalDeviceImageFormatProperties(
                       device, format, type, tiling, usage, flags, &properties);
               LOG_EXPECT(==, data->log, IsExpectedReturnCode(result), true);
               // Periodically output to avoid flood.

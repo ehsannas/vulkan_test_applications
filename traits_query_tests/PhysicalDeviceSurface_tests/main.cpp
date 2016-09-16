@@ -23,7 +23,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateDefaultInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateDefaultInstance(data->root_allocator, &wrapper));
 
   vulkan::VkSurfaceKHR surface(vulkan::CreateDefaultSurface(&instance, data));
   containers::vector<VkPhysicalDevice> devices =
@@ -31,7 +32,7 @@ int main_entry(const entry::entry_data* data) {
 
   for (auto device : devices) {
     VkPhysicalDeviceProperties device_properties;
-    instance.vkGetPhysicalDeviceProperties(device, &device_properties);
+    instance->vkGetPhysicalDeviceProperties(device, &device_properties);
 
     data->log->LogInfo("Physical Device Surfaces for ",
                        ::VkPhysicalDevice(device));
@@ -41,7 +42,7 @@ int main_entry(const entry::entry_data* data) {
 
     for (size_t i = 0; i < properties.size(); ++i) {
       VkBool32 supported = false;
-      LOG_EXPECT(==, data->log, instance.vkGetPhysicalDeviceSurfaceSupportKHR(
+      LOG_EXPECT(==, data->log, instance->vkGetPhysicalDeviceSurfaceSupportKHR(
                                     device, i, surface, &supported),
                  VK_SUCCESS);
       if (supported) {
@@ -54,7 +55,7 @@ int main_entry(const entry::entry_data* data) {
     if (device_supports) {
       VkSurfaceCapabilitiesKHR surface_caps;
       LOG_ASSERT(==, data->log,
-                 instance.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+                 instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
                      device, surface, &surface_caps),
                  VK_SUCCESS);
       data->log->LogInfo("  Capabilities: ");
@@ -65,7 +66,7 @@ int main_entry(const entry::entry_data* data) {
                          surface_caps.currentExtent.height, "]");
 
       uint32_t num_formats = 0;
-      LOG_EXPECT(==, data->log, instance.vkGetPhysicalDeviceSurfaceFormatsKHR(
+      LOG_EXPECT(==, data->log, instance->vkGetPhysicalDeviceSurfaceFormatsKHR(
                                     device, surface, &num_formats, nullptr),
                  VK_SUCCESS);
 
@@ -75,7 +76,7 @@ int main_entry(const entry::entry_data* data) {
           num_formats, data->root_allocator);
 
       LOG_EXPECT(==, data->log,
-                 instance.vkGetPhysicalDeviceSurfaceFormatsKHR(
+                 instance->vkGetPhysicalDeviceSurfaceFormatsKHR(
                      device, surface, &num_formats, surface_formats.data()),
                  VK_SUCCESS);
       data->log->LogInfo("    Formats[", num_formats, "]:");
@@ -86,7 +87,7 @@ int main_entry(const entry::entry_data* data) {
         num_formats -= 1;
         const uint32_t expected_num_formats = num_formats;
         LOG_EXPECT(==, data->log,
-                   instance.vkGetPhysicalDeviceSurfaceFormatsKHR(
+                   instance->vkGetPhysicalDeviceSurfaceFormatsKHR(
                        device, surface, &num_formats, surface_formats.data()),
                    VK_INCOMPLETE);
         LOG_EXPECT(==, data->log, expected_num_formats, num_formats);
@@ -96,7 +97,7 @@ int main_entry(const entry::entry_data* data) {
 
       uint32_t num_present_modes = 0;
       LOG_EXPECT(==, data->log,
-                 instance.vkGetPhysicalDeviceSurfacePresentModesKHR(
+                 instance->vkGetPhysicalDeviceSurfacePresentModesKHR(
                      device, surface, &num_present_modes, nullptr),
                  VK_SUCCESS);
 
@@ -104,7 +105,7 @@ int main_entry(const entry::entry_data* data) {
                                                          data->root_allocator);
 
       LOG_EXPECT(==, data->log,
-                 instance.vkGetPhysicalDeviceSurfacePresentModesKHR(
+                 instance->vkGetPhysicalDeviceSurfacePresentModesKHR(
                      device, surface, &num_present_modes, present_modes.data()),
                  VK_SUCCESS);
 
@@ -113,7 +114,7 @@ int main_entry(const entry::entry_data* data) {
         uint32_t expected_num_present_modes = num_present_modes;
         LOG_EXPECT(
             ==, data->log,
-            instance.vkGetPhysicalDeviceSurfacePresentModesKHR(
+            instance->vkGetPhysicalDeviceSurfacePresentModesKHR(
                 device, surface, &num_present_modes, present_modes.data()),
             VK_INCOMPLETE);
         LOG_EXPECT(==, data->log, expected_num_present_modes,

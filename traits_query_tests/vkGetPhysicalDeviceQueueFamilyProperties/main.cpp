@@ -23,7 +23,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   containers::vector<VkPhysicalDevice> physical_devices(
       vulkan::GetPhysicalDevices(data->root_allocator, instance));
   const uint32_t physical_device_count = physical_devices.size();
@@ -37,7 +38,7 @@ int main_entry(const entry::entry_data* data) {
     for (uint32_t i = 0; i < physical_device_count; ++i) {
       const auto device = physical_devices[i];
       data->log->LogInfo("    Phyiscal Device: ", device);
-      instance.vkGetPhysicalDeviceQueueFamilyProperties(
+      instance->vkGetPhysicalDeviceQueueFamilyProperties(
           device, &driver_counts[i], nullptr);
       data->log->LogInfo("      # queue family properties: ", driver_counts[i]);
     }
@@ -50,8 +51,8 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("    Phyiscal Device: ", device);
       uint32_t count = 0;
       VkQueueFamilyProperties properties = {};
-      instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
-                                                        &properties);
+      instance->vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
+                                                         &properties);
       LOG_EXPECT(==, data->log, count, 0u);
       LOG_EXPECT(==, data->log, properties.queueCount, 0u);
       LOG_EXPECT(==, data->log, properties.timestampValidBits, 0u);
@@ -67,8 +68,8 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("    Phyiscal Device: ", device);
       uint32_t count = driver_counts[i] - 1;
       std::vector<VkQueueFamilyProperties> properties(count);
-      instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
-                                                        properties.data());
+      instance->vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
+                                                         properties.data());
       LOG_EXPECT(==, data->log, count, driver_counts[i] - 1);
       for (uint32_t j = 0; j < count; ++j) {
         data->log->LogInfo("      queueCount: ", properties[j].queueCount);
@@ -83,8 +84,8 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("    Phyiscal Device: ", device);
       auto count = driver_counts[i];
       std::vector<VkQueueFamilyProperties> properties(count);
-      instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
-                                                        properties.data());
+      instance->vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
+                                                         properties.data());
       LOG_EXPECT(==, data->log, properties.size(), driver_counts[i]);
       for (const auto& p : properties) {
         data->log->LogInfo("      queueCount: ", p.queueCount);
@@ -99,8 +100,8 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("    Phyiscal Device: ", device);
       uint32_t count = driver_counts[i] + 3;
       std::vector<VkQueueFamilyProperties> properties(count);
-      instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
-                                                        properties.data());
+      instance->vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
+                                                         properties.data());
       LOG_EXPECT(==, data->log, count, driver_counts[i]);
       for (uint32_t j = 0; j < count; ++j) {
         data->log->LogInfo("      queueCount: ", properties[j].queueCount);

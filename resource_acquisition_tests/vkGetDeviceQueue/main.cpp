@@ -22,13 +22,14 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   vulkan::VkDevice device(
       vulkan::CreateDefaultDevice(data->root_allocator, instance));
 
   {
     VkQueue queue = {};
-    device.vkGetDeviceQueue(device, 0, 0, &queue);
+    device->vkGetDeviceQueue(device, 0, 0, &queue);
     data->log->LogInfo("  VkQueue: ", queue);
   }
 

@@ -36,7 +36,8 @@ int main_entry(const entry::entry_data* data) {
     VkInstance raw_instance;
     wrapper.vkCreateInstance(&info, nullptr, &raw_instance);
     // vulkan::VkInstance will handle destroying the instance
-    vulkan::VkInstance instance(raw_instance, nullptr, &wrapper);
+    vulkan::VkInstance instance(data->root_allocator, raw_instance, nullptr,
+                                &wrapper);
   }
 
   {
@@ -61,7 +62,8 @@ int main_entry(const entry::entry_data* data) {
     VkInstance raw_instance;
     wrapper.vkCreateInstance(&info, nullptr, &raw_instance);
     // vulkan::VkInstance will handle destroying the instance
-    vulkan::VkInstance instance(raw_instance, nullptr, &wrapper);
+    vulkan::VkInstance instance(data->root_allocator, raw_instance, nullptr,
+                                &wrapper);
   }
   data->log->LogInfo("Application Shutdown");
   return 0;

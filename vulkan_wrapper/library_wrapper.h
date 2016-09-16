@@ -28,7 +28,7 @@ namespace vulkan {
 
 class LibraryWrapper;
 template <typename T>
-using LazyInstanceFunction = LazyFunction<T, ::VkInstance, LibraryWrapper>;
+using LazyLibraryFunction = LazyFunction<T, ::VkInstance, LibraryWrapper>;
 // This wraps the vulkan library. It provides lazily initialized functions
 // for all global-scope functions.
 class LibraryWrapper {
@@ -37,8 +37,8 @@ class LibraryWrapper {
   bool is_valid() { return vulkan_lib_ && vulkan_lib_->is_valid(); }
 
 #define LAZY_FUNCTION(function)                   \
-  LazyInstanceFunction<PFN_##function> function = \
-      LazyInstanceFunction<PFN_##function>(nullptr, #function, this)
+  LazyLibraryFunction<PFN_##function> function = \
+      LazyLibraryFunction<PFN_##function>(nullptr, #function, this)
   LAZY_FUNCTION(vkCreateInstance);
   LAZY_FUNCTION(vkEnumerateInstanceExtensionProperties);
   LAZY_FUNCTION(vkEnumerateInstanceLayerProperties);

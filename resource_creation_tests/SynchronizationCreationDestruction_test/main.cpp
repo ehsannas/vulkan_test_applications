@@ -27,19 +27,19 @@ int main_entry(const entry::entry_data* data) {
 
   auto& allocator = data->root_allocator;
   vulkan::LibraryWrapper wrapper(allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(allocator, &wrapper));
   vulkan::VkDevice device(vulkan::CreateDefaultDevice(allocator, instance));
 
   VkSemaphoreCreateInfo info{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, 0, 0};
   VkSemaphore semaphore;
-  device.vkCreateSemaphore(device, &info, nullptr, &semaphore);
+  device->vkCreateSemaphore(device, &info, nullptr, &semaphore);
 
-  device.vkDestroySemaphore(device, semaphore, nullptr);
+  device->vkDestroySemaphore(device, semaphore, nullptr);
 
   // This will fail on the Pixel C.
   // https://b.corp.google.com/issues/31464625
   IF_NOT_DEVICE(data->log, device, vulkan::PixelC, 0x5A400000) {
-    device.vkDestroySemaphore(device, (VkSemaphore)VK_NULL_HANDLE, nullptr);
+    device->vkDestroySemaphore(device, (VkSemaphore)VK_NULL_HANDLE, nullptr);
   }
 
   data->log->LogInfo("Application Shutdown");

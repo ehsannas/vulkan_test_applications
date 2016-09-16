@@ -19,7 +19,7 @@
 #include "support/log/log.h"
 
 namespace vulkan {
-VkInstance CreateEmptyInstance(LibraryWrapper* wrapper) {
+VkInstance CreateEmptyInstance(containers::Allocator* allocator, LibraryWrapper* wrapper) {
   // Test a non-nullptr pApplicationInfo
   VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
                              nullptr,
@@ -43,10 +43,10 @@ VkInstance CreateEmptyInstance(LibraryWrapper* wrapper) {
              wrapper->vkCreateInstance(&info, nullptr, &raw_instance),
              VK_SUCCESS);
   // vulkan::VkInstance will handle destroying the instance
-  return vulkan::VkInstance(raw_instance, nullptr, wrapper);
+  return vulkan::VkInstance(allocator, raw_instance, nullptr, wrapper);
 }
 
-VkInstance CreateDefaultInstance(LibraryWrapper* wrapper) {
+VkInstance CreateDefaultInstance(containers::Allocator* allocator, LibraryWrapper* wrapper) {
   // Similar to Empty Instance, but turns on the platform specific
   // swapchian functions.
   // Test a non-nullptr pApplicationInfo
@@ -88,19 +88,19 @@ VkInstance CreateDefaultInstance(LibraryWrapper* wrapper) {
              wrapper->vkCreateInstance(&info, nullptr, &raw_instance),
              VK_SUCCESS);
   // vulkan::VkInstance will handle destroying the instance
-  return vulkan::VkInstance(raw_instance, nullptr, wrapper);
+  return vulkan::VkInstance(allocator, raw_instance, nullptr, wrapper);
 }
 
 containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance) {
   uint32_t device_count = 0;
-  instance.vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
+  instance->vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
 
   containers::vector<VkPhysicalDevice> physical_devices(device_count,
                                                         allocator);
   LOG_ASSERT(==, instance.GetLogger(),
-             instance.vkEnumeratePhysicalDevices(instance, &device_count,
-                                                 physical_devices.data()),
+             instance->vkEnumeratePhysicalDevices(instance, &device_count,
+                                                  physical_devices.data()),
              VK_SUCCESS);
 
   return std::move(physical_devices);
@@ -110,13 +110,13 @@ containers::vector<VkQueueFamilyProperties> GetQueueFamilyProperties(
     containers::Allocator* allocator, VkInstance& instance,
     ::VkPhysicalDevice device) {
   uint32_t count = 0;
-  instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
+  instance->vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
 
   LOG_ASSERT(>, instance.GetLogger(), count, 0u);
   containers::vector<VkQueueFamilyProperties> properties(allocator);
   properties.resize(count);
-  instance.vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
-                                                    properties.data());
+  instance->vkGetPhysicalDeviceQueueFamilyProperties(device, &count,
+                                                     properties.data());
   return std::move(properties);
 }
 
@@ -147,7 +147,7 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
   VkPhysicalDevice physical_device = physical_devices.front();
 
   VkPhysicalDeviceProperties properties;
-  instance.vkGetPhysicalDeviceProperties(physical_device, &properties);
+  instance->vkGetPhysicalDeviceProperties(physical_device, &properties);
 
   const uint32_t queue_family_index =
       require_graphics_compute_queue ? GetGraphicsAndComputeQueueFamily(
@@ -177,9 +177,9 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
   ::VkDevice raw_device;
   LOG_ASSERT(
       ==, instance.GetLogger(),
-      instance.vkCreateDevice(physical_device, &info, nullptr, &raw_device),
+      instance->vkCreateDevice(physical_device, &info, nullptr, &raw_device),
       VK_SUCCESS);
-  return vulkan::VkDevice(raw_device, nullptr, &instance, &properties);
+  return vulkan::VkDevice(allocator, raw_device, nullptr, &instance, &properties);
 }
 
 VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
@@ -195,7 +195,7 @@ VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
   ::VkCommandPool raw_command_pool;
   LOG_ASSERT(
       ==, device.GetLogger(),
-      device.vkCreateCommandPool(device, &info, nullptr, &raw_command_pool),
+      device->vkCreateCommandPool(device, &info, nullptr, &raw_command_pool),
       VK_SUCCESS);
   return vulkan::VkCommandPool(raw_command_pool, nullptr, &device);
 }
@@ -208,38 +208,40 @@ VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
       VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR, 0, 0,
       data->native_window_handle};
 
-  instance->vkCreateAndroidSurfaceKHR(*instance, &create_info, nullptr,
-                                      &surface);
+  (*instance)->vkCreateAndroidSurfaceKHR(*instance, &create_info, nullptr,
+                                         &surface);
 #elif defined __linux__
   VkXcbSurfaceCreateInfoKHR create_info{
       VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR, 0, 0,
       data->native_connection, data->native_window_handle};
 
-  instance->vkCreateXcbSurfaceKHR(*instance, &create_info, nullptr, &surface);
+  (*instance)->vkCreateXcbSurfaceKHR(*instance, &create_info, nullptr,
+                                     &surface);
 #elif defined __WIN32__
   VkWin32SurfaceCreateInfo create_info{
       VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0,
       data->native_hinstance, data->nativE_window_handle};
 
-  instance->vkCreateWin32SurfaceKHR(*instance, &create_info, nullptr, &surface);
+  (*instance)->vkCreateWin32SurfaceKHR(*instance, &create_info, nullptr,
+                                       &surface);
 #endif
 
   return VkSurfaceKHR(surface, nullptr, instance);
 }
 
-VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool, VkDevice* device) {
+VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
+                                           VkDevice* device) {
   VkCommandBufferAllocateInfo info = {
-    /* sType = */ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-    /* pNext = */ nullptr,
-    /* commandPool = */ pool->get_raw_object(),
-    /* level = */ VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-    /* commandBufferCount = */ 1,
+      /* sType = */ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      /* pNext = */ nullptr,
+      /* commandPool = */ pool->get_raw_object(),
+      /* level = */ VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      /* commandBufferCount = */ 1,
   };
   ::VkCommandBuffer raw_command_buffer;
-  LOG_ASSERT(
-      ==, device->GetLogger(),
-      device->vkAllocateCommandBuffers(*device, &info, &raw_command_buffer),
-      VK_SUCCESS);
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateCommandBuffers(
+                                          *device, &info, &raw_command_buffer),
+             VK_SUCCESS);
   return vulkan::VkCommandBuffer(raw_command_buffer, pool, device);
 }
 }

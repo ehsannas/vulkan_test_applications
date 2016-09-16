@@ -17,10 +17,14 @@
 #define VULKAN_WRAPPER_DEVICE_WRAPPER_H_
 
 #include <cstring>
+#include <memory>
+
+#include "support/containers/unique_ptr.h"
+#include "support/log/log.h"
 
 #include "vulkan_helpers/vulkan_header_wrapper.h"
+#include "vulkan_wrapper/function_table.h"
 #include "vulkan_wrapper/instance_wrapper.h"
-#include "vulkan_wrapper/lazy_function.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
 namespace vulkan {
@@ -29,37 +33,22 @@ namespace vulkan {
 // lazily initialized function pointers for all of its
 // methods. It will automatically call VkDestroyDevice when it
 // goes out of scope.
-class VkDevice;
-template <typename T>
-using LazyDeviceFunction = LazyFunction<T, ::VkDevice, VkDevice>;
-
 class VkDevice {
  public:
+  VkDevice(VkDevice&& other) = default;
   // This does not retain a reference to the VkInstance, or the
   // VkAllocationCallbacks object, it does take ownership of the device.
   // If properties is not nullptr, then the device_id, vendor_id and
   // driver_version will be copied out of it.
-  VkDevice(::VkDevice device, VkAllocationCallbacks* allocator,
-           VkInstance* instance,
+  VkDevice(containers::Allocator* container_allocator, ::VkDevice device,
+           VkAllocationCallbacks* allocator, VkInstance* instance,
            VkPhysicalDeviceProperties* properties = nullptr)
       : device_(device),
         has_allocator_(allocator != nullptr),
         log_(instance->GetLogger()),
         device_id_(0),
         vendor_id_(0),
-        driver_version_(0),
-#define CONSTRUCT_LAZY_FUNCTION(function) function(device, #function, this)
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice),
-        CONSTRUCT_LAZY_FUNCTION(vkCreateCommandPool),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyCommandPool),
-        CONSTRUCT_LAZY_FUNCTION(vkAllocateCommandBuffers),
-        CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer),
-        CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers),
-        CONSTRUCT_LAZY_FUNCTION(vkGetDeviceQueue),
-        CONSTRUCT_LAZY_FUNCTION(vkCreateSemaphore),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroySemaphore)
-#undef CONSTRUCT_LAZY_FUNCTION
-  {
+        driver_version_(0) {
     if (has_allocator_) {
       allocator_ = *allocator;
     } else {
@@ -74,24 +63,28 @@ class VkDevice {
       vendor_id_ = properties->vendorID;
       driver_version_ = properties->driverVersion;
     }
+    // Initialize the lazily resolved device functions.
+    functions_ = containers::make_unique<DeviceFunctions>(
+        container_allocator, device_, vkGetDeviceProcAddr, log_);
   }
 
   ~VkDevice() {
     if (device_) {
-      vkDestroyDevice(device_, has_allocator_ ? &allocator_ : nullptr);
+      functions_->vkDestroyDevice(device_,
+                                  has_allocator_ ? &allocator_ : nullptr);
     }
   }
 
   // To conform to the VkSubObjects::Traits interface
-  PFN_vkGetDeviceProcAddr getProcAddrFunction() {
-    return vkGetDeviceProcAddr;
-  }
+  PFN_vkGetDeviceProcAddr getProcAddrFunction() { return vkGetDeviceProcAddr; }
 
   uint32_t device_id() const { return device_id_; }
   uint32_t vendor_id() const { return vendor_id_; }
   uint32_t driver_version() const { return driver_version_; }
 
   logging::Logger* GetLogger() { return log_; }
+
+  DeviceFunctions* functions() { return functions_.get(); }
 
  private:
   ::VkDevice device_;
@@ -102,6 +95,8 @@ class VkDevice {
   VkAllocationCallbacks allocator_;
   logging::Logger* log_;
   PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+  // Lazily resolved Vulkan device functions.
+  containers::unique_ptr<DeviceFunctions> functions_;
 
   uint32_t device_id_;
   uint32_t vendor_id_;
@@ -114,17 +109,10 @@ class VkDevice {
   ::VkDevice get_device() const { return device_; }
   operator ::VkDevice() const { return device_; }
 
-#define LAZY_FUNCTION(function) LazyDeviceFunction<PFN_##function> function;
-  LAZY_FUNCTION(vkDestroyDevice);
-  LAZY_FUNCTION(vkCreateCommandPool);
-  LAZY_FUNCTION(vkDestroyCommandPool);
-  LAZY_FUNCTION(vkAllocateCommandBuffers);
-  LAZY_FUNCTION(vkResetCommandBuffer);
-  LAZY_FUNCTION(vkFreeCommandBuffers);
-  LAZY_FUNCTION(vkGetDeviceQueue);
-  LAZY_FUNCTION(vkCreateSemaphore);
-  LAZY_FUNCTION(vkDestroySemaphore);
-#undef LAZY_FUNCTION
+  // Override operators to access the lazily resolved functions stored in
+  // functions_;
+  DeviceFunctions* operator->() { return functions_.get(); }
+  DeviceFunctions& operator*() { return *functions_.get(); }
 };
 
 }  // namespace vulkan

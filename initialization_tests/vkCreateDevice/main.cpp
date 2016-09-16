@@ -24,7 +24,8 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
   containers::vector<VkPhysicalDevice> devices(
       vulkan::GetPhysicalDevices(data->root_allocator, instance),
       data->root_allocator);
@@ -46,22 +47,24 @@ int main_entry(const entry::entry_data* data) {
 
   {
     ::VkDevice raw_device;
-    LOG_EXPECT(==, data->log,
-               instance.vkCreateDevice(devices[0], &info, nullptr, &raw_device),
+    LOG_EXPECT(==, data->log, (*instance).vkCreateDevice(devices[0], &info,
+                                                         nullptr, &raw_device),
                VK_SUCCESS);
 
-    vulkan::VkDevice device(raw_device, nullptr, &instance);
+    vulkan::VkDevice device(data->root_allocator, raw_device, nullptr,
+                            &instance);
   }
 
   {
     info.queueCreateInfoCount = 1;
     info.pQueueCreateInfos = &queue_info;
     ::VkDevice raw_device;
-    LOG_EXPECT(==, data->log,
-               instance.vkCreateDevice(devices[0], &info, nullptr, &raw_device),
+    LOG_EXPECT(==, data->log, instance->vkCreateDevice(devices[0], &info,
+                                                       nullptr, &raw_device),
                VK_SUCCESS);
 
-    vulkan::VkDevice device(raw_device, nullptr, &instance);
+    vulkan::VkDevice device(data->root_allocator, raw_device, nullptr,
+                            &instance);
   }
   data->log->LogInfo("Application Shutdown");
   return 0;

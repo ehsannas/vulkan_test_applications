@@ -17,6 +17,8 @@
 #define VULKAN_WRAPPER_SUB_OBJECTS_H_
 
 #include "vulkan_helpers/vulkan_header_wrapper.h"
+#include "vulkan_wrapper/device_wrapper.h"
+#include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/lazy_function.h"
 
 namespace vulkan {
@@ -27,10 +29,13 @@ namespace vulkan {
 // It should be of the form
 // struct FooTraits {
 //   using type = VulkanType;
-//   using destruction_function = PFN_vkDestroyVulkanType;
-//   static const char* function_name() const {
-//      return "vkDestroyVulkanType";
+//   using destruction_function_type =
+//     Lazy{Instance|Device|..}Function<PFN_vkDestoryVulkanType>;
+//   static destruction_function_type* get_destruction_function(
+//       {Device|Instance|...}Functions* functions) {
+//     return &functions->vkDestroyVulkanType;
 //   }
+// }
 // O is expected to be a set of traits that describe the owner of this object.
 // It should be of the form
 // struct OwnerTraits {
@@ -45,6 +50,7 @@ class VkSubObject {
   using owner_type = typename O::type;
   using raw_owner_type = typename O::raw_vulkan_type;
   using proc_addr_type = typename O::proc_addr_function_type;
+  using destruction_function_type = typename T::destruction_function_type;
 
  public:
   // This does not retain a reference to the owner, or the
@@ -56,7 +62,7 @@ class VkSubObject {
         log_(owner->GetLogger()),
         has_allocator_(allocator != nullptr),
         raw_object_(raw_object),
-        destruction_function(*owner, T::function_name(), this) {
+        destruction_function_(T::get_destruction_function(owner->functions())) {
     if (allocator) {
       allocator_ = *allocator;
     }
@@ -65,8 +71,8 @@ class VkSubObject {
 
   ~VkSubObject() {
     if (raw_object_) {
-      destruction_function(owner_, raw_object_,
-                           has_allocator_ ? &allocator_ : nullptr);
+      (*destruction_function_)(owner_, raw_object_,
+                               has_allocator_ ? &allocator_ : nullptr);
     }
   }
 
@@ -77,7 +83,7 @@ class VkSubObject {
         allocator_(other.allocator_),
         has_allocator_(other.has_allocator_),
         raw_object_(other.raw_object_),
-        destruction_function(other.destruction_function) {
+        destruction_function_(other.destruction_function_) {
     other.raw_object_ = VK_NULL_HANDLE;
   }
 
@@ -91,9 +97,7 @@ class VkSubObject {
   bool has_allocator_;
   type raw_object_;
 
-  LazyFunction<typename T::destruction_function, raw_owner_type,
-               VkSubObject<T, O>>
-      destruction_function;
+  destruction_function_type* destruction_function_;
 
  public:
   operator type() const { return raw_object_; }
@@ -108,6 +112,7 @@ struct InstanceTraits {
   using type = VkInstance;
   using proc_addr_function_type = PFN_vkGetInstanceProcAddr;
   using raw_vulkan_type = ::VkInstance;
+  using function_table_type = InstanceFunctions;
 };
 
 struct DeviceTraits {
@@ -118,18 +123,25 @@ struct DeviceTraits {
 
 struct CommandPoolTraits {
   using type = ::VkCommandPool;
-  using destruction_function = PFN_vkDestroyCommandPool;
-  static const char* function_name() { return "vkDestroyCommandPool"; }
+  using destruction_function_type =
+      LazyDeviceFunction<PFN_vkDestroyCommandPool>;
+  static destruction_function_type* get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyCommandPool;
+  }
 };
 using VkCommandPool = VkSubObject<CommandPoolTraits, DeviceTraits>;
 
 struct SurfaceTraits {
   using type = ::VkSurfaceKHR;
-  using destruction_function = PFN_vkDestroySurfaceKHR;
-  static const char* function_name() { return "vkDestroySurfaceKHR"; }
+  using destruction_function_type =
+      LazyInstanceFunction<PFN_vkDestroySurfaceKHR>;
+  static destruction_function_type* get_destruction_function(
+      InstanceFunctions* functions) {
+    return &functions->vkDestroySurfaceKHR;
+  }
 };
 using VkSurfaceKHR = VkSubObject<SurfaceTraits, InstanceTraits>;
-
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_

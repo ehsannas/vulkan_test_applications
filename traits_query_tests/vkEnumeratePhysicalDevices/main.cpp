@@ -23,11 +23,12 @@
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
-  vulkan::VkInstance instance(vulkan::CreateEmptyInstance(&wrapper));
+  vulkan::VkInstance instance(
+      vulkan::CreateEmptyInstance(data->root_allocator, &wrapper));
 
   uint32_t device_count = 0;
 
-  LOG_EXPECT(==, data->log, instance.vkEnumeratePhysicalDevices(
+  LOG_EXPECT(==, data->log, instance->vkEnumeratePhysicalDevices(
                                 instance, &device_count, nullptr),
              VK_INCOMPLETE);
   // Actually it does not seem to be well defined what
@@ -40,8 +41,8 @@ int main_entry(const entry::entry_data* data) {
   containers::vector<VkPhysicalDevice> physical_devices(device_count,
                                                         data->root_allocator);
   LOG_ASSERT(==, data->log,
-             instance.vkEnumeratePhysicalDevices(instance, &device_count,
-                                                 physical_devices.data()),
+             instance->vkEnumeratePhysicalDevices(instance, &device_count,
+                                                  physical_devices.data()),
              VK_SUCCESS);
 
   for (size_t i = 0; i < device_count; ++i) {
@@ -50,14 +51,14 @@ int main_entry(const entry::entry_data* data) {
 
   device_count -= 1;
   LOG_EXPECT(==, data->log,
-             instance.vkEnumeratePhysicalDevices(instance, &device_count,
-                                                 physical_devices.data()),
+             instance->vkEnumeratePhysicalDevices(instance, &device_count,
+                                                  physical_devices.data()),
              VK_INCOMPLETE);
 
   device_count = 0;
   LOG_EXPECT(==, data->log,
-             instance.vkEnumeratePhysicalDevices(instance, &device_count,
-                                                 physical_devices.data()),
+             instance->vkEnumeratePhysicalDevices(instance, &device_count,
+                                                  physical_devices.data()),
              VK_INCOMPLETE);
 
   data->log->LogInfo("Application Shutdown");
