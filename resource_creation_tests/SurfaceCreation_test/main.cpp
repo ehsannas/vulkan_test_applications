@@ -55,7 +55,8 @@ int main_entry(const entry::entry_data* data) {
 
   instance.vkDestroySurfaceKHR(instance, surface, nullptr);
 
-  instance.vkDestroySurfaceKHR(instance, VK_NULL_HANDLE, nullptr);
+  instance.vkDestroySurfaceKHR(
+      instance, static_cast<VkSurfaceKHR>(VK_NULL_HANDLE), nullptr);
   data->log->LogInfo("Application Shutdown");
   return 0;
 }
