@@ -75,12 +75,41 @@ def find_string_in_observations(observations, address):
     return None
 
 
-class AtomAttributeError(AttributeError):
+class NamedAttributeError(AttributeError):
     """An exception that is thrown when trying to access a parameter from an
-    atom"""
+    object"""
 
     def __init__(self, message):
-        super(AtomAttributeError, self).__init__(message)
+        super(NamedAttributeError, self).__init__(message)
+
+
+class Extra(object):
+    """A single extra attached to an atom"""
+
+    def __init__(self, name, parameters):
+        self.name = name
+        self.parameters = {}
+        for parameter in parameters:
+            self.parameters[parameter[0]] = parameter[1]
+
+    def __getattr__(self, name):
+        """Returns parameters that were on this extra.
+
+        Based on the prefix (hex_, int_, <none>) we convert the parameter
+        from a string with the given formatting.
+        """
+
+        if name.startswith('hex_') or name.startswith('int_'):
+            if name[4:] in self.parameters:
+                if name.startswith('hex_'):
+                    return int(self.parameters[name[4:]], 16)
+                elif name.startswith('int_'):
+                    return int(self.parameters[name[4:]])
+
+        if name in self.parameters:
+            return self.parameters[name]
+        raise NamedAttributeError('Could not find parameter ' + name +
+                                  ' on extra ' + self.name + '\n')
 
 
 class Atom(object):
@@ -96,6 +125,7 @@ class Atom(object):
         self.index = index
         self.name = name
         self.return_val = return_val
+        self.extras = {}
 
     def __getattr__(self, name):
         """Returns parameters that were on this atom.
@@ -113,9 +143,17 @@ class Atom(object):
 
         if name in self.parameters:
             return self.parameters[name]
-        raise AtomAttributeError('Could not find parameter ' + name +
-                                 ' on atom [' + str(self.index) + ']' +
-                                 self.name + '\n')
+        if name.startswith('extra_'):
+            if name[6:] in self.extras:
+                return self.extras[name[6:]]
+
+        raise NamedAttributeError('Could not find parameter ' + name +
+                                  ' on atom [' + str(self.index) + ']' +
+                                  self.name + '\n')
+
+    def num_observations(self):
+        """Returns the number of observations on this object"""
+        return len(self.read_observations) + len(self.write_observations)
 
     def get_read_data(self, address, num_bytes):
         """Returns num_bytes from the starting address in the read observations.
@@ -200,6 +238,11 @@ class Atom(object):
         self.write_observations.append(
             Observation(memory_start, memory_end, memory_id))
 
+    def add_extra(self, name, parameters):
+        """Takes a name and an array of parameter tuples (name, value) and adds
+        this extra to the atom"""
+        self.extras[name] = Extra(name, parameters)
+
     def set_read_observation_bytes(self, index, memory):
         """Adds bytes to the read observation with the given index"""
         self.read_observations[index].contents = memory
@@ -253,7 +296,19 @@ def parse_memory_observations(observation):
         yield observation
 
 
-def parse_observation_line(line, atom):
+def parse_extra(name, extra_text, atom):
+    """Parses extra_text from an extra named `extra_name`
+
+
+    Example extra_text:
+    &{Generate:{} U64Alignment: 8}
+    """
+    interior = extra_text.lstrip('&').strip('{}')
+    parameters = re.findall(r'([a-zA-Z0-9]+):(\S)+', interior)
+    atom.add_extra(name, parameters)
+
+
+def parse_observations(line, atom):
     '''Parses the second line of an atom.
 
     Rerturns the number of read and write
@@ -265,7 +320,7 @@ def parse_observation_line(line, atom):
     Reads: [], Writes: [{Range: [0x00000000eaafff34-0x00000000eaafff37],       \
                           ID: 8f85530ad0db61eee69aa0ba583751043584d500}]
     '''
-    match = re.match(r'\s*Reads: \[(.*)\], Writes: \[(.*)\]\n', line)
+    match = re.match(r'Reads: \[(.*)\], Writes: \[(.*)\]', line)
     num_read_observations = 0
     num_write_observations = 0
     if match.group(1):
@@ -297,10 +352,10 @@ def parse_memory_line(line):
 FIRST_LINE = 1
 # NEW_ATOM is the state we are in just before reading a new atom
 NEW_ATOM = 2
-# OBSERVATIONS is the state we are in when we have finished reading an Atom
-# and we are looking for the observations
-OBSERVATIONS = 3
-# MEMORY is the state we are in when we have finished reading the OBSERVATIONS
+# EXTRAS is the state we are in when we have finished reading an Atom
+# and we are looking for the Extras
+EXTRAS = 3
+# MEMORY is the state we are in when we have finished reading the EXTRAS
 # and now we have to read all of the bytes of memory
 MEMORY = 4
 
@@ -338,22 +393,25 @@ def parse_trace_file(filename):
             if atom:
                 yield atom
             atom = parse_atom_line(line)
-            current_state = OBSERVATIONS
-        elif current_state == OBSERVATIONS:
-            if re.match('[0-9]+ .*', line):
+            current_state = EXTRAS
+        elif current_state == EXTRAS:
+            match = re.match(r'\s*([a-zA-Z]+): \[(.*)\]', line)
+            if not match:
                 # If there were no memory obeservations made, then
                 # we actively do not want to consume this line, this
                 # is the start of a new atom, and we should treat it as
                 # such
-                current_state = NEW_ATOM
+                if not atom.num_observations():
+                    current_state = NEW_ATOM
+                else:
+                    current_state = MEMORY
                 continue
-            observations = parse_observation_line(line, atom)
-            num_read_observations = observations[0]
-            num_write_observations = observations[1]
-            if num_read_observations + num_write_observations > 0:
-                current_state = MEMORY
+            if match.group(1) == 'Observations':
+                observations = parse_observations(match.group(2), atom)
+                num_read_observations = observations[0]
+                num_write_observations = observations[1]
             else:
-                current_state = NEW_ATOM
+                parse_extra(match.group(1), match.group(2), atom)
         elif current_state == MEMORY:
             memory = parse_memory_line(line)
             if current_memory_observation < num_read_observations:

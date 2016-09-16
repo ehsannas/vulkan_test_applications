@@ -27,7 +27,7 @@ import traceback
 
 from gapit_tester import run_on_single_apk
 from gapit_tester import RunArgs
-from gapit_trace_reader import parse_trace_file, AtomAttributeError
+from gapit_trace_reader import parse_trace_file, NamedAttributeError
 
 SUCCESS = 0
 FAILURE = 1
@@ -228,7 +228,7 @@ class GapitTest(object):
             print "[ " + "FAILED".rjust(10) + " ] " + test_name
             print "     " + error.message
             return (FAILURE, error.message)
-        except AtomAttributeError as error:
+        except NamedAttributeError as error:
             exc_type, exc_value, exc_tb = sys.exc_info()
             print "[ " + "FAILED".rjust(10) + " ] " + test_name
             call_site = traceback.format_exception(
