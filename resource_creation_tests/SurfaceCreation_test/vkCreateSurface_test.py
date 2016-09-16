@@ -61,7 +61,7 @@ class SurfaceCreateTest(GapitTest):
         # pSemaphore is filled in by the call, should be a write observation
         surface = require(
             create_surface.get_write_data(create_surface.hex_PSurface,
-                                          NON_DISPATCHABE_HANDLE_SIZE))
+                                          NON_DISPATCHABLE_HANDLE_SIZE))
 
         # We should have called destroy_semaphore with the same one
         destroy_surface = require(self.next_call_of("vkDestroySurfaceKHR"))
