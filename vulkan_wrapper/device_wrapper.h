@@ -87,9 +87,9 @@ class VkDevice {
     return vkGetDeviceProcAddr;
   }
 
-  uint32_t device_id() { return device_id_; }
-  uint32_t vendor_id() { return vendor_id_; }
-  uint32_t driver_version() { return driver_version_; }
+  uint32_t device_id() const { return device_id_; }
+  uint32_t vendor_id() const { return vendor_id_; }
+  uint32_t driver_version() const { return driver_version_; }
 
   logging::Logger* GetLogger() { return log_; }
 

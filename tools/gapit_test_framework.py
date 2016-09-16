@@ -98,8 +98,8 @@ def require_not(val):
 class GapitTest(object):
     '''Base class for all Gapit tests.
 
-    This is responsbile for tracing our application as well as processing the
-    log file. Any base-classes 'expect' method will be run.
+    This is responsible for tracing our application as well as processing the
+    log file. Any subclasses 'expect' method will be run.
     '''
 
     def __init__(self):
@@ -191,8 +191,8 @@ class GapitTest(object):
         if (device["vendor_id"] == vendor_id and
                 device["device_id"] == device_id and driver_version <= driver):
             call_site = traceback.format_list(traceback.extract_stack(limit=2))
-            self.warnings.append("Code block disabled due to known driver bug\n"
-                                 + call_site[0])
+            self.warnings.append(
+                "Code block disabled due to known driver bug\n" + call_site[0])
             return False
         return True
 
@@ -309,7 +309,7 @@ class TestManager(object):
                         test = obj()
                         test_name += "." + test.name()
                         if (include_matcher.match(test_name) and
-                                None == exclude_matcher.match(test_name)):
+                                exclude_matcher.match(test_name) is None):
                             self.add_test(obj.gapit_test_apk_name, test_name,
                                           test)
 
@@ -321,7 +321,7 @@ class TestManager(object):
 
     def add_test(self, apk_name, test_name, test):
         """Adds a test case to the manager from the given apk"""
-        if not apk_name in self.tests:
+        if apk_name not in self.tests:
             self.tests[apk_name] = []
         self.tests[apk_name].append((test_name, test))
 
