@@ -107,6 +107,7 @@ def watch_process(silent, program_args):
         if line != '':
             if 'beginning of crash' in line:
                 print '**Application Crashed**'
+                proc.kill()
                 return -1
             split_line = line.split(':')[1:]
             if not split_line:
@@ -119,4 +120,5 @@ def watch_process(silent, program_args):
                 break
             if program_args.verbose or not silent:
                 print line_text,
+    proc.kill()
     return return_value

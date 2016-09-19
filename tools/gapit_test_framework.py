@@ -191,8 +191,8 @@ class GapitTest(object):
         if (device["vendor_id"] == vendor_id and
                 device["device_id"] == device_id and driver_version <= driver):
             call_site = traceback.format_list(traceback.extract_stack(limit=2))
-            self.warnings.append(
-                "Code block disabled due to known driver bug\n" + call_site[0])
+            self.warnings.append("Code block disabled due to known driver bug\n"
+                                 + call_site[0])
             return False
         return True
 
@@ -213,7 +213,10 @@ class GapitTest(object):
             setattr(args, "keep", False)
             setattr(args, "output", [capture_name])
             print "[ " + "TRACING".center(10) + " ] " + apk_name
-            return_value = run_on_single_apk(apk_name, args)
+            try:
+                return_value = run_on_single_apk(apk_name, args)
+            except:
+                return (FAILURE, "Could not generate trace file.")
             if return_value != 0:
                 return (FAILURE, "Could not generate trace file.")
             if verbose:
@@ -296,22 +299,28 @@ class TestManager(object):
                 if self.verbose:
                     print("Searching " + os.path.join(root, filename) +
                           " for tests")
-                mod = __import__(os.path.splitext(filename)[0])
-                for _, obj in inspect.getmembers(mod):
-                    if inspect.isclass(obj) and hasattr(obj,
-                                                        "gapit_test_apk_name"):
-                        if self.verbose:
-                            print("Found test " + obj.__name__ + " in " +
-                                  os.path.join(root, filename))
-                        test_name = os.path.relpath(root, self.root_directory)
-                        test_name = test_name.replace("/", ".")
-                        test_name = test_name.replace("\\", ".")
-                        test = obj()
-                        test_name += "." + test.name()
-                        if (include_matcher.match(test_name) and
-                                exclude_matcher.match(test_name) is None):
-                            self.add_test(obj.gapit_test_apk_name, test_name,
-                                          test)
+                try:
+                    mod = __import__(os.path.splitext(filename)[0])
+                    for _, obj in inspect.getmembers(mod):
+                        if inspect.isclass(obj) and hasattr(
+                                obj, "gapit_test_apk_name"):
+                            if self.verbose:
+                                print("Found test " + obj.__name__ + " in " +
+                                      os.path.join(root, filename))
+                            test_name = os.path.relpath(root,
+                                                        self.root_directory)
+                            test_name = test_name.replace("/", ".")
+                            test_name = test_name.replace("\\", ".")
+                            test = obj()
+                            test_name += "." + test.name()
+                            if (include_matcher.match(test_name) and
+                                    exclude_matcher.match(test_name) is None):
+                                self.add_test(obj.gapit_test_apk_name,
+                                              test_name, test)
+                except:
+                    print("Warning: Could not parse " + os.path.join(
+                        root, filename) + " for tests.")
+                    pass
 
     def print_test_names(self, file_handle):
         """Prints out to the given file handle a list of all tests."""
