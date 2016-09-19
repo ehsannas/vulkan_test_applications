@@ -69,4 +69,4 @@ class SurfaceCreateTest(GapitTest):
             little_endian_bytes_to_int(surface), destroy_surface.int_Surface)
 
         destroy_surface_2 = require(self.next_call_of("vkDestroySurfaceKHR"))
-        require_equal(0, destroy_surface.int_Surface)
+        require_equal(0, destroy_surface_2.int_Surface)
