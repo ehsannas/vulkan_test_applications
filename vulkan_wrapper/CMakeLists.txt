@@ -15,12 +15,13 @@
 
 add_vulkan_static_library(vulkan_wrapper
     SOURCES
-		    command_buffer_wrapper.h
-		    device_wrapper.h
+        command_buffer_wrapper.h
+        device_wrapper.h
         instance_wrapper.h
         lazy_function.h
         library_wrapper.h
         library_wrapper.cpp
         sub_objects.h
     LIBS
-        dynamic_loader)
+        dynamic_loader
+        containers)

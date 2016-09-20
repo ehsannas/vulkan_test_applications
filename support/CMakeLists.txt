@@ -17,5 +17,6 @@
 add_subdirectory(log)
 
 add_subdirectory(android_native_app_glue)
+add_subdirectory(containers)
 add_subdirectory(dynamic_loader)
 add_subdirectory(entry)

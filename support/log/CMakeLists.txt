@@ -23,4 +23,5 @@ add_vulkan_static_library(logger
         log.cpp
         log.h
     LIBS
-        ${ADDITIONAL_LIBS})
+        ${ADDITIONAL_LIBS}
+        containers)

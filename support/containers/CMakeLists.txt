@@ -13,15 +13,14 @@
 # limitations under the License.
 #
 
-add_vulkan_static_library(vulkan_helpers
+add_vulkan_static_library(containers
     SOURCES
-        helper_functions.h
-        helper_functions.cpp
-        known_device_infos.h
-        known_device_infos.cpp
-        structs.h
-        structs.cpp
-        vulkan_header_wrapper.h
-    LIBS
-        vulkan_wrapper
-        containers)
+        dummy.c
+        # Create a dummy library so that we can track dependencies properly
+        allocator.h
+        stl_compatible_allocator.h
+        string.h
+        unique_ptr.h
+        unordered_map.h
+        unordered_set.h
+        vector.h)

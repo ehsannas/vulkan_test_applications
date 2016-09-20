@@ -22,4 +22,5 @@ add_vulkan_static_library(dynamic_loader
         dynamic_library.h
         dynamic_library.cpp
     LIBS
-        ${ADDITIONAL_LIBS})
+        ${ADDITIONAL_LIBS}
+        containers)
