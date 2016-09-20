@@ -37,6 +37,44 @@ set(NON_CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
 
+if(BUILD_APKS)
+  # Create a dummy-target that we can use to gather all of our dependencies
+  set(TARGET_SOURCES)
+  set(ANDROID_TARGET_NAME ${target})
+  set(${target}_SOURCES ${EXE_SOURCES})
+  set(${target}_LIBS ${EXE_LIBS})
+  set(ANDROID_ADDITIONAL_PARAMS)
+  set(APK_BUILD_ROOT "${CMAKE_CURRENT_BINARY_DIR}/dummyapk/")
+  string(REPLACE "\",\"" " " ANDROID_ABIS_SPACES "${ANDROID_ABIS}")
+
+  foreach(source ${CONFIGURABLE_ANDROID_SOURCES})
+    file(RELATIVE_PATH rooted_source ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template ${source})
+    configure_file(${source} ${CMAKE_CURRENT_BINARY_DIR}/dummyapk/${rooted_source} @ONLY)
+    list(APPEND TARGET_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/dummyapk/${rooted_source})
+  endforeach()
+  foreach(source ${NON_CONFIGURABLE_ANDROID_SOURCES})
+    file(RELATIVE_PATH rooted_source ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template ${source})
+    configure_file(${source} ${CMAKE_CURRENT_BINARY_DIR}/dummyapk/${rooted_source} COPYONLY)
+    list(APPEND TARGET_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/dummyapk/${rooted_source})
+  endforeach()
+
+  set(target_config ${VulkanTestApplications_BINARY_DIR}/.gradle_update)
+
+  # Try and run a dummy build of our dummy program. This does not actually
+  # build any artifacts, but does go and grab all of the necessary
+  # dependencies to build with gradle. This is the only place that
+  # should grab anything from the internet.
+  add_custom_command(
+      OUTPUT ${target_config}
+      COMMENT "Gathering gradle dependencies"
+      COMMAND ./gradlew --no-rebuild --gradle-user-home
+        ${VulkanTestApplications_BINARY_DIR}/.gradle
+      COMMAND ${CMAKE_COMMAND} -E touch ${target_config}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dummyapk
+      DEPENDS ${TARGET_SOURCES})
+  add_custom_target(gradle_config ALL DEPENDS ${target_config})
+endif()
+
 # This recursively gathers all of the dependencies for a target.
 macro(gather_deps target)
   if(TARGET ${target})
@@ -100,7 +138,6 @@ function(add_vulkan_executable target)
       list(APPEND TARGET_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/${rooted_source})
     endforeach()
 
-
     if (CMAKE_BUILD_TYPE STREQUAL Debug)
       set(apk_build_location "${APK_BUILD_ROOT}/app/build/outputs/apk/app-debug.apk")
       set(ASSEMBLE_COMMAND assembleDebug)
@@ -124,13 +161,20 @@ function(add_vulkan_executable target)
     gather_deps(${target}_sources)
     gather_deps(entry)
 
+    # Try not to pollute the user's root gradle directory.
+    # Force our version of gradle to use a gradle cache directory
+    #   that is local to this build.
+
     add_custom_command(
       OUTPUT ${target_apk}
-      COMMAND ./gradlew ${ASSEMBLE_COMMAND}
+      COMMAND ./gradlew --offline ${ASSEMBLE_COMMAND} --gradle-user-home
+        ${VulkanTestApplications_BINARY_DIR}/.gradle
       COMMAND ${CMAKE_COMMAND} -E copy ${apk_build_location} ${target_apk}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk
       DEPENDS ${SOURCE_DEPS}
-              ${TARGET_SOURCES})
+              ${TARGET_SOURCES}
+              gradle_config)
+
     add_custom_target(${target} ALL DEPENDS ${target_apk})
   endif()
 endfunction(add_vulkan_executable)
