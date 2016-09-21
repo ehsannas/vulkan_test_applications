@@ -4,6 +4,9 @@ These tests are specifically for testing functionality revolving around
 the creation and destruction of vulkan resources.
 
 # Tests
-- [vkCreateCommandPool](vkCreateCommandPool/README.md)
 - [AllocateResetFreeCommandBuffer](AllocateResetFreeCommandBuffer/README.md)
 - [CreateDestroyImage](CreateDestroyImage/README.md)
+- [SurfaceCreation_test](SurfaceCreation_test/README.md)
+- [SynchronizationCreationDestruction_test](SynchronizationCreationDestruction_test/README.md)
+- [vkCreateCommandPool](vkCreateCommandPool/README.md)
+- [vkCreateSwapchainKHR_test](vkCreateSwapchainKHR_test/README.md)
