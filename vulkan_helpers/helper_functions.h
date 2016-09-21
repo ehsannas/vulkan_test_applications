@@ -87,6 +87,15 @@ VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
 VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
                                            VkDevice* device);
 
+// Creates a swapchain with a default layout and number of images.
+// It will be able to be rendered to from graphics_queue_index,
+// and it will be presentable on present_queue_index.
+VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
+                                      VkSurfaceKHR* surface,
+                                      containers::Allocator* allocator,
+                                      uint32_t present_queue_index,
+                                      uint32_t graphics_queue_index);
+
 // Returns a uint32_t with only the lowest bit set.
 uint32_t inline GetLSB(uint32_t val) { return ((val - 1) ^ val) & val; }
 }

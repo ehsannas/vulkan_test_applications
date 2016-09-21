@@ -142,6 +142,18 @@ struct SurfaceTraits {
   }
 };
 using VkSurfaceKHR = VkSubObject<SurfaceTraits, InstanceTraits>;
+
+struct SwapchainTraits {
+  using type = ::VkSwapchainKHR;
+  using destruction_function_type =
+      LazyDeviceFunction<PFN_vkDestroySwapchainKHR>;
+  static destruction_function_type* get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroySwapchainKHR;
+  }
+};
+using VkSwapchainKHR = VkSubObject<SwapchainTraits, DeviceTraits>;
+
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_

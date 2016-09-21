@@ -331,4 +331,90 @@ VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
              VK_SUCCESS);
   return vulkan::VkCommandBuffer(raw_command_buffer, pool, device);
 }
+
+VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
+                                      VkSurfaceKHR* surface,
+                                      containers::Allocator* allocator,
+                                      uint32_t present_queue_index,
+                                      uint32_t graphics_queue_index) {
+  const bool has_multiple_queues = present_queue_index != graphics_queue_index;
+  const uint32_t queues[2] = {graphics_queue_index, present_queue_index};
+  VkSurfaceCapabilitiesKHR surface_caps;
+  LOG_ASSERT(==, instance->GetLogger(),
+             (*instance)->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+                 device->physical_device(), *surface, &surface_caps),
+             VK_SUCCESS);
+
+  uint32_t num_formats = 0;
+  LOG_ASSERT(==, instance->GetLogger(),
+             (*instance)->vkGetPhysicalDeviceSurfaceFormatsKHR(
+                 device->physical_device(), *surface, &num_formats, nullptr),
+             VK_SUCCESS);
+
+  containers::vector<VkSurfaceFormatKHR> surface_formats(num_formats,
+                                                         allocator);
+  LOG_ASSERT(==, instance->GetLogger(),
+             (*instance)->vkGetPhysicalDeviceSurfaceFormatsKHR(
+                 device->physical_device(), *surface, &num_formats,
+                 surface_formats.data()),
+             VK_SUCCESS);
+
+  uint32_t num_present_modes = 0;
+  LOG_ASSERT(
+      ==, instance->GetLogger(),
+      (*instance)->vkGetPhysicalDeviceSurfacePresentModesKHR(
+          device->physical_device(), *surface, &num_present_modes, nullptr),
+      VK_SUCCESS);
+  containers::vector<VkPresentModeKHR> present_modes(num_present_modes,
+                                                     allocator);
+  LOG_ASSERT(==, instance->GetLogger(),
+             (*instance)->vkGetPhysicalDeviceSurfacePresentModesKHR(
+                 device->physical_device(), *surface, &num_present_modes,
+                 present_modes.data()),
+             VK_SUCCESS);
+
+  uint32_t chosenAlpha =
+      static_cast<uint32_t>(surface_caps.supportedCompositeAlpha);
+  LOG_ASSERT(!=, instance->GetLogger(), 0,
+             surface_caps.supportedCompositeAlpha);
+
+  // Time to get the LSB of chosenAlpha;
+
+  chosenAlpha = GetLSB(chosenAlpha);
+
+  VkExtent2D image_extent(surface_caps.currentExtent);
+  if (image_extent.width == 0xFFFFFFFF) {
+    image_extent = VkExtent2D{100, 100};
+  }
+
+  VkSwapchainCreateInfoKHR swapchainCreateInfo{
+      VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,  // sType
+      nullptr,                                      // pNext
+      0,                                            // flags
+      *surface,                                     // surface
+      surface_caps.minImageCount,                   // minImageCount
+      surface_formats[0].format,                    // surfaceFormat
+      surface_formats[0].colorSpace,                // colorSpace
+      image_extent,                                 // imageExtent
+      1,                                            // imageArrayLayers
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,          // imageUsage
+      has_multiple_queues ? VK_SHARING_MODE_CONCURRENT
+                          : VK_SHARING_MODE_EXCLUSIVE,  // sharingMode
+      has_multiple_queues ? 2u : 0u,
+      has_multiple_queues ? queues : nullptr,  // pQueueFamilyIndices
+      surface_caps.currentTransform,           // preTransform,
+      static_cast<VkCompositeAlphaFlagBitsKHR>(chosenAlpha),  // compositeAlpha
+      present_modes.front(),                                  // presentModes
+      false,                                                  // clipped
+      VK_NULL_HANDLE                                          // oldSwapchain
+  };
+
+  ::VkSwapchainKHR swapchain;
+
+  LOG_ASSERT(==, instance->GetLogger(),
+             (*device)->vkCreateSwapchainKHR(*device, &swapchainCreateInfo,
+                                             nullptr, &swapchain),
+             VK_SUCCESS);
+  return VkSwapchainKHR(swapchain, nullptr, device);
+}
 }

@@ -5,3 +5,4 @@ the acquisition of vulkan resources.
 
 # Tests
 - [vkGetDeviceQueue](vkGetDeviceQueue/README.md)
+- [vkGetSwapchainImagesKHR_test](vkGetSwapchainImagesKHR_test/README.md)
