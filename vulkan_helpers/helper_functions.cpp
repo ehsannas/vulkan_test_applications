@@ -19,7 +19,8 @@
 #include "support/log/log.h"
 
 namespace vulkan {
-VkInstance CreateEmptyInstance(containers::Allocator* allocator, LibraryWrapper* wrapper) {
+VkInstance CreateEmptyInstance(containers::Allocator* allocator,
+                               LibraryWrapper* wrapper) {
   // Test a non-nullptr pApplicationInfo
   VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
                              nullptr,
@@ -46,7 +47,8 @@ VkInstance CreateEmptyInstance(containers::Allocator* allocator, LibraryWrapper*
   return vulkan::VkInstance(allocator, raw_instance, nullptr, wrapper);
 }
 
-VkInstance CreateDefaultInstance(containers::Allocator* allocator, LibraryWrapper* wrapper) {
+VkInstance CreateDefaultInstance(containers::Allocator* allocator,
+                                 LibraryWrapper* wrapper) {
   // Similar to Empty Instance, but turns on the platform specific
   // swapchian functions.
   // Test a non-nullptr pApplicationInfo
@@ -123,7 +125,9 @@ containers::vector<VkQueueFamilyProperties> GetQueueFamilyProperties(
 inline bool HasGraphicsAndComputeQueue(
     const VkQueueFamilyProperties& property) {
   return property.queueCount > 0 &&
-         (property.queueFlags & VK_QUEUE_GRAPHICS_BIT & VK_QUEUE_COMPUTE_BIT);
+         (property.queueFlags &
+          (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT) ==
+              (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT));
 }
 
 uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
