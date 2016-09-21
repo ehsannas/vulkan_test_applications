@@ -183,7 +183,90 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
       ==, instance.GetLogger(),
       instance->vkCreateDevice(physical_device, &info, nullptr, &raw_device),
       VK_SUCCESS);
-  return vulkan::VkDevice(allocator, raw_device, nullptr, &instance, &properties);
+  return vulkan::VkDevice(allocator, raw_device, nullptr, &instance,
+                          &properties, physical_device);
+}
+
+VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
+                                  VkInstance* instance, VkSurfaceKHR* surface,
+                                  uint32_t* present_queue_index,
+                                  uint32_t* graphics_queue_index) {
+  containers::vector<VkPhysicalDevice> physical_devices =
+      GetPhysicalDevices(allocator, *instance);
+  float priority = 1.f;
+
+  for (auto device : physical_devices) {
+    VkPhysicalDevice physical_device = device;
+    VkPhysicalDeviceProperties physical_device_properties;
+    (*instance)->vkGetPhysicalDeviceProperties(device,
+                                               &physical_device_properties);
+
+    auto properties = GetQueueFamilyProperties(allocator, *instance, device);
+    const uint32_t graphics_queue_family_index =
+        GetGraphicsAndComputeQueueFamily(allocator, *instance, physical_device);
+    uint32_t present_queue_family_index = 0;
+    for (; present_queue_family_index < properties.size();
+         ++present_queue_family_index) {
+      VkBool32 supports_swapchain = false;
+      LOG_EXPECT(==, instance->GetLogger(),
+                 (*instance)->vkGetPhysicalDeviceSurfaceSupportKHR(
+                     device, present_queue_family_index, *surface,
+                     &supports_swapchain),
+                 VK_SUCCESS);
+      if (supports_swapchain) {
+        break;
+      }
+    }
+
+    if (present_queue_family_index == properties.size()) {
+      continue;
+    }
+
+    VkDeviceQueueCreateInfo queue_infos[] = {
+        {/* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+         /* pNext = */ nullptr,
+         /* flags = */ 0,
+         /* queueFamilyIndex = */ graphics_queue_family_index,
+         /* queueCount */ 1,
+         /* pQueuePriorities = */ &priority},
+        {/* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+         /* pNext = */ nullptr,
+         /* flags = */ 0,
+         /* queueFamilyIndex = */ present_queue_family_index,
+         /* queueCount */ 1,
+         /* pQueuePriorities = */ &priority},
+    };
+
+    const char* enabled_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+    VkDeviceCreateInfo info{
+        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // stype
+        nullptr,                               // pNext
+        0,                                     // flags
+        (present_queue_family_index !=
+         ((unsigned int)graphics_queue_family_index))
+            ? 2u
+            : 1u,            // queueCreateInfoCount
+        queue_infos,         // pQueueCreateInfos
+        0,                   // enabledLayerCount
+        nullptr,             // ppEnabledLayerNames
+        1,                   // enabledExtensionCount
+        enabled_extensions,  // ppEnabledExtensionNames
+        nullptr              // ppEnabledFeatures
+    };
+
+    ::VkDevice raw_device;
+    LOG_ASSERT(==, instance->GetLogger(),
+               (*instance)->vkCreateDevice(physical_device, &info, nullptr,
+                                           &raw_device),
+               VK_SUCCESS);
+    *present_queue_index = present_queue_family_index;
+    *graphics_queue_index = graphics_queue_family_index;
+    return vulkan::VkDevice(allocator, raw_device, nullptr, instance,
+                            &physical_device_properties, physical_device);
+  }
+  LOG_CRASH(instance->GetLogger(),
+            "Could not find physical device or queue that can present");
 }
 
 VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,

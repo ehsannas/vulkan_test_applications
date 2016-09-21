@@ -50,6 +50,13 @@ namespace logging {
     }                                                                          \
   } while (0);
 
+// Logs a message and then forces the program to crash.
+#define LOG_CRASH(log, message)                        \
+  do {                                                 \
+    (log)->LogError(__FILE__, ":", __LINE__, message); \
+    *reinterpret_cast<volatile int*>(intptr_t(0)) = 4; \
+  } while (0);
+
 // Logging class base. It provides the functionality to
 // generate log messages for use by any inherited classes.
 // Ideally this would take an allocator and do all memory

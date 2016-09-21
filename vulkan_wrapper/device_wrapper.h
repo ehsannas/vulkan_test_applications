@@ -42,8 +42,10 @@ class VkDevice {
   // driver_version will be copied out of it.
   VkDevice(containers::Allocator* container_allocator, ::VkDevice device,
            VkAllocationCallbacks* allocator, VkInstance* instance,
-           VkPhysicalDeviceProperties* properties = nullptr)
+           VkPhysicalDeviceProperties* properties = nullptr,
+           ::VkPhysicalDevice physical_device = VK_NULL_HANDLE)
       : device_(device),
+        physical_device_(physical_device),
         has_allocator_(allocator != nullptr),
         log_(instance->GetLogger()),
         device_id_(0),
@@ -85,9 +87,11 @@ class VkDevice {
   logging::Logger* GetLogger() { return log_; }
 
   DeviceFunctions* functions() { return functions_.get(); }
+  ::VkPhysicalDevice physical_device() const { return physical_device_; }
 
  private:
   ::VkDevice device_;
+  ::VkPhysicalDevice physical_device_;
   bool has_allocator_;
   // Intentionally keep a copy of the callbacks, they are just a bunch of
   // pointers, but it means we don't force our user to keep the allocator struct

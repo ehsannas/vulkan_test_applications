@@ -73,10 +73,22 @@ VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
 // provided in entry_data.
 VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
                                   const entry::entry_data* entry_data);
+
+// Creates a device capable of presenting to the given surface.
+// Returns the queue indices for the present and graphics queues.
+// Note: They may be the same or different.
+VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
+                                  VkInstance* instance, VkSurfaceKHR* surface,
+                                  uint32_t* present_queue_index,
+                                  uint32_t* graphics_queue_index);
+
 // Creates a default command buffer from the given command pool and the device
 // with primary level.
 VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
                                            VkDevice* device);
+
+// Returns a uint32_t with only the lowest bit set.
+uint32_t inline GetLSB(uint32_t val) { return ((val - 1) ^ val) & val; }
 }
 
 #endif  //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_
