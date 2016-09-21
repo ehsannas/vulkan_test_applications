@@ -172,7 +172,9 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkFreeCommandBuffers),
         CONSTRUCT_LAZY_FUNCTION(vkGetDeviceQueue),
         CONSTRUCT_LAZY_FUNCTION(vkCreateSemaphore),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroySemaphore)
+        CONSTRUCT_LAZY_FUNCTION(vkDestroySemaphore),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateImage),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyImage)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -206,6 +208,8 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkGetDeviceQueue);
   LAZY_FUNCTION(vkCreateSemaphore);
   LAZY_FUNCTION(vkDestroySemaphore);
+  LAZY_FUNCTION(vkCreateImage);
+  LAZY_FUNCTION(vkDestroyImage);
 #undef LAZY_FUNCTION
 };
 

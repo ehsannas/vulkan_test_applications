@@ -6,3 +6,4 @@ the creation and destruction of vulkan resources.
 # Tests
 - [vkCreateCommandPool](vkCreateCommandPool/README.md)
 - [AllocateResetFreeCommandBuffer](AllocateResetFreeCommandBuffer/README.md)
+- [CreateDestroyImage](CreateDestroyImage/README.md)
