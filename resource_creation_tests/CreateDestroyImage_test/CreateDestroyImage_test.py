@@ -84,7 +84,7 @@ def get_image_create_info(create_image, architecture):
     return VulkanStruct(architecture, IMAGE_CREATE_INFO_ELEMENTS, get_data)
 
 
-@gapit_test("CreateDestroyImage_tests.apk")
+@gapit_test("CreateDestroyImage_test.apk")
 class ColorAttachmentImage(GapitTest):
     def expect(self):
         """1. Expects a normal 2D color attachement image."""
@@ -115,7 +115,7 @@ class ColorAttachmentImage(GapitTest):
         require_equal(info.initialLayout, VK_IMAGE_LAYOUT_UNDEFINED)
 
 
-@gapit_test("CreateDestroyImage_tests.apk")
+@gapit_test("CreateDestroyImage_test.apk")
 class DepthImage(GapitTest):
     def expect(self):
         """2. Expects a normal depth image."""
@@ -146,7 +146,7 @@ class DepthImage(GapitTest):
         require_equal(info.initialLayout, VK_IMAGE_LAYOUT_UNDEFINED)
 
 
-@gapit_test("CreateDestroyImage_tests.apk")
+@gapit_test("CreateDestroyImage_test.apk")
 class CubeCompatibleAndMutableImage(GapitTest):
     def expect(self):
         """3. Expects a cube compatible image with mutable format support."""
@@ -178,7 +178,7 @@ class CubeCompatibleAndMutableImage(GapitTest):
         require_equal(info.initialLayout, VK_IMAGE_LAYOUT_UNDEFINED)
 
 
-@gapit_test("CreateDestroyImage_tests.apk")
+@gapit_test("CreateDestroyImage_test.apk")
 class LinearTilingImageWithSrcDstTransferUsage(GapitTest):
     def expect(self):
         """4. Expects an image with linear tiling and can be used as the source
@@ -211,7 +211,7 @@ class LinearTilingImageWithSrcDstTransferUsage(GapitTest):
         require_equal(info.initialLayout, VK_IMAGE_LAYOUT_UNDEFINED)
 
 
-@gapit_test("CreateDestroyImage_tests.apk")
+@gapit_test("CreateDestroyImage_test.apk")
 class ColorAttachment3DImage(GapitTest):
     def expect(self):
         """5. Expects a 3D image with extent values and mipLevels value changed.
@@ -243,7 +243,7 @@ class ColorAttachment3DImage(GapitTest):
         require_equal(info.initialLayout, VK_IMAGE_LAYOUT_UNDEFINED)
 
 
-@gapit_test("CreateDestroyImage_tests.apk")
+@gapit_test("CreateDestroyImage_test.apk")
 class MultiSampledImageWithPreinitializedLayout(GapitTest):
     def expect(self):
         """6. Expects a preinitialized image that support multi-sample."""
@@ -274,7 +274,7 @@ class MultiSampledImageWithPreinitializedLayout(GapitTest):
         require_equal(info.initialLayout, VK_IMAGE_LAYOUT_PREINITIALIZED)
 
 
-@gapit_test("CreateDestroyImage_tests.apk")
+@gapit_test("CreateDestroyImage_test.apk")
 class ColorAttachment1DImage(GapitTest):
     def expect(self):
         """7. Expects a 1D color attachement image."""

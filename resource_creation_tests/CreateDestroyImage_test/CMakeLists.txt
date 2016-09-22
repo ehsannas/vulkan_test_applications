@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(CreateDestroyImage_tests
+add_vulkan_executable(CreateDestroyImage_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers

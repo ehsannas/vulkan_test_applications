@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(BeginAndEndCommandBuffer_tests
+add_vulkan_executable(BeginAndEndCommandBuffer_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers

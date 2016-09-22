@@ -1,1 +1,1 @@
-add_subdirectory(BeginAndEndCommandBuffer)
+add_subdirectory(BeginAndEndCommandBuffer_test)

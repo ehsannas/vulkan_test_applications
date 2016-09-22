@@ -18,7 +18,7 @@ from gapit_test_framework import GapitTest
 from vulkan_constants import *
 
 
-@gapit_test("BeginAndEndCommandBuffer_tests.apk")
+@gapit_test("BeginAndEndCommandBuffer_test.apk")
 class NullInheritanceInfoTest(GapitTest):
     def expect(self):
         """Expect that the pInheritanceInfo is null for the first
@@ -54,7 +54,7 @@ class NullInheritanceInfoTest(GapitTest):
         require_equal(VK_SUCCESS, int(end_command_buffer.return_val))
 
 
-@gapit_test("BeginAndEndCommandBuffer_tests.apk")
+@gapit_test("BeginAndEndCommandBuffer_test.apk")
 class NonNullInheritanceInfoTest(GapitTest):
     def expect(self):
         """Expect that the pInheritanceInfo is not null for the second
