@@ -126,14 +126,15 @@ using LazyDeviceFunction = LazyFunction<T, ::VkDevice, DeviceFunctions>;
 // does not need to conform LazyFunction template as no function is resolved
 // through it.
 struct CommandBufferFunctions {
- public:
+public:
   CommandBufferFunctions(::VkDevice device, DeviceFunctions* device_functions)
       :
 #define CONSTRUCT_LAZY_FUNCTION(function) \
   function(device, #function, device_functions)
         CONSTRUCT_LAZY_FUNCTION(vkBeginCommandBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkEndCommandBuffer),
-        CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer)
+        CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdPipelineBarrier)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -143,6 +144,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkBeginCommandBuffer);
   LAZY_FUNCTION(vkEndCommandBuffer);
   LAZY_FUNCTION(vkResetCommandBuffer);
+  LAZY_FUNCTION(vkCmdPipelineBarrier);
 #undef LAZY_FUNCTION
 };
 

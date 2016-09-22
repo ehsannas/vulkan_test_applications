@@ -98,6 +98,19 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
 
 // Returns a uint32_t with only the lowest bit set.
 uint32_t inline GetLSB(uint32_t val) { return ((val - 1) ^ val) & val; }
+
+// Runs the given call once with a nullptr value, and gets the numerical result.
+// Resizes the given array, and runs the call again to fill the array.
+// Asserts that the function call succeeded.
+template <typename Function, typename... Args, typename ContainedType>
+void LoadContainer(logging::Logger* log, Function& fn,
+                              containers::vector<ContainedType>* ret_val,
+                              Args&... args) {
+  uint32_t num_values = 0;
+  LOG_ASSERT(==, log, (fn)(args..., &num_values, nullptr), VK_SUCCESS);
+  ret_val->resize(num_values);
+  LOG_ASSERT(==, log, (fn)(args..., &num_values, ret_val->data()), VK_SUCCESS);
 }
+} // namespace vulkan
 
 #endif  //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

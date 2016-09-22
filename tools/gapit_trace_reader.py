@@ -167,8 +167,8 @@ class Atom(object):
         if mem is not None:
             return (mem, '')
 
-        return (None, 'Could not find a read observation starting at ', address,
-                ' containing ', num_bytes, ' bytes')
+        return (None, 'Could not find a read observation starting at ' +
+                str(hex(address)) + ' containing ' + str(num_bytes) + ' bytes')
 
     def get_read_string(self, address):
         """Returns a null-terminated string starting at address in the

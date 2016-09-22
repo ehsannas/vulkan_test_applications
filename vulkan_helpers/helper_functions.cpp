@@ -15,6 +15,8 @@
 
 #include "vulkan_helpers/helper_functions.h"
 
+#include <algorithm>
+
 #include "support/containers/vector.h"
 #include "support/log/log.h"
 
@@ -392,12 +394,13 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
       nullptr,                                      // pNext
       0,                                            // flags
       *surface,                                     // surface
-      surface_caps.minImageCount,                   // minImageCount
-      surface_formats[0].format,                    // surfaceFormat
-      surface_formats[0].colorSpace,                // colorSpace
-      image_extent,                                 // imageExtent
-      1,                                            // imageArrayLayers
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,          // imageUsage
+      std::min(surface_caps.minImageCount + 1,
+               surface_caps.maxImageCount),  // minImageCount
+      surface_formats[0].format,             // surfaceFormat
+      surface_formats[0].colorSpace,         // colorSpace
+      image_extent,                          // imageExtent
+      1,                                     // imageArrayLayers
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,   // imageUsage
       has_multiple_queues ? VK_SHARING_MODE_CONCURRENT
                           : VK_SHARING_MODE_EXCLUSIVE,  // sharingMode
       has_multiple_queues ? 2u : 0u,
