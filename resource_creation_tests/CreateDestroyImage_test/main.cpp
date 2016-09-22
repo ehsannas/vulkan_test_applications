@@ -53,7 +53,7 @@ int main_entry(const entry::entry_data* data) {
         /* pQueueFamilyIndices = */ nullptr,
         /* initialLayout = */ VK_IMAGE_LAYOUT_UNDEFINED,
     };
-    VkImage image;
+    ::VkImage image;
     device->vkCreateImage(device, &image_create_info, nullptr, &image);
     device->vkDestroyImage(device, image, nullptr);
 
@@ -85,7 +85,7 @@ int main_entry(const entry::entry_data* data) {
         /* pQueueFamilyIndices = */ nullptr,
         /* initialLayout = */ VK_IMAGE_LAYOUT_UNDEFINED,
     };
-    VkImage image;
+    ::VkImage image;
     device->vkCreateImage(device, &image_create_info, nullptr, &image);
     device->vkDestroyImage(device, image, nullptr);
 
@@ -118,7 +118,7 @@ int main_entry(const entry::entry_data* data) {
         /* pQueueFamilyIndices = */ nullptr,
         /* initialLayout = */ VK_IMAGE_LAYOUT_UNDEFINED,
     };
-    VkImage image;
+    ::VkImage image;
     device->vkCreateImage(device, &image_create_info, nullptr, &image);
     device->vkDestroyImage(device, image, nullptr);
 
@@ -152,7 +152,7 @@ int main_entry(const entry::entry_data* data) {
         /* pQueueFamilyIndices = */ nullptr,
         /* initialLayout = */ VK_IMAGE_LAYOUT_UNDEFINED,
     };
-    VkImage image;
+    ::VkImage image;
     device->vkCreateImage(device, &image_create_info, nullptr, &image);
     device->vkDestroyImage(device, image, nullptr);
 
@@ -184,7 +184,7 @@ int main_entry(const entry::entry_data* data) {
         /* pQueueFamilyIndices = */ nullptr,
         /* initialLayout = */ VK_IMAGE_LAYOUT_UNDEFINED,
     };
-    VkImage image;
+    ::VkImage image;
     device->vkCreateImage(device, &image_create_info, nullptr, &image);
     device->vkDestroyImage(device, image, nullptr);
 
@@ -216,7 +216,7 @@ int main_entry(const entry::entry_data* data) {
         /* pQueueFamilyIndices = */ nullptr,
         /* initialLayout = */ VK_IMAGE_LAYOUT_PREINITIALIZED,
     };
-    VkImage image;
+    ::VkImage image;
     device->vkCreateImage(device, &image_create_info, nullptr, &image);
     device->vkDestroyImage(device, image, nullptr);
 
@@ -248,7 +248,7 @@ int main_entry(const entry::entry_data* data) {
         /* pQueueFamilyIndices = */ nullptr,
         /* initialLayout = */ VK_IMAGE_LAYOUT_UNDEFINED,
     };
-    VkImage image;
+    ::VkImage image;
     device->vkCreateImage(device, &image_create_info, nullptr, &image);
     device->vkDestroyImage(device, image, nullptr);
 

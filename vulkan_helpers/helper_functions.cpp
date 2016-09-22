@@ -420,4 +420,34 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
              VK_SUCCESS);
   return VkSwapchainKHR(swapchain, nullptr, device);
 }
+
+VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
+                                  uint32_t height) {
+  VkImageCreateInfo info{
+      /* sType = */ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ 0,
+      /* imageType = */ VK_IMAGE_TYPE_2D,
+      /* format = */ VK_FORMAT_R8G8B8A8_UNORM,
+      /* extent = */ {
+          /* width = */ width,
+          /* height = */ height,
+          /* depth = */ 1,
+      },
+      /* mipLevels = */ 1,
+      /* arrayLayers = */ 1,
+      /* samples = */ VK_SAMPLE_COUNT_1_BIT,
+      /* tiling = */ VK_IMAGE_TILING_OPTIMAL,
+      /* usage = */ VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      /* sharingMode = */ VK_SHARING_MODE_EXCLUSIVE,
+      /* queueFamilyIndexCount = */ 0,
+      /* pQueueFamilyIndices = */ nullptr,
+      /* initialLayout = */ VK_IMAGE_LAYOUT_UNDEFINED,
+  };
+  ::VkImage raw_image;
+  LOG_ASSERT(==, device->GetLogger(),
+             (*device)->vkCreateImage(*device, &info, nullptr, &raw_image),
+             VK_SUCCESS);
+  return vulkan::VkImage(raw_image, nullptr, device);
+}
 }

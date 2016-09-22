@@ -154,6 +154,17 @@ struct SwapchainTraits {
 };
 using VkSwapchainKHR = VkSubObject<SwapchainTraits, DeviceTraits>;
 
+struct ImageTraits {
+  using type = ::VkImage;
+  using destruction_function_type =
+    LazyDeviceFunction<PFN_vkDestroyImage>;
+  static destruction_function_type* get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyImage;
+  }
+};
+using VkImage = VkSubObject<ImageTraits, DeviceTraits>;
+
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_

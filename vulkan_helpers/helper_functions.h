@@ -99,6 +99,14 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
 // Returns a uint32_t with only the lowest bit set.
 uint32_t inline GetLSB(uint32_t val) { return ((val - 1) ^ val) & val; }
 
+// Creates a 2D color-attachment R8G8B8A8 unorm format image with the specified
+// width and height. The image is not multi-sampled and is in exclusive sharing
+// mode. Its mipLevels and arrayLayers are set to 1, its image tiling is set to
+// VK_IMAGE_TILING_OPTIMAL and its initialLayout is set to
+// VK_IMAGE_LAYOUT_UNDEFINED.
+VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
+                                  uint32_t height);
+
 // Runs the given call once with a nullptr value, and gets the numerical result.
 // Resizes the given array, and runs the call again to fill the array.
 // Asserts that the function call succeeded.

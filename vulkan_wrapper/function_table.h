@@ -179,7 +179,10 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkDestroyImage),
         CONSTRUCT_LAZY_FUNCTION(vkCreateSwapchainKHR),
         CONSTRUCT_LAZY_FUNCTION(vkDestroySwapchainKHR),
-        CONSTRUCT_LAZY_FUNCTION(vkGetSwapchainImagesKHR)
+        CONSTRUCT_LAZY_FUNCTION(vkGetSwapchainImagesKHR),
+        CONSTRUCT_LAZY_FUNCTION(vkGetImageMemoryRequirements),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateImageView),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyImageView)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -218,6 +221,9 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkCreateSwapchainKHR);
   LAZY_FUNCTION(vkDestroySwapchainKHR);
   LAZY_FUNCTION(vkGetSwapchainImagesKHR);
+  LAZY_FUNCTION(vkGetImageMemoryRequirements);
+  LAZY_FUNCTION(vkCreateImageView);
+  LAZY_FUNCTION(vkDestroyImageView);
 #undef LAZY_FUNCTION
 };
 

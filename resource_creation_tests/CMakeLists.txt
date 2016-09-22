@@ -1,4 +1,5 @@
 add_subdirectory(CreateDestroyImage_test)
+add_subdirectory(CreateDestroyImageView_test)
 add_subdirectory(vkCreateCommandPool)
 add_subdirectory(AllocateResetFreeCommandBuffer)
 add_subdirectory(SurfaceCreation_test)
