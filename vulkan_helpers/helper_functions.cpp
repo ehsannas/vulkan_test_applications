@@ -125,9 +125,9 @@ containers::vector<VkQueueFamilyProperties> GetQueueFamilyProperties(
 inline bool HasGraphicsAndComputeQueue(
     const VkQueueFamilyProperties& property) {
   return property.queueCount > 0 &&
-         (property.queueFlags &
-          (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT) ==
-              (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT));
+         ((property.queueFlags &
+           (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) ==
+          (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT));
 }
 
 uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
