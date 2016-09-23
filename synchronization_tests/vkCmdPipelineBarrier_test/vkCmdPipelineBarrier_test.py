@@ -95,7 +95,7 @@ class DefaultSwapchainMemoryBarrierTest(GapitTest):
                       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
         require_equal(image_memory_barrier.subresourceRange_aspectMask,
                       VK_IMAGE_ASPECT_COLOR_BIT)
-        require_equal(image_memory_barrier.subresourceRange_baseMipLevel, 1)
+        require_equal(image_memory_barrier.subresourceRange_baseMipLevel, 0)
         require_equal(image_memory_barrier.subresourceRange_mipCount, 1)
-        require_equal(image_memory_barrier.subresourceRange_baseArrayLayer, 1)
+        require_equal(image_memory_barrier.subresourceRange_baseArrayLayer, 0)
         require_equal(image_memory_barrier.subresourceRange_layerCount, 1)

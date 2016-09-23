@@ -56,9 +56,9 @@ int main_entry(const entry::entry_data* data) {
       images[0],                                 // image
       {
           VK_IMAGE_ASPECT_COLOR_BIT,  // aspectMask
-          1,                          // baseMipLevel
+          0,                          // baseMipLevel
           1,                          // mipCount
-          1,                          // baseArrayLayer
+          0,                          // baseArrayLayer
           1,                          // layerCount
       }};
 
