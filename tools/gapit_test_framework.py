@@ -41,6 +41,17 @@ class GapitTestException(Exception):
     pass
 
 
+def get_read_offset_function(atom, pointer):
+    """Returns a function that is a integer field decoder for any atom.
+    It decodes from the atoms read_data, starting at the given pointer"""
+
+    def function(offset, size):
+        return little_endian_bytes_to_int(
+            require(atom.get_read_data(pointer + offset, size)))
+
+    return function
+
+
 def little_endian_bytes_to_int(val):
     '''Takes a sequence of bytes in little-endian format, and turns
     them into an integer'''

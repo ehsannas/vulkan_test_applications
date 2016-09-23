@@ -156,14 +156,23 @@ using VkSwapchainKHR = VkSubObject<SwapchainTraits, DeviceTraits>;
 
 struct ImageTraits {
   using type = ::VkImage;
-  using destruction_function_type =
-    LazyDeviceFunction<PFN_vkDestroyImage>;
+  using destruction_function_type = LazyDeviceFunction<PFN_vkDestroyImage>;
   static destruction_function_type* get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyImage;
   }
 };
 using VkImage = VkSubObject<ImageTraits, DeviceTraits>;
+
+struct RenderPassTraits {
+  using type = ::VkRenderPass;
+  using destruction_function_type = LazyDeviceFunction<PFN_vkDestroyRenderPass>;
+  static destruction_function_type* get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyRenderPass;
+  }
+};
+using VkRenderPass = VkSubObject<RenderPassTraits, DeviceTraits>;
 
 }  // namespace vulkan
 

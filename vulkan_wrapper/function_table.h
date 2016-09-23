@@ -126,7 +126,7 @@ using LazyDeviceFunction = LazyFunction<T, ::VkDevice, DeviceFunctions>;
 // does not need to conform LazyFunction template as no function is resolved
 // through it.
 struct CommandBufferFunctions {
-public:
+ public:
   CommandBufferFunctions(::VkDevice device, DeviceFunctions* device_functions)
       :
 #define CONSTRUCT_LAZY_FUNCTION(function) \
@@ -182,7 +182,9 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkGetSwapchainImagesKHR),
         CONSTRUCT_LAZY_FUNCTION(vkGetImageMemoryRequirements),
         CONSTRUCT_LAZY_FUNCTION(vkCreateImageView),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyImageView)
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyImageView),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateRenderPass),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyRenderPass)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -224,6 +226,8 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkGetImageMemoryRequirements);
   LAZY_FUNCTION(vkCreateImageView);
   LAZY_FUNCTION(vkDestroyImageView);
+  LAZY_FUNCTION(vkCreateRenderPass);
+  LAZY_FUNCTION(vkDestroyRenderPass);
 #undef LAZY_FUNCTION
 };
 
