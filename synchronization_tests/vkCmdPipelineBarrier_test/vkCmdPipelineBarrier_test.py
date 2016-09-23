@@ -16,10 +16,17 @@ from struct_offsets import *
 from vulkan_constants import *
 
 IMAGE_MEMORY_BARRIER = [
-    ("sType", UINT32_T), ("pNext", POINTER), ("srcAccessMask", UINT32_T),
-    ("dstAccessMask", UINT32_T), ("oldLayout", UINT32_T),
-    ("newLayout", UINT32_T), ("srcQueueFamilyIndex", UINT32_T),
-    ("dstQueueFamilyIndex", UINT32_T), ("image", HANDLE),
+    ("sType", UINT32_T),
+    ("pNext", POINTER),
+    ("srcAccessMask", UINT32_T),
+    ("dstAccessMask", UINT32_T),
+    ("oldLayout", UINT32_T),
+    ("newLayout", UINT32_T),
+    ("srcQueueFamilyIndex", UINT32_T),
+    ("dstQueueFamilyIndex", UINT32_T),
+    ("image", HANDLE),
+    # These nested struct offsets are correct because all of the alignments
+    # are trivially satisfied.
     ("subresourceRange_aspectMask", UINT32_T),
     ("subresourceRange_baseMipLevel", UINT32_T),
     ("subresourceRange_mipCount", UINT32_T),
