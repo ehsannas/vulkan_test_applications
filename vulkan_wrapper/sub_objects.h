@@ -174,6 +174,17 @@ struct RenderPassTraits {
 };
 using VkRenderPass = VkSubObject<RenderPassTraits, DeviceTraits>;
 
+struct PipelineCacheTraits {
+  using type = ::VkPipelineCache;
+  using destruction_function_type =
+      LazyDeviceFunction<PFN_vkDestroyPipelineCache>;
+  static destruction_function_type* get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyPipelineCache;
+  }
+};
+using VkPipelineCache = VkSubObject<PipelineCacheTraits, DeviceTraits>;
+
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_
