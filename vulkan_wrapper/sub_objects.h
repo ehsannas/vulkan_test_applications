@@ -143,17 +143,6 @@ struct SurfaceTraits {
 };
 using VkSurfaceKHR = VkSubObject<SurfaceTraits, InstanceTraits>;
 
-struct SwapchainTraits {
-  using type = ::VkSwapchainKHR;
-  using destruction_function_type =
-      LazyDeviceFunction<PFN_vkDestroySwapchainKHR>;
-  static destruction_function_type* get_destruction_function(
-      DeviceFunctions* functions) {
-    return &functions->vkDestroySwapchainKHR;
-  }
-};
-using VkSwapchainKHR = VkSubObject<SwapchainTraits, DeviceTraits>;
-
 struct ImageTraits {
   using type = ::VkImage;
   using destruction_function_type = LazyDeviceFunction<PFN_vkDestroyImage>;
@@ -163,6 +152,16 @@ struct ImageTraits {
   }
 };
 using VkImage = VkSubObject<ImageTraits, DeviceTraits>;
+
+struct ImageViewTraits {
+  using type = ::VkImageView;
+  using destruction_function_type = LazyDeviceFunction<PFN_vkDestroyImageView>;
+  static destruction_function_type* get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyImageView;
+  }
+};
+using VkImageView = VkSubObject<ImageViewTraits, DeviceTraits>;
 
 struct RenderPassTraits {
   using type = ::VkRenderPass;

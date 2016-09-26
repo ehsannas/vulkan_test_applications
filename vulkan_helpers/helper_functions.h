@@ -23,6 +23,7 @@
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
 #include "vulkan_wrapper/sub_objects.h"
+#include "vulkan_wrapper/swapchain.h"
 
 namespace vulkan {
 // Create an empty instance. Vulkan functions that are resolved by the created

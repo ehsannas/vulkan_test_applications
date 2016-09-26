@@ -197,7 +197,7 @@ class Atom(object):
             return (mem, '')
         else:
             return (None, 'Could not find a read observation starting at ',
-                    address, ' containing ', num_bytes, ' bytes')
+                    str(address), ' containing ', str(num_bytes), ' bytes')
 
     def get_write_string(self, address):
         """Returns a null-terminated string starting at address in the

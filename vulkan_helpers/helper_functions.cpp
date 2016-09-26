@@ -418,7 +418,8 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
              (*device)->vkCreateSwapchainKHR(*device, &swapchainCreateInfo,
                                              nullptr, &swapchain),
              VK_SUCCESS);
-  return VkSwapchainKHR(swapchain, nullptr, device);
+  return VkSwapchainKHR(swapchain, nullptr, device, image_extent.width,
+                        image_extent.height, 1u, surface_formats[0].format);
 }
 
 VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
