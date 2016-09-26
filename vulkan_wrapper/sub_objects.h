@@ -184,6 +184,16 @@ struct PipelineCacheTraits {
 };
 using VkPipelineCache = VkSubObject<PipelineCacheTraits, DeviceTraits>;
 
+struct DeviceMemoryTraits {
+  using type = ::VkDeviceMemory;
+  using destruction_function_type = LazyDeviceFunction<PFN_vkFreeMemory>;
+  static destruction_function_type* get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkFreeMemory;
+  }
+};
+using VkDeviceMemory = VkSubObject<DeviceMemoryTraits, DeviceTraits>;
+
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_

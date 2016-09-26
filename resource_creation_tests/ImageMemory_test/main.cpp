@@ -63,6 +63,45 @@ int main_entry(const entry::entry_data* data) {
     data->log->LogInfo("    alignment : ", image_memory_requirements.alignment);
     data->log->LogInfo("    memoryTypeBits : ",
                        image_memory_requirements.memoryTypeBits);
+
+    VkPhysicalDeviceMemoryProperties properties;
+    instance->vkGetPhysicalDeviceMemoryProperties(device.physical_device(),
+                                                  &properties);
+    uint32_t memory_index = 0;
+    for (; memory_index < properties.memoryTypeCount; ++memory_index) {
+      if (!image_memory_requirements.memoryTypeBits & (1 << memory_index)) {
+        continue;
+      }
+      data->log->LogInfo(" memory: ", memory_index, " properties: ",
+                         properties.memoryTypes[memory_index].propertyFlags);
+      if (!properties.memoryTypes[memory_index].propertyFlags &
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+        continue;
+      }
+      break;
+    }
+    data->log->LogInfo("Using memory index: ", memory_index);
+    LOG_ASSERT(!=, data->log, memory_index, properties.memoryTypeCount);
+
+    VkMemoryAllocateInfo allocate_info{
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // sType
+        nullptr,                                 // pNext
+        image_memory_requirements.size,          // allocationSize
+        memory_index};
+
+    VkDeviceMemory device_memory;
+    LOG_ASSERT(==, data->log, VK_SUCCESS,
+               device->vkAllocateMemory(device, &allocate_info, nullptr,
+                                        &device_memory));
+
+    LOG_ASSERT(==, data->log, VK_SUCCESS,
+               device->vkBindImageMemory(device, image, device_memory, 0));
+
+    device->vkFreeMemory(device, device_memory, nullptr);
+
+    IF_NOT_DEVICE(data->log, device, vulkan::PixelC, 0x5A400000) {
+      device->vkFreeMemory(device, VkDeviceMemory(VK_NULL_HANDLE), nullptr);
+    }
   }
   data->log->LogInfo("Application Shutdown");
   return 0;
