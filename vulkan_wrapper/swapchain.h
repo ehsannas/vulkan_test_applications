@@ -13,14 +13,17 @@
  * limitations under the License.
  */
 
+#ifndef VULKAN_WRAPPER_SWAPCHAIN_H
+#define VULKAN_WRAPPER_SWAPCHAIN_H
+
 #include "vulkan_wrapper/sub_objects.h"
 
 namespace vulkan {
 struct SwapchainTraits {
   using type = ::VkSwapchainKHR;
-  using destruction_function_type =
-      LazyDeviceFunction<PFN_vkDestroySwapchainKHR>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroySwapchainKHR>*;
+  static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroySwapchainKHR;
   }
@@ -57,3 +60,5 @@ class VkSwapchainKHR : public VkSubObject<SwapchainTraits, DeviceTraits> {
   uint32_t depth_;
 };
 }
+
+#endif  //  VULKAN_WRAPPER_SWAPCHAIN_H

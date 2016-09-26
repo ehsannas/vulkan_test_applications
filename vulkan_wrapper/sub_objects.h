@@ -29,9 +29,9 @@ namespace vulkan {
 // It should be of the form
 // struct FooTraits {
 //   using type = VulkanType;
-//   using destruction_function_type =
+//   using destruction_function_pointer_type =
 //     Lazy{Instance|Device|..}Function<PFN_vkDestoryVulkanType>;
-//   static destruction_function_type* get_destruction_function(
+//   static destruction_function_pointer_type* get_destruction_function(
 //       {Device|Instance|...}Functions* functions) {
 //     return &functions->vkDestroyVulkanType;
 //   }
@@ -50,7 +50,8 @@ class VkSubObject {
   using owner_type = typename O::type;
   using raw_owner_type = typename O::raw_vulkan_type;
   using proc_addr_type = typename O::proc_addr_function_type;
-  using destruction_function_type = typename T::destruction_function_type;
+  using destruction_function_pointer_type =
+      typename T::destruction_function_pointer_type;
 
  public:
   // This does not retain a reference to the owner, or the
@@ -97,7 +98,7 @@ class VkSubObject {
   bool has_allocator_;
   type raw_object_;
 
-  destruction_function_type* destruction_function_;
+  destruction_function_pointer_type destruction_function_;
 
  public:
   operator type() const { return raw_object_; }
@@ -123,9 +124,9 @@ struct DeviceTraits {
 
 struct CommandPoolTraits {
   using type = ::VkCommandPool;
-  using destruction_function_type =
-      LazyDeviceFunction<PFN_vkDestroyCommandPool>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyCommandPool>*;
+  static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyCommandPool;
   }
@@ -134,9 +135,9 @@ using VkCommandPool = VkSubObject<CommandPoolTraits, DeviceTraits>;
 
 struct SurfaceTraits {
   using type = ::VkSurfaceKHR;
-  using destruction_function_type =
-      LazyInstanceFunction<PFN_vkDestroySurfaceKHR>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyInstanceFunction<PFN_vkDestroySurfaceKHR>*;
+  static destruction_function_pointer_type get_destruction_function(
       InstanceFunctions* functions) {
     return &functions->vkDestroySurfaceKHR;
   }
@@ -145,8 +146,9 @@ using VkSurfaceKHR = VkSubObject<SurfaceTraits, InstanceTraits>;
 
 struct ImageTraits {
   using type = ::VkImage;
-  using destruction_function_type = LazyDeviceFunction<PFN_vkDestroyImage>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyImage>*;
+  static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyImage;
   }
@@ -155,8 +157,9 @@ using VkImage = VkSubObject<ImageTraits, DeviceTraits>;
 
 struct ImageViewTraits {
   using type = ::VkImageView;
-  using destruction_function_type = LazyDeviceFunction<PFN_vkDestroyImageView>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyImageView>*;
+  static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyImageView;
   }
@@ -165,8 +168,9 @@ using VkImageView = VkSubObject<ImageViewTraits, DeviceTraits>;
 
 struct RenderPassTraits {
   using type = ::VkRenderPass;
-  using destruction_function_type = LazyDeviceFunction<PFN_vkDestroyRenderPass>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyRenderPass>*;
+  static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyRenderPass;
   }
@@ -175,9 +179,9 @@ using VkRenderPass = VkSubObject<RenderPassTraits, DeviceTraits>;
 
 struct PipelineCacheTraits {
   using type = ::VkPipelineCache;
-  using destruction_function_type =
-      LazyDeviceFunction<PFN_vkDestroyPipelineCache>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyPipelineCache>*;
+  static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyPipelineCache;
   }
@@ -186,8 +190,9 @@ using VkPipelineCache = VkSubObject<PipelineCacheTraits, DeviceTraits>;
 
 struct DeviceMemoryTraits {
   using type = ::VkDeviceMemory;
-  using destruction_function_type = LazyDeviceFunction<PFN_vkFreeMemory>;
-  static destruction_function_type* get_destruction_function(
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkFreeMemory>*;
+  static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkFreeMemory;
   }

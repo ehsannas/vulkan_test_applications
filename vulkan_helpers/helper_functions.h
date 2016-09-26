@@ -22,6 +22,7 @@
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
+#include "vulkan_wrapper/queue_wrapper.h"
 #include "vulkan_wrapper/sub_objects.h"
 #include "vulkan_wrapper/swapchain.h"
 
@@ -108,18 +109,24 @@ uint32_t inline GetLSB(uint32_t val) { return ((val - 1) ^ val) & val; }
 VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
                                   uint32_t height);
 
+// Returns the first queue from the given family.
+VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
+  ::VkQueue queue;
+  (*device)->vkGetDeviceQueue(*device, queue_family_index, 0, &queue);
+  return VkQueue(queue, device);
+}
+
 // Runs the given call once with a nullptr value, and gets the numerical result.
 // Resizes the given array, and runs the call again to fill the array.
 // Asserts that the function call succeeded.
 template <typename Function, typename... Args, typename ContainedType>
 void LoadContainer(logging::Logger* log, Function& fn,
-                              containers::vector<ContainedType>* ret_val,
-                              Args&... args) {
+                   containers::vector<ContainedType>* ret_val, Args&... args) {
   uint32_t num_values = 0;
   LOG_ASSERT(==, log, (fn)(args..., &num_values, nullptr), VK_SUCCESS);
   ret_val->resize(num_values);
   LOG_ASSERT(==, log, (fn)(args..., &num_values, ret_val->data()), VK_SUCCESS);
 }
-} // namespace vulkan
+}  // namespace vulkan
 
 #endif  //  VULKAN_HELPERS_HELPER_FUNCTIONS_H_

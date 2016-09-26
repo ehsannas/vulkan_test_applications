@@ -148,6 +148,25 @@ struct CommandBufferFunctions {
 #undef LAZY_FUNCTION
 };
 
+struct QueueFunctions {
+ public:
+  QueueFunctions(::VkDevice device, DeviceFunctions* device_functions)
+      :
+#define CONSTRUCT_LAZY_FUNCTION(function) \
+  function(device, #function, device_functions)
+        CONSTRUCT_LAZY_FUNCTION(vkQueueSubmit),
+        CONSTRUCT_LAZY_FUNCTION(vkQueueWaitIdle)
+#undef CONSTRUCT_LAZY_FUNCTION
+  {
+  }
+
+ public:
+#define LAZY_FUNCTION(function) LazyDeviceFunction<PFN_##function> function;
+  LAZY_FUNCTION(vkQueueSubmit);
+  LAZY_FUNCTION(vkQueueWaitIdle);
+#undef LAZY_FUNCTION
+};
+
 // DeviceFunctions contains a list of lazily resolved Vulkan device functions
 // and the functions of sub-device objects.All the lazily resolved functions
 // are implemented through LazyFunction template, GetLogger() and getProcAddr()
@@ -166,6 +185,7 @@ class DeviceFunctions {
       : log_(log),
         vkGetDeviceProcAddr_(get_proc_addr_func),
         command_buffer_functions_(device, this),
+        queue_functions_(device, this),
 #define CONSTRUCT_LAZY_FUNCTION(function) function(device, #function, this)
         CONSTRUCT_LAZY_FUNCTION(vkDestroyDevice),
         CONSTRUCT_LAZY_FUNCTION(vkCreateCommandPool),
@@ -202,6 +222,7 @@ class DeviceFunctions {
   PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr_;
   // Functions of sub device objects.
   CommandBufferFunctions command_buffer_functions_;
+  QueueFunctions queue_functions_;
 
  public:
   // Returns the logger. This is required to conform LazyFunction template.
@@ -215,6 +236,7 @@ class DeviceFunctions {
   CommandBufferFunctions* command_buffer_functions() {
     return &command_buffer_functions_;
   }
+  QueueFunctions* queue_functions() { return &queue_functions_; }
 
 #define LAZY_FUNCTION(function) LazyDeviceFunction<PFN_##function> function;
   LAZY_FUNCTION(vkDestroyDevice);

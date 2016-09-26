@@ -32,6 +32,9 @@ class Observation(object):
         self.memory_end = memory_end
         self.memory_id = memory_id
 
+    def __str__(self):
+        return hex(self.memory_start) + ' : ' + hex(self.memory_end)
+
     def get_memory_range(self):
         """ Returns a pair (start, end) of the memory region"""
         return (self.memory_start, self.memory_end)
