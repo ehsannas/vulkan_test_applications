@@ -52,6 +52,17 @@ def get_read_offset_function(atom, pointer):
     return function
 
 
+def get_write_offset_function(atom, pointer):
+    """Returns a function that is a integer field decoder for any atom.
+    It decodes from the atoms write_data, starting at the given pointer"""
+
+    def function(offset, size):
+        return little_endian_bytes_to_int(
+            require(atom.get_write_data(pointer + offset, size)))
+
+    return function
+
+
 def little_endian_bytes_to_int(val):
     '''Takes a sequence of bytes in little-endian format, and turns
     them into an integer'''

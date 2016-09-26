@@ -1,6 +1,7 @@
 add_subdirectory(AllocateResetFreeCommandBuffer)
 add_subdirectory(CreateDestroyImage_test)
 add_subdirectory(CreateDestroyImageView_test)
+add_subdirectory(ImageMemory_test)
 add_subdirectory(PipelineCache_test)
 add_subdirectory(SurfaceCreation_test)
 add_subdirectory(SynchronizationCreationDestruction_test)

@@ -20,7 +20,10 @@ handles arrays of scalars, and not arrays of arrays of elements.
 """
 import sys
 # These values are meant to be used with the struct layout functions
-UINT32_T, SIZE_T, POINTER, HANDLE, FLOAT, CHAR, ARRAY = range(7)
+UINT32_T, SIZE_T, POINTER, UINT64_T, FLOAT, CHAR, ARRAY = range(7)
+
+HANDLE = UINT64_T
+DEVICE_SIZE = UINT64_T
 
 
 def get_size_alignment(architecture):
@@ -30,7 +33,7 @@ def get_size_alignment(architecture):
         UINT32_T: (4, 4),
         SIZE_T: (architecture.int_PointerSize, architecture.int_PointerSize),
         POINTER: (architecture.int_PointerSize, architecture.int_PointerSize),
-        HANDLE: (8, architecture.extra_FieldAlignments.int_U64Alignment),
+        UINT64_T: (8, architecture.extra_FieldAlignments.int_U64Alignment),
         FLOAT: (4, 4),
         CHAR: (1, 1)
     }
@@ -45,8 +48,11 @@ def align_to_next(number, alignment):
 
 
 class VulkanStruct:
-    """Represents a vulkan structure. Given an array of elements, which are
-    represented as pairs of element name and type tag, and a |get_data| function,
+    """Represents a vulkan structure.
+
+    Given an array of elements, which are
+    represented as pairs of element name and type tag, and a |get_data|
+    function,
     which returns an object given an offset and size, this class allows querying
     the offset and values of any individual element.
     """
@@ -59,7 +65,7 @@ class VulkanStruct:
     def __getattr__(self, name):
         if name in self.parameters:
             return self.parameters[name]
-        raise AttributeError('Could not find struct member ' + name + '\n')
+        raise AttributeError("Could not find struct member " + name + "\n")
 
     def get_offset_of_nth_element(self, element):
         return self.offsets[element]
@@ -104,8 +110,7 @@ def expect_offset_eq(struct_name, pointer_size, u64_alignment, struct_elements,
     """
     # Create a mock architecture object. The only thing the object requires
     # is pointer_size
-    test_name = struct_name + "." + str(pointer_size) + "." + str(
-        u64_alignment)
+    test_name = struct_name + "." + str(pointer_size) + "." + str(u64_alignment)
     architecture = type("Architecture", (),
                         {"int_PointerSize": pointer_size,
                          "extra_FieldAlignments": type("FieldAlignments", (), {
@@ -147,68 +152,67 @@ def test_structs_offsets(name, elements, x86_offsets, x86_64_offsets,
 
 def main():
     success = True
-    success &= test_structs_offsets("uint32_struct",
-                                    [("first", UINT32_T)],
-                                    x86_offsets=[0],
-                                    x86_64_offsets=[0],
-                                    armv7a_offsets=[0],
-                                    arm64_offsets=[0])
+    success &= test_structs_offsets(
+        "uint32_struct", [("first", UINT32_T)],
+        x86_offsets=[0],
+        x86_64_offsets=[0],
+        armv7a_offsets=[0],
+        arm64_offsets=[0])
 
-    success &= test_structs_offsets("2uint32_struct",
-                                    [("first", UINT32_T),
-                                     ("second", UINT32_T)],
-                                    x86_offsets=[0, 4],
-                                    x86_64_offsets=[0, 4],
-                                    armv7a_offsets=[0, 4],
-                                    arm64_offsets=[0, 4])
+    success &= test_structs_offsets(
+        "2uint32_struct", [("first", UINT32_T), ("second", UINT32_T)],
+        x86_offsets=[0, 4],
+        x86_64_offsets=[0, 4],
+        armv7a_offsets=[0, 4],
+        arm64_offsets=[0, 4])
 
-    success &= test_structs_offsets("pointer_struct",
-                                    [("first", UINT32_T), ("second", POINTER),
-                                     ("third", UINT32_T)],
-                                    x86_offsets=[0, 4, 8],
-                                    x86_64_offsets=[0, 8, 16],
-                                    armv7a_offsets=[0, 4, 8],
-                                    arm64_offsets=[0, 8, 16])
+    success &= test_structs_offsets(
+        "pointer_struct", [("first", UINT32_T), ("second", POINTER),
+                           ("third", UINT32_T)],
+        x86_offsets=[0, 4, 8],
+        x86_64_offsets=[0, 8, 16],
+        armv7a_offsets=[0, 4, 8],
+        arm64_offsets=[0, 8, 16])
 
-    success &= test_structs_offsets("size_t_struct",
-                                    [("first", SIZE_T), ("second", POINTER),
-                                     ("third", UINT32_T)],
-                                    x86_offsets=[0, 4, 8],
-                                    x86_64_offsets=[0, 8, 16],
-                                    armv7a_offsets=[0, 4, 8],
-                                    arm64_offsets=[0, 8, 16])
+    success &= test_structs_offsets(
+        "size_t_struct", [("first", SIZE_T), ("second", POINTER),
+                          ("third", UINT32_T)],
+        x86_offsets=[0, 4, 8],
+        x86_64_offsets=[0, 8, 16],
+        armv7a_offsets=[0, 4, 8],
+        arm64_offsets=[0, 8, 16])
 
-    success &= test_structs_offsets("handle_struct",
-                                    [("first", UINT32_T), ("second", HANDLE),
-                                     ("third", SIZE_T), ("forth", HANDLE)],
-                                    x86_offsets=[0, 4, 12, 16],
-                                    x86_64_offsets=[0, 8, 16, 24],
-                                    armv7a_offsets=[0, 8, 16, 24],
-                                    arm64_offsets=[0, 8, 16, 24])
+    success &= test_structs_offsets(
+        "handle_struct", [("first", UINT32_T), ("second", HANDLE),
+                          ("third", SIZE_T), ("forth", HANDLE)],
+        x86_offsets=[0, 4, 12, 16],
+        x86_64_offsets=[0, 8, 16, 24],
+        armv7a_offsets=[0, 8, 16, 24],
+        arm64_offsets=[0, 8, 16, 24])
 
-    success &= test_structs_offsets("char_struct",
-                                    [("first", CHAR), ("second", CHAR),
-                                     ("third", UINT32_T), ("forth", CHAR)],
-                                    x86_offsets=[0, 1, 4, 8],
-                                    x86_64_offsets=[0, 1, 4, 8],
-                                    armv7a_offsets=[0, 1, 4, 8],
-                                    arm64_offsets=[0, 1, 4, 8])
+    success &= test_structs_offsets(
+        "char_struct", [("first", CHAR), ("second", CHAR), ("third", UINT32_T),
+                        ("forth", CHAR)],
+        x86_offsets=[0, 1, 4, 8],
+        x86_64_offsets=[0, 1, 4, 8],
+        armv7a_offsets=[0, 1, 4, 8],
+        arm64_offsets=[0, 1, 4, 8])
 
-    success &= test_structs_offsets("array_struct_middle",
-                                    [("first", UINT32_T),
-                                     ("second", ARRAY, 4, UINT32_T)],
-                                    x86_offsets=[0, 4],
-                                    x86_64_offsets=[0, 4],
-                                    armv7a_offsets=[0, 4],
-                                    arm64_offsets=[0, 4])
+    success &= test_structs_offsets(
+        "array_struct_middle", [("first", UINT32_T),
+                                ("second", ARRAY, 4, UINT32_T)],
+        x86_offsets=[0, 4],
+        x86_64_offsets=[0, 4],
+        armv7a_offsets=[0, 4],
+        arm64_offsets=[0, 4])
 
-    success &= test_structs_offsets("array_struct_start",
-                                    [("first", ARRAY, 3, UINT32_T),
-                                     ("second", SIZE_T)],
-                                    x86_offsets=[0, 12],
-                                    x86_64_offsets=[0, 16],
-                                    armv7a_offsets=[0, 12],
-                                    arm64_offsets=[0, 16])
+    success &= test_structs_offsets(
+        "array_struct_start", [("first", ARRAY, 3, UINT32_T),
+                               ("second", SIZE_T)],
+        x86_offsets=[0, 12],
+        x86_64_offsets=[0, 16],
+        armv7a_offsets=[0, 12],
+        arm64_offsets=[0, 16])
     return success
 
 
