@@ -21,9 +21,8 @@
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
 
-// This is unused so far. It is here to cause a build failure if there is a
-// problem with shader compilation. This will be changed.
-uint32_t var[] =
+
+uint32_t test_shader[] =
 #include "test.vert.spv"
     ;
 
@@ -32,8 +31,31 @@ int main_entry(const entry::entry_data* data) {
   vulkan::LibraryWrapper wrapper(data->root_allocator, data->log.get());
   vulkan::VkInstance instance(
       vulkan::CreateDefaultInstance(data->root_allocator, &wrapper));
+  vulkan::VkDevice device(vulkan::CreateDefaultDevice(data->root_allocator,
+    instance, true));
 
-  // TODO(awoloszyn): Fill in once shader compilation is finished
+  { // Valid usage
+
+    VkShaderModuleCreateInfo create_info {
+        VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,  // sType
+        nullptr,                                      // pNext
+        0,                                            // flags
+        sizeof(test_shader),                          // codeSize
+        test_shader                                   // pCode
+    };
+
+    VkShaderModule shader_module;
+    LOG_ASSERT(==, data->log,
+        device->vkCreateShaderModule(
+            device, &create_info, nullptr, &shader_module
+        ), VK_SUCCESS);
+    device->vkDestroyShaderModule(device, shader_module, nullptr);
+
+    IF_NOT_DEVICE(data->log, device, vulkan::PixelC, 0x5A400000) {
+        device->vkDestroyShaderModule(device,
+            static_cast<VkShaderModule>(VK_NULL_HANDLE), nullptr);
+    }
+  }
 
   data->log->LogInfo("Application Shutdown");
   return 0;

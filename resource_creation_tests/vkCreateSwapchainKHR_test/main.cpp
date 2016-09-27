@@ -53,6 +53,7 @@ int main_entry(const entry::entry_data* data) {
              VK_SUCCESS);
 
   uint32_t num_present_modes = 0;
+
   LOG_ASSERT(==, data->log, instance->vkGetPhysicalDeviceSurfacePresentModesKHR(
                                 device.physical_device(), surface,
                                 &num_present_modes, nullptr),
