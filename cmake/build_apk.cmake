@@ -14,6 +14,7 @@
 #
 
 include(CMakeParseArguments)
+find_package(PythonInterp)
 
 set(CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/build.gradle
@@ -49,7 +50,7 @@ if(BUILD_APKS)
 
   foreach(source ${CONFIGURABLE_ANDROID_SOURCES})
     file(RELATIVE_PATH rooted_source ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template ${source})
-    configure_file(${source} ${CMAKE_CURRENT_BINARY_DIR}/dummyapk/${rooted_source} @ONLY)
+    configure_file(${source}.in ${CMAKE_CURRENT_BINARY_DIR}/dummyapk/${rooted_source} @ONLY)
     list(APPEND TARGET_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/dummyapk/${rooted_source})
   endforeach()
   foreach(source ${NON_CONFIGURABLE_ANDROID_SOURCES})
@@ -80,8 +81,14 @@ macro(gather_deps target)
   if(TARGET ${target})
     get_target_property(SRC ${target} LIB_SRCS)
     get_target_property(LIBS ${target} LIB_DEPS)
+    get_target_property(SHADERS ${target} LIB_SHADERS)
     if (SRC)
       list(APPEND SOURCE_DEPS ${SRC})
+    endif()
+    if (SHADERS)
+      foreach(LIB ${SHADERS})
+        gather_deps(${LIB})
+      endforeach()
     endif()
     if (LIBS)
       foreach(LIB ${LIBS})
@@ -97,7 +104,7 @@ endmacro()
 # is created. All of the dependencies are correctly tracked and the
 # project will be rebuilt if any dependency changes.
 function(add_vulkan_executable target)
-  cmake_parse_arguments(EXE "" "" "SOURCES;LIBS" ${ARGN})
+  cmake_parse_arguments(EXE "" "" "SOURCES;LIBS;SHADERS" ${ARGN})
 
   if (ANDROID)
     add_library(${target} SHARED ${EXE_SOURCES})
@@ -105,17 +112,32 @@ function(add_vulkan_executable target)
       target_link_libraries(${target} PRIVATE ${EXE_LIBS})
     endif()
     target_link_libraries(${target} PRIVATE entry)
+     if (EXE_SHADERS)
+      foreach (shader ${EXE_SHADERS})
+        get_target_property(libdir ${shader} SHADER_LIB_DIR)
+        target_include_directories(${target} PRIVATE ${libdir})
+        add_dependencies(${target} ${shader})
+      endforeach()
+    endif()
   elseif (NOT BUILD_APKS)
     add_executable(${target} ${EXE_SOURCES} ${EXE_UNPARSED_ARGS})
     if (EXE_LIBS)
       target_link_libraries(${target} PRIVATE ${EXE_LIBS})
     endif()
     target_link_libraries(${target} PRIVATE entry)
+    if (EXE_SHADERS)
+      foreach (shader ${EXE_SHADERS})
+        get_target_property(libdir ${shader} SHADER_LIB_DIR)
+        target_include_directories(${target} PRIVATE ${libdir})
+        add_dependencies(${target} ${shader})
+      endforeach()
+    endif()
   else()
     set(TARGET_SOURCES)
     set(ANDROID_TARGET_NAME ${target})
     set(${target}_SOURCES ${EXE_SOURCES})
     set(${target}_LIBS ${EXE_LIBS})
+    set(${target}_SHADERS ${EXE_SHADERS})
     set(ANDROID_ADDITIONAL_PARAMS)
     set(APK_BUILD_ROOT "${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/")
     string(REPLACE "\",\"" " " ANDROID_ABIS_SPACES "${ANDROID_ABIS}")
@@ -129,7 +151,7 @@ function(add_vulkan_executable target)
 
     foreach(source ${CONFIGURABLE_ANDROID_SOURCES})
       file(RELATIVE_PATH rooted_source ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template ${source})
-      configure_file(${source} ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/${rooted_source} @ONLY)
+      configure_file(${source}.in ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/${rooted_source} @ONLY)
       list(APPEND TARGET_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk/${rooted_source})
     endforeach()
     foreach(source ${NON_CONFIGURABLE_ANDROID_SOURCES})
@@ -156,6 +178,7 @@ function(add_vulkan_executable target)
     endforeach()
     set_target_properties(${target}_sources PROPERTIES LIB_SRCS "${ABSOLUTE_SOURCES}")
     set_target_properties(${target}_sources PROPERTIES LIB_DEPS "${EXE_LIBS}")
+    set_target_properties(${target}_sources PROPERTIES LIB_SHADERS "${EXE_SHADERS}")
 
     set(SOURCE_DEPS)
     gather_deps(${target}_sources)
@@ -186,7 +209,7 @@ endfunction(add_vulkan_executable)
 # (from above) uses the library, the sources treated AS
 # dependencies.
 function(_add_vulkan_library target)
-  cmake_parse_arguments(LIB "" "TYPE" "SOURCES;LIBS" ${ARGN})
+  cmake_parse_arguments(LIB "" "TYPE" "SOURCES;LIBS;SHADERS" ${ARGN})
 
   if (BUILD_APKS)
     add_custom_target(${target})
@@ -195,11 +218,19 @@ function(_add_vulkan_library target)
       get_filename_component(TEMP ${SOURCE} ABSOLUTE)
       list(APPEND ABSOLUTE_SOURCES ${TEMP})
     endforeach()
+
     set_target_properties(${target} PROPERTIES LIB_SRCS "${ABSOLUTE_SOURCES}")
     set_target_properties(${target} PROPERTIES LIB_DEPS "${LIB_LIBS}")
   else()
     add_library(${target} ${LIB_TYPE} ${LIB_SOURCES})
     target_link_libraries(${target} PRIVATE ${LIB_LIBS})
+    if (EXE_SHADERS)
+      foreach (shader ${EXE_SHADERS})
+        get_target_property(libdir ${shader} SHADER_LIB_DIR)
+        target_include_directories(${target} PRIVATE ${libdir})
+        add_dependencies(${target} ${shader})
+      endforeach()
+    endif()
   endif()
 endfunction()
 
@@ -212,3 +243,61 @@ endfunction(add_vulkan_static_library)
 function(add_vulkan_shared_library target)
   _add_vulkan_library(${target} TYPE SHARED ${ARGN})
 endfunction(add_vulkan_shared_library)
+
+function(add_shader_library target)
+  cmake_parse_arguments(LIB "" "TYPE" "SOURCES" ${ARGN})
+  if (BUILD_APKS)
+    add_custom_target(${target})
+    set(ABSOLUTE_SOURCES)
+    foreach(SOURCE ${LIB_SOURCES})
+      get_filename_component(TEMP ${SOURCE} ABSOLUTE)
+      list(APPEND ABSOLUTE_SOURCES ${TEMP})
+    endforeach()
+    set_target_properties(${target} PROPERTIES LIB_SRCS "${ABSOLUTE_SOURCES}")
+    set_target_properties(${target} PROPERTIES LIB_DEPS "")
+  else()
+    set(output_files)
+    foreach(shader ${LIB_SOURCES})
+      get_filename_component(suffix ${shader} EXT)
+      if (${suffix} MATCHES "\\.vert|\\.frag|\\.geom|\\.comp|\\.tesc|\\.tese")
+        get_filename_component(temp ${shader} ABSOLUTE)
+        file(RELATIVE_PATH rel_pos ${CMAKE_CURRENT_SOURCE_DIR} ${temp})
+        set(output_file ${CMAKE_CURRENT_BINARY_DIR}/${rel_pos}.spv)
+        get_filename_component(output_file ${output_file} ABSOLUTE)
+        list(APPEND output_files ${output_file})
+
+        if (NOT EXISTS ${output_file}.d.cmake)
+            execute_process(
+              COMMAND
+                ${CMAKE_COMMAND} -E copy
+                ${VulkanTestApplications_SOURCE_DIR}/cmake/empty_cmake_dep.in.cmake
+                ${output_file}.d.cmake)
+        endif()
+
+        include(${output_file}.d.cmake)
+
+        add_custom_command (
+          OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${rel_pos}.spv
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMENT "Compiling SPIR-V binary ${shader}"
+          DEPENDS ${shader} ${FILE_DEPS}
+            ${VulkanTestApplications_SOURCE_DIR}/cmake/generate_cmake_dep.py
+          COMMAND ${CMAKE_GLSL_COMPILER} -mfmt=c -o ${output_file} -c ${shader} -MD
+          COMMAND ${PYTHON_EXECUTABLE}
+            ${VulkanTestApplications_SOURCE_DIR}/cmake/generate_cmake_dep.py
+            ${output_file}.d
+          COMMAND ${CMAKE_COMMAND} -E
+            copy_if_different
+              ${output_file}.d.cmake.tmp
+              ${output_file}.d.cmake
+        )
+      endif()
+    endforeach()
+    add_custom_target(${target}
+      DEPENDS ${output_files})
+    set_target_properties(${target} PROPERTIES SHADER_OUT_FILES
+      "${output_files}")
+    set_target_properties(${target} PROPERTIES SHADER_LIB_DIR
+      "${CMAKE_CURRENT_BINARY_DIR}")
+  endif()
+endfunction()
