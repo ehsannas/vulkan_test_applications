@@ -221,6 +221,17 @@ struct ShaderModuleTraits {
 };
 using VkShaderModule = VkSubObject<ShaderModuleTraits, DeviceTraits>;
 
+struct BufferTraits {
+  using type = ::VkBuffer;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyBuffer>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyBuffer;
+  }
+};
+using VkBuffer = VkSubObject<BufferTraits, DeviceTraits>;
+
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_

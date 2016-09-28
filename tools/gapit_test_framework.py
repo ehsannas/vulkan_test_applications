@@ -286,6 +286,7 @@ class GapitTest(object):
             call_site = traceback.format_exception(
                 exc_type, exc_value, exc_tb, limit=2)
             print "    " + error.message + call_site[1]
+            return (FAILURE, error.message)
         return_val = WARNING if len(self.warnings) > 0 else SUCCESS
         if return_val == WARNING:
             print "[ " + "WARNING".rjust(10) + " ]"
