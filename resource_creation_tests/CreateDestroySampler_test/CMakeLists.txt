@@ -13,17 +13,8 @@
 # limitations under the License.
 #
 
-
-add_subdirectory(AllocateResetFreeCommandBuffer)
-add_subdirectory(CreateDestroyImage_test)
-add_subdirectory(CreateDestroyImageView_test)
-add_subdirectory(CreateDestroySampler_test)
-add_subdirectory(ImageMemory_test)
-add_subdirectory(PipelineCache_test)
-add_subdirectory(SurfaceCreation_test)
-add_subdirectory(SynchronizationCreationDestruction_test)
-add_subdirectory(vkCreateCommandPool)
-add_subdirectory(vkCreateFramebuffer_test)
-add_subdirectory(vkCreateRenderPass_test)
-add_subdirectory(vkCreateShaderModule_test)
-add_subdirectory(vkCreateSwapchainKHR_test)
+add_vulkan_executable(CreateDestroySampler_test
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+)

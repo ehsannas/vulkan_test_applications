@@ -87,6 +87,25 @@ def require(val):
         raise GapitTestException(val[1] + "\n" + call_site[0])
 
 
+def require_true(val):
+    """Takes a value. If that value is not true, throws an exception with an
+    error message"""
+    if val:
+        return
+    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    raise GapitTestException("Expected:" + str(val) + "to be true\n" +
+                             call_site[0])
+
+
+def require_false(val):
+    """Takes a value. If that value is true, throws an exception with an
+    error message"""
+    if not val:
+        return
+    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    raise GapitTestException("Expected:" + str(val) + "to be false\n" +
+                             call_site[0])
+
 def require_equal(param, val):
     """Takes 2 values. If they are equal, does nothing, otherwise
     throws an exception with an error message"""

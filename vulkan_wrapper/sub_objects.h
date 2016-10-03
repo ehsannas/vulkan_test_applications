@@ -166,6 +166,17 @@ struct ImageViewTraits {
 };
 using VkImageView = VkSubObject<ImageViewTraits, DeviceTraits>;
 
+struct SamplerTraits {
+  using type = ::VkSampler;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroySampler>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroySampler;
+  }
+};
+using VkSampler = VkSubObject<SamplerTraits, DeviceTraits>;
+
 struct RenderPassTraits {
   using type = ::VkRenderPass;
   using destruction_function_pointer_type =

@@ -213,7 +213,9 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkFreeMemory),
         CONSTRUCT_LAZY_FUNCTION(vkBindImageMemory),
         CONSTRUCT_LAZY_FUNCTION(vkCreateShaderModule),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyShaderModule)
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyShaderModule),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateSampler),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroySampler)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -268,6 +270,8 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkBindImageMemory);
   LAZY_FUNCTION(vkCreateShaderModule);
   LAZY_FUNCTION(vkDestroyShaderModule);
+  LAZY_FUNCTION(vkCreateSampler);
+  LAZY_FUNCTION(vkDestroySampler);
 #undef LAZY_FUNCTION
 };
 
