@@ -109,6 +109,14 @@ def require_false(val):
 def require_equal(param, val):
     """Takes 2 values. If they are equal, does nothing, otherwise
     throws an exception with an error message"""
+    # For floating point numbers, we do equivalence check like other types.
+    # But still, we need to make sure both the expected and actual values
+    # are floating point numbers, to avoid accidentally converting types
+    # and altering values.
+    float_count = int(isinstance(param, float)) + int(isinstance(val, float))
+    if float_count >= 1:
+        assert float_count == 2, "should compare float with float"
+
     if type(val)(param) == val:
         return
     call_site = traceback.format_list(traceback.extract_stack(limit=2))

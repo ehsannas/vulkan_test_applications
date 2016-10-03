@@ -18,7 +18,10 @@ Executing this file directly will run its tests.
 This only works for single-nested structures. This also only
 handles arrays of scalars, and not arrays of arrays of elements.
 """
+
+import struct
 import sys
+
 # These values are meant to be used with the struct layout functions
 UINT32_T, SIZE_T, POINTER, UINT64_T, FLOAT, CHAR, ARRAY = range(7)
 
@@ -47,14 +50,26 @@ def align_to_next(number, alignment):
     return number + alignment - (number % alignment)
 
 
-class VulkanStruct:
+def decode(data, ty):
+    """Decodes data according to the given type."""
+    assert ty != ARRAY, "ARRAY is not supported"
+    if (ty == CHAR or ty == UINT32_T or ty == UINT64_T or
+        ty == SIZE_T or ty == POINTER):
+        return long(data)  # Just use long for all of them.
+    if ty == FLOAT:
+        val = struct.unpack('f', struct.pack('I', data))  # Do a bitcast.
+        assert len(val) == 1, "more than 4-bytes found for float"
+        return val[0]
+    assert False, "unknown type: {}".format(ty)
+
+
+class VulkanStruct(object):
     """Represents a vulkan structure.
 
-    Given an array of elements, which are
-    represented as pairs of element name and type tag, and a |get_data|
-    function,
-    which returns an object given an offset and size, this class allows querying
-    the offset and values of any individual element.
+    Given an array of elements, which are represented as pairs of element name
+    and type tag, and a |get_data| function, which returns an object given
+    an offset and size, this class allows querying the offset and values of
+    any individual element.
     """
 
     def __init__(self, architecture, elements, get_data):
@@ -85,7 +100,8 @@ class VulkanStruct:
                 self.offsets.append(offset)
                 value = []
                 for i in range(array_size):
-                    value.append(get_data(offset, size_and_alignment[0]))
+                    value.append(decode(get_data(offset, size_and_alignment[0]),
+                                        array_member_ty))
                     offset += size_and_alignment[0]
                 self.parameters[name] = value
             else:
@@ -93,7 +109,7 @@ class VulkanStruct:
                 offset = align_to_next(offset, size_and_alignment[1])
                 self.offsets.append(offset)
                 value = get_data(offset, size_and_alignment[0])
-                self.parameters[name] = value
+                self.parameters[name] = decode(value, ty)
                 offset += size_and_alignment[0]
 
 
