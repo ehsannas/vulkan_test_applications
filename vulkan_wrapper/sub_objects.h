@@ -133,6 +133,17 @@ struct CommandPoolTraits {
 };
 using VkCommandPool = VkSubObject<CommandPoolTraits, DeviceTraits>;
 
+struct DescriptorPoolTraits {
+  using type = ::VkDescriptorPool;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyDescriptorPool>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyDescriptorPool;
+  }
+};
+using VkDescriptorPool = VkSubObject<DescriptorPoolTraits, DeviceTraits>;
+
 struct SurfaceTraits {
   using type = ::VkSurfaceKHR;
   using destruction_function_pointer_type =

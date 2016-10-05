@@ -7,6 +7,7 @@ the creation and destruction of vulkan resources.
 - [AllocateResetFreeCommandBuffer](AllocateResetFreeCommandBuffer/README.md)
 - [BindMapUnmapBuffer_test](BindMapUnmapBuffer_test/README.md)
 - [BufferCreationMemory_test](BufferCreationMemory_test/README.md)
+- [CreateDestroyDescriptorPool_test](CreateDestroyDescriptorPool_test/README.md)
 - [CreateDestroyImage_test](CreateDestroyImage_test/README.md)
 - [CreateDestroyImageView_test](CreateDestroyImageView_test/README.md)
 - [CreateDestroySampler_test](CreateDestroySampler_test/README.md)

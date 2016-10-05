@@ -17,6 +17,7 @@
 add_subdirectory(AllocateResetFreeCommandBuffer)
 add_subdirectory(BindMapUnmapBuffer_test)
 add_subdirectory(BufferCreationMemory_test)
+add_subdirectory(CreateDestroyDescriptorPool_test)
 add_subdirectory(CreateDestroyImage_test)
 add_subdirectory(CreateDestroyImageView_test)
 add_subdirectory(CreateDestroySampler_test)

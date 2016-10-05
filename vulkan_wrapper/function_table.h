@@ -221,7 +221,9 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkGetBufferMemoryRequirements),
         CONSTRUCT_LAZY_FUNCTION(vkMapMemory),
         CONSTRUCT_LAZY_FUNCTION(vkUnmapMemory),
-        CONSTRUCT_LAZY_FUNCTION(vkBindBufferMemory)
+        CONSTRUCT_LAZY_FUNCTION(vkBindBufferMemory),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateDescriptorPool),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyDescriptorPool)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -284,6 +286,8 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkMapMemory)
   LAZY_FUNCTION(vkUnmapMemory);
   LAZY_FUNCTION(vkBindBufferMemory);
+  LAZY_FUNCTION(vkCreateDescriptorPool);
+  LAZY_FUNCTION(vkDestroyDescriptorPool);
 #undef LAZY_FUNCTION
 };
 

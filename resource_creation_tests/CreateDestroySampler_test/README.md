@@ -63,7 +63,7 @@ For `vkDestroySampler`, according to the Vulkan spec:
 - If `sampler` is a valid handle, it **must** have been created, allocated,
   or retrieved from `device`
 
-# VkImageCreateInfo
+# VkSamplerCreateInfo
 ```c++
 typedef struct VkSamplerCreateInfo {
     VkStructureType         sType;
