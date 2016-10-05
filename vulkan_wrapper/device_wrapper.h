@@ -50,7 +50,8 @@ class VkDevice {
         log_(instance->GetLogger()),
         device_id_(0),
         vendor_id_(0),
-        driver_version_(0) {
+        driver_version_(0),
+        physical_device_memory_properties_({0}) {
     if (has_allocator_) {
       allocator_ = *allocator;
     } else {
@@ -68,6 +69,10 @@ class VkDevice {
     // Initialize the lazily resolved device functions.
     functions_ = containers::make_unique<DeviceFunctions>(
         container_allocator, device_, vkGetDeviceProcAddr, log_);
+    if (physical_device) {
+      (*instance)->vkGetPhysicalDeviceMemoryProperties(
+          physical_device, &physical_device_memory_properties_);
+    }
   }
 
   ~VkDevice() {
@@ -89,6 +94,11 @@ class VkDevice {
   DeviceFunctions* functions() { return functions_.get(); }
   ::VkPhysicalDevice physical_device() const { return physical_device_; }
 
+  const VkPhysicalDeviceMemoryProperties& physical_device_memory_properties()
+      const {
+    return physical_device_memory_properties_;
+  }
+
  private:
   ::VkDevice device_;
   ::VkPhysicalDevice physical_device_;
@@ -105,6 +115,7 @@ class VkDevice {
   uint32_t device_id_;
   uint32_t vendor_id_;
   uint32_t driver_version_;
+  VkPhysicalDeviceMemoryProperties physical_device_memory_properties_;
 
  public:
   PFN_vkVoidFunction getProcAddr(::VkDevice device, const char* function) {

@@ -181,8 +181,9 @@ class GapitTest(object):
         if atom[0]:
             return (atom[0], "")
         else:
-            return (None,
-                    "Could not find " + index + " atoms of type " + call_name)
+            return (
+                None,
+                "Could not find " + str(index) + " atoms of type " + call_name)
 
     def next_call(self, call_name):
         '''Expects the next call to be of the specified type. Returns

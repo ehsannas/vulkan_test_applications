@@ -64,24 +64,14 @@ int main_entry(const entry::entry_data* data) {
     data->log->LogInfo("    memoryTypeBits : ",
                        image_memory_requirements.memoryTypeBits);
 
-    VkPhysicalDeviceMemoryProperties properties;
-    instance->vkGetPhysicalDeviceMemoryProperties(device.physical_device(),
-                                                  &properties);
-    uint32_t memory_index = 0;
-    for (; memory_index < properties.memoryTypeCount; ++memory_index) {
-      if (!image_memory_requirements.memoryTypeBits & (1 << memory_index)) {
-        continue;
-      }
-      data->log->LogInfo(" memory: ", memory_index, " properties: ",
-                         properties.memoryTypes[memory_index].propertyFlags);
-      if (!properties.memoryTypes[memory_index].propertyFlags &
-          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-        continue;
-      }
-      break;
-    }
+    uint32_t memory_index =
+      vulkan::GetMemoryIndex(
+        &device,
+        data->log.get(),
+        image_memory_requirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
     data->log->LogInfo("Using memory index: ", memory_index);
-    LOG_ASSERT(!=, data->log, memory_index, properties.memoryTypeCount);
 
     VkMemoryAllocateInfo allocate_info{
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // sType

@@ -116,6 +116,32 @@ VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
   return VkQueue(queue, device);
 }
 
+// Given a bitmask of required_index_bits and a bitmask of
+// VkMemoryPropertyFlags, return the first memory index
+// from the given device that supports the required_property_flags.
+// Will assert if one could not be found.
+uint32_t inline GetMemoryIndex(VkDevice* device, logging::Logger* log,
+                               uint32_t required_index_bits,
+                               VkMemoryPropertyFlags required_property_flags) {
+  const VkPhysicalDeviceMemoryProperties& properties =
+      device->physical_device_memory_properties();
+  LOG_ASSERT(<=, log, 32, properties.memoryTypeCount);
+  uint32_t memory_index = 0;
+  for (; memory_index < properties.memoryTypeCount; ++memory_index) {
+    if (!(required_index_bits & (1 << memory_index))) {
+      continue;
+    }
+
+    if (!(properties.memoryTypes[memory_index].propertyFlags &
+          required_property_flags)) {
+      continue;
+    }
+    break;
+  }
+  LOG_ASSERT(!=, log, memory_index, properties.memoryTypeCount);
+  return memory_index;
+}
+
 // Runs the given call once with a nullptr value, and gets the numerical result.
 // Resizes the given array, and runs the call again to fill the array.
 // Asserts that the function call succeeded.
