@@ -53,6 +53,9 @@ class VkSubObject {
   using destruction_function_pointer_type =
       typename T::destruction_function_pointer_type;
 
+  static_assert(std::is_copy_constructible<type>::value,
+                "The type must be copy constructible.");
+
  public:
   // This does not retain a reference to the owner, or the
   // VkAllocationCallbacks object, it does take ownership of the object in
@@ -89,6 +92,11 @@ class VkSubObject {
   }
 
   logging::Logger* GetLogger() { return log_; }
+
+  void initialize(type raw_object) {
+    LOG_ASSERT(==, log_, true, raw_object_ == VK_NULL_HANDLE);
+    raw_object_ = raw_object;
+  }
 
  private:
   raw_owner_type owner_;

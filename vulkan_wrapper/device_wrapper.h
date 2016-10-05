@@ -76,7 +76,8 @@ class VkDevice {
   }
 
   ~VkDevice() {
-    if (device_) {
+    // functions_ will be nullptr if this has been moved
+    if (device_ && functions_) {
       functions_->vkDestroyDevice(device_,
                                   has_allocator_ ? &allocator_ : nullptr);
     }

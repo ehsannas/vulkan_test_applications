@@ -134,7 +134,9 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkBeginCommandBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkEndCommandBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkResetCommandBuffer),
-        CONSTRUCT_LAZY_FUNCTION(vkCmdPipelineBarrier)
+        CONSTRUCT_LAZY_FUNCTION(vkCmdPipelineBarrier),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdCopyBufferToImage),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdCopyImageToBuffer)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -145,6 +147,8 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkEndCommandBuffer);
   LAZY_FUNCTION(vkResetCommandBuffer);
   LAZY_FUNCTION(vkCmdPipelineBarrier);
+  LAZY_FUNCTION(vkCmdCopyBufferToImage);
+  LAZY_FUNCTION(vkCmdCopyImageToBuffer);
 #undef LAZY_FUNCTION
 };
 
@@ -225,7 +229,9 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCreateDescriptorPool),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyDescriptorPool),
         CONSTRUCT_LAZY_FUNCTION(vkCreateDescriptorSetLayout),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyDescriptorSetLayout)
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyDescriptorSetLayout),
+        CONSTRUCT_LAZY_FUNCTION(vkFlushMappedMemoryRanges),
+        CONSTRUCT_LAZY_FUNCTION(vkInvalidateMappedMemoryRanges)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -292,6 +298,8 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkDestroyDescriptorPool);
   LAZY_FUNCTION(vkCreateDescriptorSetLayout);
   LAZY_FUNCTION(vkDestroyDescriptorSetLayout);
+  LAZY_FUNCTION(vkFlushMappedMemoryRanges);
+  LAZY_FUNCTION(vkInvalidateMappedMemoryRanges);
 #undef LAZY_FUNCTION
 };
 

@@ -131,7 +131,7 @@ uint32_t inline GetMemoryIndex(VkDevice* device, logging::Logger* log,
                                VkMemoryPropertyFlags required_property_flags) {
   const VkPhysicalDeviceMemoryProperties& properties =
       device->physical_device_memory_properties();
-  LOG_ASSERT(<=, log, 32, properties.memoryTypeCount);
+  LOG_ASSERT(<=, log, properties.memoryTypeCount, 32);
   uint32_t memory_index = 0;
   for (; memory_index < properties.memoryTypeCount; ++memory_index) {
     if (!(required_index_bits & (1 << memory_index))) {

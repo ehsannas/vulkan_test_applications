@@ -13,17 +13,8 @@
 # limitations under the License.
 #
 
-add_vulkan_static_library(vulkan_helpers
-    SOURCES
-        helper_functions.h
-        helper_functions.cpp
-        known_device_infos.h
-        known_device_infos.cpp
-        structs.h
-        structs.cpp
-        vulkan_header_wrapper.h
-        vulkan_application.h
-        vulkan_application.cpp
-    LIBS
-        vulkan_wrapper
-        containers)
+add_vulkan_executable(BufferImageCopy_test
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+)

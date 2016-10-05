@@ -23,7 +23,7 @@ import struct
 import sys
 
 # These values are meant to be used with the struct layout functions
-UINT32_T, SIZE_T, POINTER, UINT64_T, FLOAT, CHAR, ARRAY = range(7)
+UINT32_T, INT32_T, SIZE_T, POINTER, UINT64_T, FLOAT, CHAR, ARRAY = range(8)
 
 HANDLE = UINT64_T
 DEVICE_SIZE = UINT64_T
@@ -34,6 +34,7 @@ def get_size_alignment(architecture):
     alignment requirements."""
     return {
         UINT32_T: (4, 4),
+        INT32_T: (4, 4),
         SIZE_T: (architecture.int_PointerSize, architecture.int_PointerSize),
         POINTER: (architecture.int_PointerSize, architecture.int_PointerSize),
         UINT64_T: (8, architecture.extra_FieldAlignments.int_U64Alignment),
@@ -54,7 +55,7 @@ def decode(data, ty):
     """Decodes data according to the given type."""
     assert ty != ARRAY, "ARRAY is not supported"
     if (ty == CHAR or ty == UINT32_T or ty == UINT64_T or
-        ty == SIZE_T or ty == POINTER):
+        ty == SIZE_T or ty == POINTER or ty == INT32_T):
         return long(data)  # Just use long for all of them.
     if ty == FLOAT:
         val = struct.unpack('f', struct.pack('I', data))  # Do a bitcast.

@@ -1,2 +1,3 @@
 add_subdirectory(BeginAndEndCommandBuffer_test)
+add_subdirectory(BufferImageCopy_test)
 add_subdirectory(QueueSubmitAndWait_test)
