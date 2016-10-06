@@ -70,14 +70,14 @@ class AllocateBindFreeMemory(GapitTest):
 
         allocate_memory = require(self.next_call_of("vkAllocateMemory"))
         require_not_equal(0, allocate_memory.int_Device)
-        require_not_equal(0, allocate_memory.int_Image)
+        require_not_equal(0, allocate_memory.hex_PAllocateInfo)
         require_equal(0, allocate_memory.hex_PAllocator)
-        require_not_equal(0, allocate_memory.hex_PDeviceMemory)
+        require_not_equal(0, allocate_memory.hex_PMemory)
 
         allocate_memory_info = VulkanStruct(
             architecture, MEMORY_ALLOCATE_INFO,
             get_read_offset_function(allocate_memory,
-                                     allocate_memory.hex_PCreateInfo))
+                                     allocate_memory.hex_PAllocateInfo))
 
         require_equal(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                       allocate_memory_info.sType)
@@ -87,11 +87,11 @@ class AllocateBindFreeMemory(GapitTest):
 
         free_memory = require(self.next_call_of("vkFreeMemory"))
         require_not_equal(0, free_memory.int_Device)
-        require_not_equal(0, free_memory.int_DeviceMemory)
+        require_not_equal(0, free_memory.int_Memory)
         require_equal(0, free_memory.hex_PAllocator)
 
         if self.not_device(device_properties, 0x5A400000,
                            gapit_test_framework.PIXEL_C):
             free_memory = require(self.next_call_of("vkFreeMemory"))
             require_not_equal(0, free_memory.int_Device)
-            require_equal(0, free_memory.int_DeviceMemory)
+            require_equal(0, free_memory.int_Memory)

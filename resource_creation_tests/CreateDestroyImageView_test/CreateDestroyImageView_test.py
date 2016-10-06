@@ -32,7 +32,7 @@ IMAGE_VIEW_CREATE_INFO_ELEMENTS = [
     ("components_g", UINT32_T),
     ("components_b", UINT32_T),
     ("components_a", UINT32_T),
-    ("subresourceRange_aspectMast", UINT32_T),
+    ("subresourceRange_aspectMask", UINT32_T),
     ("subresourceRange_baseMipLevel", UINT32_T),
     ("subresourceRange_levelCount", UINT32_T),
     ("subresourceRange_baseArrayLayer", UINT32_T),
@@ -53,7 +53,7 @@ def check_create_image_view(test, index):
     require_not_equal(0, device)
     p_create_info = create_image_view.hex_PCreateInfo
     require_not_equal(0, p_create_info)
-    p_image_view = create_image_view.hex_PImageView
+    p_image_view = create_image_view.hex_PView
     require_not_equal(0, p_image_view)
     image_view = little_endian_bytes_to_int(require(
         create_image_view.get_write_data(p_image_view,
@@ -68,7 +68,7 @@ def check_destroy_image_view(test, device, image_view, device_properties):
     """
     destroy_image_view = require(test.next_call_of("vkDestroyImageView"))
     require_equal(device, destroy_image_view.int_Device)
-    require_equal(image, destroy_image_view.int_ImageView)
+    require_equal(image_view, destroy_image_view.int_ImageView)
     if test.not_device(device_properties, 0x5A400000, PIXEL_C):
         # Our second vkDestroyImageView should have been called with
         # VK_NULL_HANDLE
