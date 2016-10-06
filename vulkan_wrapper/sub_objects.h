@@ -144,6 +144,18 @@ struct DescriptorPoolTraits {
 };
 using VkDescriptorPool = VkSubObject<DescriptorPoolTraits, DeviceTraits>;
 
+struct DescriptorSetLayoutTraits {
+  using type = ::VkDescriptorSetLayout;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyDescriptorSetLayout>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyDescriptorSetLayout;
+  }
+};
+using VkDescriptorSetLayout =
+    VkSubObject<DescriptorSetLayoutTraits, DeviceTraits>;
+
 struct SurfaceTraits {
   using type = ::VkSurfaceKHR;
   using destruction_function_pointer_type =
