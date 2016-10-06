@@ -318,11 +318,29 @@ VulkanArena::~VulkanArena() {
   allocator_->free(first_block_, sizeof(AllocationToken));
 }
 
+// The maximum value for nonCoherentAtomSize from the vulkan spec.
+// Table 31.2. Required Limits
+// See 10.2.1. Host Access to Device Memory Objects for
+// a description of why this must be used.
+static const ::VkDeviceSize kMaxNonCoherentAtomSize = 256;
+
 AllocationToken* VulkanArena::AllocateMemory(::VkDeviceSize size,
                                              ::VkDeviceSize alignment,
                                              ::VkDeviceMemory* memory,
                                              ::VkDeviceSize* offset,
                                              char** base_address) {
+  // If we are mapped memory, then no matter what alignment says, we
+  // must also be aligned to kMaxNonCoherentAtomSize AND
+  // for all intents and purposes our size must be a multiple of
+  // kMaxNonCoherentAtomSize
+  if (base_address_) {
+    alignment = alignment > kMaxNonCoherentAtomSize ? alignment
+                                                    : kMaxNonCoherentAtomSize;
+    if ((size % kMaxNonCoherentAtomSize) != 0) {
+      size += (kMaxNonCoherentAtomSize - (size % kMaxNonCoherentAtomSize));
+    }
+  }
+
   // We use alignment - 1 quite a bit, so store it off here.
   const ::VkDeviceSize align_m_1 = alignment - 1;
   LOG_ASSERT(>, log_, alignment, 0);  // Alignment must be > 0
