@@ -84,7 +84,47 @@ int main_entry(const entry::entry_data* data) {
     device->vkDestroyDescriptorSetLayout(device, layout, nullptr);
   }
 
-  {  // 3. Destroy null descriptor set layout handle.
+  {  // 3. Two bindings with samplers.
+    containers::vector<vulkan::VkSampler> samplers(allocator);
+    ::VkSampler raw_samplers[3];
+    samplers.reserve(3);
+    for (int i = 0; i < 3; ++i) {
+      samplers.emplace_back(CreateDefaultSampler(&device));
+      raw_samplers[i] = samplers.back().get_raw_object();
+    }
+
+    VkDescriptorSetLayoutBinding bindings[2] = {
+        {
+            /* binding = */ 2,
+            /* descriptorType = */ VK_DESCRIPTOR_TYPE_SAMPLER,
+            /* descriptorCount = */ 3,
+            /* stageFlags = */ VK_SHADER_STAGE_ALL,
+            /* pImmutableSamplers = */ nullptr,
+        },
+        {
+            /* binding = */ 7,
+            /* descriptorType = */ VK_DESCRIPTOR_TYPE_SAMPLER,
+            /* descriptorCount = */ 3,
+            /* stageFlags = */ VK_SHADER_STAGE_ALL,
+            /* pImmutableSamplers = */ raw_samplers,
+        },
+    };
+
+    VkDescriptorSetLayoutCreateInfo create_info{
+        /* sType = */ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        /* pNext = */ nullptr,
+        /* flags = */ 0,
+        /* bindingCount = */ 2,
+        /* pBindings = */ bindings,
+    };
+
+    ::VkDescriptorSetLayout layout;
+    device->vkCreateDescriptorSetLayout(device, &create_info, nullptr, &layout);
+    data->log->LogInfo("  layout: ", layout);
+    device->vkDestroyDescriptorSetLayout(device, layout, nullptr);
+  }
+
+  {  // 4. Destroy null descriptor set layout handle.
     IF_NOT_DEVICE(data->log, device, vulkan::PixelC, 0x5A400000) {
       device->vkDestroyDescriptorSetLayout(
           device, (VkDescriptorSetLayout)VK_NULL_HANDLE, nullptr);

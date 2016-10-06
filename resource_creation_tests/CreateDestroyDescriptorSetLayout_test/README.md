@@ -47,6 +47,7 @@ According to the Vulkan spec:
 For `vkCreateDescriptorSetLayout`, these tests should test the following cases:
 - `bindingCount` of valid values:
   - [x] 0
+  - [x] 2
   - [x] 3
 - `pBindings` of valid values:
   - [x] == `nullptr`
@@ -55,23 +56,25 @@ For `vkCreateDescriptorSetLayout`, these tests should test the following cases:
   - [x] 0
   - [x] 2
   - [x] 5
+  - [x] 7
 - `descriptorType` of valid `VkDescriptorType` values:
-  - [ ] `VK_DESCRIPTOR_TYPE_SAMPLER`
+  - [x] `VK_DESCRIPTOR_TYPE_SAMPLER`
   - [x] `VK_DESCRIPTOR_TYPE_STORAGE_IMAGE`
   - [x] `VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER`
   - [x] `VK_DESCRIPTOR_TYPE_STORAGE_BUFFER`
 - `descriptorCount` of valid values:
   - [x] 0
   - [x] 1
+  - [x] 3
   - [x] 6
 - `stageFlags` of values:
   - [x] `VK_SHADER_STAGE_VERTEX_BIT`
   - [x] `VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT`
-  - [ ] `VK_SHADER_STAGE_ALL`
+  - [x] `VK_SHADER_STAGE_ALL`
   - [x] `0xdeadbeef`
 - `pImmutableSamplers` of valid values:
   - [x] == `nullptr`
-  - [ ] != `nullptr`
+  - [x] != `nullptr`
 
 For `vkDestroyDescriptorSetLayout`, these tests should test the following cases:
 - [x] `descriptorSetLayout` == `nullptr`

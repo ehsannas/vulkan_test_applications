@@ -109,6 +109,12 @@ uint32_t inline GetLSB(uint32_t val) { return ((val - 1) ^ val) & val; }
 VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
                                   uint32_t height);
 
+// Creates a default sampler with normalized coordinates. magFilter, minFilter,
+// and mipmap are all using nearest mode. Addressing modes for U, V, and W
+// coordinates are all clamp-to-edge. mipLodBias, minLod, and maxLod are all 0.
+// anisotropy and compare is disabled.
+VkSampler CreateDefaultSampler(VkDevice* device);
+
 // Returns the first queue from the given family.
 VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
   ::VkQueue queue;

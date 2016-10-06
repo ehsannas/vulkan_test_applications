@@ -451,4 +451,32 @@ VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
              VK_SUCCESS);
   return vulkan::VkImage(raw_image, nullptr, device);
 }
+
+VkSampler CreateDefaultSampler(VkDevice* device) {
+  VkSamplerCreateInfo info{
+      /* sType = */ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ 0,
+      /* magFilter = */ VK_FILTER_NEAREST,
+      /* minFilter = */ VK_FILTER_NEAREST,
+      /* mipmapMode = */ VK_SAMPLER_MIPMAP_MODE_NEAREST,
+      /* addressModeU = */ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      /* addressModeV = */ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      /* addressModeW = */ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      /* mipLodBias = */ 0.f,
+      /* anisotropyEnable = */ false,
+      /* maxAnisotropy = */ 0.f,
+      /* compareEnable = */ false,
+      /* compareOp = */ VK_COMPARE_OP_NEVER,
+      /* minLod = */ 0.f,
+      /* maxLod = */ 0.f,
+      /* borderColor = */ VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+      /* unnormalizedCoordinates = */ false,
+  };
+  ::VkSampler raw_sampler;
+  LOG_ASSERT(==, device->GetLogger(),
+             (*device)->vkCreateSampler(*device, &info, nullptr, &raw_sampler),
+             VK_SUCCESS);
+  return vulkan::VkSampler(raw_sampler, nullptr, device);
+}
 }
