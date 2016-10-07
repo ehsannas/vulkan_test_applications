@@ -15,6 +15,7 @@
 
 
 add_subdirectory(AllocateResetFreeCommandBuffer)
+add_subdirectory(AllocateFreeDescriptorSets_test)
 add_subdirectory(BindMapUnmapBuffer_test)
 add_subdirectory(BufferCreationMemory_test)
 add_subdirectory(CreateDestroyDescriptorPool_test)

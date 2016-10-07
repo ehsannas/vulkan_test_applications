@@ -120,6 +120,19 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(
     containers::Allocator* allocator, VkDevice* device,
     std::initializer_list<VkDescriptorSetLayoutBinding> bindings);
 
+// Creates a descriptor pool with |count| descriptors of the given |type|.
+// At maximum, |max_sets| number of descriptor sets can be allocated from this
+// pool.
+VkDescriptorPool CreateDescriptorPool(VkDevice* device, ::VkDescriptorType type,
+                                      uint32_t count, uint32_t max_sets);
+
+// Creates a descriptor set layout with |count| descriptors of the given |type|
+// bound to bining number 0. The resource behind the descriptors is set to
+// available to all shader stages.
+VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
+                                                ::VkDescriptorType type,
+                                                uint32_t count);
+
 // Returns the first queue from the given family.
 VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
   ::VkQueue queue;

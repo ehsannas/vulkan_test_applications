@@ -235,7 +235,9 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCreatePipelineLayout),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyPipelineLayout),
         CONSTRUCT_LAZY_FUNCTION(vkCreateGraphicsPipelines),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyPipeline)
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyPipeline),
+        CONSTRUCT_LAZY_FUNCTION(vkAllocateDescriptorSets),
+        CONSTRUCT_LAZY_FUNCTION(vkFreeDescriptorSets)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -308,6 +310,8 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkDestroyPipelineLayout);
   LAZY_FUNCTION(vkCreateGraphicsPipelines);
   LAZY_FUNCTION(vkDestroyPipeline);
+  LAZY_FUNCTION(vkAllocateDescriptorSets);
+  LAZY_FUNCTION(vkFreeDescriptorSets);
 #undef LAZY_FUNCTION
 };
 

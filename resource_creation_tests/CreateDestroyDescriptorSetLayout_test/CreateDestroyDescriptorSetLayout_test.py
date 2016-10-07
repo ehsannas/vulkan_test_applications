@@ -92,7 +92,7 @@ def get_binding(create_descriptor_set_layout, architecture, create_info, index):
         # architecture, pointer size is 4, so alignement should be fine.
         # On 64-bit architecture, pointer size is 8, the struct totally
         # occupies (4 * 4 + 8) bytes, so alignment should also be fine.
-        4 * 4 + int(architecture.PointerSize))
+        4 * 4 + int(architecture.int_PointerSize))
     return VulkanStruct(
         architecture, BINDING_ELEMENTS,
         lambda offset, size: little_endian_bytes_to_int(require(

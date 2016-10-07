@@ -519,4 +519,50 @@ VkPipelineCache CreateDefaultPipelineCache(VkDevice* device) {
       (*device)->vkCreatePipelineCache(*device, &create_info, nullptr, &cache));
   return VkPipelineCache(cache, nullptr, device);
 }
+
+VkDescriptorPool CreateDescriptorPool(VkDevice* device, ::VkDescriptorType type,
+                                      uint32_t count, uint32_t max_sets) {
+  VkDescriptorPoolSize pool_size{
+      /* type = */ type,
+      /* descriptorCount = */ count,
+  };
+  VkDescriptorPoolCreateInfo info{
+      /* sType = */ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+      /* maxSets = */ max_sets,
+      /* poolSizeCount = */ 1,
+      /* pPoolSizes = */ &pool_size};
+
+  ::VkDescriptorPool raw_pool;
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorPool(
+                                          *device, &info, nullptr, &raw_pool),
+             VK_SUCCESS);
+  return vulkan::VkDescriptorPool(raw_pool, nullptr, device);
+}
+
+VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
+                                                ::VkDescriptorType type,
+                                                uint32_t count) {
+  VkDescriptorSetLayoutBinding binding{
+      /* binding = */ 0,
+      /* descriptorType = */ type,
+      /* descriptorCount = */ count,
+      /* stageFlags = */ VK_SHADER_STAGE_ALL,
+      /* pImmutableSamplers = */ nullptr,
+  };
+  VkDescriptorSetLayoutCreateInfo info{
+      /* sType = */ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ 0,
+      /* bindingCount = */ 1,
+      /* pBindings = */ &binding,
+  };
+
+  ::VkDescriptorSetLayout raw_layout;
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorSetLayout(
+                                          *device, &info, nullptr, &raw_layout),
+             VK_SUCCESS);
+  return vulkan::VkDescriptorSetLayout(raw_layout, nullptr, device);
+}
 }
