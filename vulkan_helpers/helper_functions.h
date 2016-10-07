@@ -61,7 +61,7 @@ uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
 // |require_graphics_and_compute_queue| is true, the queue is of both graphics
 // and compute capabilities. Vulkan functions that are resolved through the
 // create device will be stored in the space allocated by the given |allocator|.
-// The |allocator| must continue to exist until the device is destroied.
+// The |allocator| must continue to exist until the device is destroyed.
 VkDevice CreateDefaultDevice(containers::Allocator* allocator,
                              VkInstance& instance,
                              bool require_graphics_compute_queue = false);
@@ -114,6 +114,11 @@ VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
 // coordinates are all clamp-to-edge. mipLodBias, minLod, and maxLod are all 0.
 // anisotropy and compare is disabled.
 VkSampler CreateDefaultSampler(VkDevice* device);
+
+// Creates a DescriptorSetLayout with the given set of layouts.
+VkDescriptorSetLayout CreateDescriptorSetLayout(
+    containers::Allocator* allocator, VkDevice* device,
+    std::initializer_list<VkDescriptorSetLayoutBinding> bindings);
 
 // Returns the first queue from the given family.
 VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {

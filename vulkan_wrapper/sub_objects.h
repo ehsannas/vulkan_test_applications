@@ -230,6 +230,17 @@ struct PipelineCacheTraits {
 };
 using VkPipelineCache = VkSubObject<PipelineCacheTraits, DeviceTraits>;
 
+struct PipelineLayoutTraits {
+  using type = ::VkPipelineLayout;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyPipelineLayout>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyPipelineLayout;
+  }
+};
+using VkPipelineLayout = VkSubObject<PipelineLayoutTraits, DeviceTraits>;
+
 struct DeviceMemoryTraits {
   using type = ::VkDeviceMemory;
   using destruction_function_pointer_type =
@@ -250,6 +261,7 @@ struct ShaderModuleTraits {
     return &functions->vkDestroyShaderModule;
   }
 };
+
 using VkShaderModule = VkSubObject<ShaderModuleTraits, DeviceTraits>;
 
 struct BufferTraits {

@@ -231,7 +231,9 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCreateDescriptorSetLayout),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyDescriptorSetLayout),
         CONSTRUCT_LAZY_FUNCTION(vkFlushMappedMemoryRanges),
-        CONSTRUCT_LAZY_FUNCTION(vkInvalidateMappedMemoryRanges)
+        CONSTRUCT_LAZY_FUNCTION(vkInvalidateMappedMemoryRanges),
+        CONSTRUCT_LAZY_FUNCTION(vkCreatePipelineLayout),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyPipelineLayout)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -300,6 +302,8 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkDestroyDescriptorSetLayout);
   LAZY_FUNCTION(vkFlushMappedMemoryRanges);
   LAZY_FUNCTION(vkInvalidateMappedMemoryRanges);
+  LAZY_FUNCTION(vkCreatePipelineLayout);
+  LAZY_FUNCTION(vkDestroyPipelineLayout);
 #undef LAZY_FUNCTION
 };
 

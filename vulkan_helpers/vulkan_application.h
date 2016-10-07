@@ -190,6 +190,9 @@ class VulkanApplication {
   // as the render queue.
   VkQueue& present_queue() { return *present_queue_; }
 
+  // Returns the device that was created for this application.
+  VkDevice& device() { return device_; }
+
   // Returns true if the Present queue is not the same as the present queue.
   bool HasSeparatePresentQueue() const {
     return present_queue_ != render_queue_;

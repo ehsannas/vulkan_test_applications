@@ -479,4 +479,27 @@ VkSampler CreateDefaultSampler(VkDevice* device) {
              VK_SUCCESS);
   return vulkan::VkSampler(raw_sampler, nullptr, device);
 }
+
+VkDescriptorSetLayout CreateDescriptorSetLayout(
+    containers::Allocator* allocator, VkDevice* device,
+    std::initializer_list<VkDescriptorSetLayoutBinding> bindings) {
+  containers::vector<VkDescriptorSetLayoutBinding> contiguous_bindings(
+      bindings.size(), allocator);
+  auto binding = bindings.begin();
+  for (size_t i = 0; i < bindings.size(); ++i, ++binding) {
+    contiguous_bindings[i] = *binding;
+  }
+
+  VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info{
+      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+      static_cast<uint32_t>(contiguous_bindings.size()),
+      contiguous_bindings.data()};
+
+  ::VkDescriptorSetLayout layout;
+  LOG_ASSERT(
+      ==, device->GetLogger(), VK_SUCCESS,
+      (*device)->vkCreateDescriptorSetLayout(
+          *device, &descriptor_set_layout_create_info, nullptr, &layout));
+  return VkDescriptorSetLayout(layout, nullptr, device);
+}
 }
