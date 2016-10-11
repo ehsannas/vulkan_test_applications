@@ -22,6 +22,7 @@
 #include "support/entry/entry.h"
 #include "support/log/log.h"
 #include "vulkan_helpers/helper_functions.h"
+#include "vulkan_wrapper/command_buffer_wrapper.h"
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
@@ -275,6 +276,9 @@ class VulkanApplication {
 
   VkSwapchainKHR& swapchain() { return swapchain_; }
 
+  containers::vector<::VkImage>& swapchain_images() {
+    return swapchain_images_;
+  }
   // Creates a render pass, from the given VkAttachmentDescriptions,
   // VkSubpassDescriptions, and VkSubpassDependencies
   VkRenderPass CreateRenderPass(
