@@ -16,7 +16,7 @@ void vkDestroyPipeline(
     const VkAllocationCallbacks*                pAllocator);
 ```
 
-## VkFramebufferCreateInfo
+## VkGraphicsPipelineCreateInfo
 ```c++
 typedef struct VkGraphicsPipelineCreateInfo {
     VkStructureType                                  sType;
@@ -250,7 +250,7 @@ According to the Vulkan spec:
     `VkPipelineVertexInputStateCreateInfo`
 - `pInputAssemblyState` **must** point to a valid
     `VkPipelineInputAssemblyStateCreateInfo`
-- `pTessellationState` **may** be nullpt if the pipeline does not contain
+- `pTessellationState` **may** be nullptr if the pipeline does not contain
     tessellation
 - `pRasterizationState` **must** point to a valid
     `VkPipelineRasterizationStateCreateInfo`
@@ -261,6 +261,7 @@ According to the Vulkan spec:
     subpass uses depth/stencil. NULL otherwise.
 - `pColorBlendState` **must** be valid if rasterization is enabled and the
     subpass uses color attachments, NULL otherwise.
+- `pDynamicState` **can** be nullptr
 - The other parameters must point to valid objects.
 - `VkPipelineShaderStageCreateInfo`
   - `flags` **must** be 0
@@ -333,3 +334,4 @@ According to the Vulkan spec:
   - `dynamicStateCount` **must** be `>0`
 
 ## Tests in their own README files
+- [simple_vertex_fragment](simple_vertex_fragment.md)

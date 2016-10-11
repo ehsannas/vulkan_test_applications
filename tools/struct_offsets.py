@@ -25,6 +25,7 @@ import sys
 # These values are meant to be used with the struct layout functions
 UINT32_T, INT32_T, SIZE_T, POINTER, UINT64_T, FLOAT, CHAR, ARRAY = range(8)
 
+BOOL32 = UINT32_T
 HANDLE = UINT64_T
 DEVICE_SIZE = UINT64_T
 
@@ -76,6 +77,7 @@ class VulkanStruct(object):
     def __init__(self, architecture, elements, get_data):
         self.offsets = []
         self.parameters = {}
+        self.total_size = 0
         self.build_struct(architecture, elements, get_data)
 
     def __getattr__(self, name):
@@ -89,6 +91,7 @@ class VulkanStruct(object):
     def build_struct(self, architecture, elements, get_data):
         offset = 0
         sizes_and_alignments = get_size_alignment(architecture)
+        largest_alignment = 0
 
         for element in elements:
             name = element[0]
@@ -97,6 +100,8 @@ class VulkanStruct(object):
                 array_size = element[2]
                 array_member_ty = element[3]
                 size_and_alignment = sizes_and_alignments[array_member_ty]
+                if (size_and_alignment[1] > largest_alignment):
+                    largest_alignment = size_and_alignment[1]
                 offset = align_to_next(offset, size_and_alignment[1])
                 self.offsets.append(offset)
                 value = []
@@ -107,12 +112,14 @@ class VulkanStruct(object):
                 self.parameters[name] = value
             else:
                 size_and_alignment = sizes_and_alignments[ty]
+                if (size_and_alignment[1] > largest_alignment):
+                    largest_alignment = size_and_alignment[1]
                 offset = align_to_next(offset, size_and_alignment[1])
                 self.offsets.append(offset)
                 value = get_data(offset, size_and_alignment[0])
                 self.parameters[name] = decode(value, ty)
                 offset += size_and_alignment[0]
-
+        self.total_size = align_to_next(offset, largest_alignment)
 
 def expect_offset_eq(struct_name, pointer_size, u64_alignment, struct_elements,
                      offsets):

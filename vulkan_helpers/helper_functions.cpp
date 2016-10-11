@@ -502,4 +502,21 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(
           *device, &descriptor_set_layout_create_info, nullptr, &layout));
   return VkDescriptorSetLayout(layout, nullptr, device);
 }
+
+// Creates a default pipeline cache, it does not load anything from disk.
+VkPipelineCache CreateDefaultPipelineCache(VkDevice* device) {
+  ::VkPipelineCache cache;
+
+  VkPipelineCacheCreateInfo create_info{
+      VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // sType
+      nullptr,                                       // pNext
+      0,                                             // flags
+      0,                                             // initialDataSize
+      nullptr                                        // pInitialData
+  };
+  LOG_ASSERT(
+      ==, device->GetLogger(), VK_SUCCESS,
+      (*device)->vkCreatePipelineCache(*device, &create_info, nullptr, &cache));
+  return VkPipelineCache(cache, nullptr, device);
+}
 }

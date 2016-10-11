@@ -14,3 +14,18 @@
 #
 
 # Intentionally empty, add all of the test executables here.
+
+
+add_shader_library(graphics_pipeline_shaders
+  SOURCES
+    simple_fragment.frag
+    simple_vertex.vert
+)
+
+add_vulkan_executable(SimpleVertexFragment_test
+  SOURCES simple_vertex_fragment.cpp
+  LIBS
+    vulkan_helpers
+  SHADERS
+    graphics_pipeline_shaders
+)

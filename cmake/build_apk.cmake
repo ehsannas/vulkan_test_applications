@@ -266,6 +266,7 @@ function(add_shader_library target)
         get_filename_component(output_file ${output_file} ABSOLUTE)
         list(APPEND output_files ${output_file})
 
+
         if (NOT EXISTS ${output_file}.d.cmake)
             execute_process(
               COMMAND

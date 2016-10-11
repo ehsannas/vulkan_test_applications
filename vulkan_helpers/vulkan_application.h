@@ -67,6 +67,54 @@ class VulkanArena {
   logging::Logger* log_;
 };
 
+// PipelineLayout holds a VkPipelineLayout object as well as as set of
+// VkDescriptorSetLayout objects used to create that pipeline layout.
+class PipelineLayout {
+ public:
+  PipelineLayout(PipelineLayout&& other) = default;
+  PipelineLayout(const PipelineLayout& other) = delete;
+
+  operator VkPipelineLayout&() { return pipeline_layout_; }
+  operator ::VkPipelineLayout() { return pipeline_layout_; }
+
+ private:
+  // TODO(awoloszyn): Handle push constants here too
+  PipelineLayout(
+      containers::Allocator* allocator, VkDevice* device,
+      std::initializer_list<std::initializer_list<VkDescriptorSetLayoutBinding>>
+          layouts)
+      : pipeline_layout_(VK_NULL_HANDLE, nullptr, device),
+        descriptor_set_layouts_(allocator) {
+    containers::vector<::VkDescriptorSetLayout> raw_layouts(allocator);
+    raw_layouts.reserve(layouts.size());
+
+    descriptor_set_layouts_.reserve(layouts.size());
+    for (auto binding_list : layouts) {
+      descriptor_set_layouts_.emplace_back(
+          CreateDescriptorSetLayout(allocator, device, binding_list));
+      raw_layouts.push_back(descriptor_set_layouts_.back());
+    }
+    VkPipelineLayoutCreateInfo create_info = {
+        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,  // sType
+        nullptr,                                        // pNext
+        0,                                              // flags
+        static_cast<uint32_t>(raw_layouts.size()),      // setLayoutCount
+        raw_layouts.data(),                             // pSetLayouts
+        0,        // pushConstantRangeCount
+        nullptr,  // pPushConstantRanges
+    };
+
+    ::VkPipelineLayout layout;
+    LOG_ASSERT(==, device->GetLogger(), VK_SUCCESS,
+               (*device)->vkCreatePipelineLayout(*device, &create_info, nullptr,
+                                                 &layout));
+    pipeline_layout_.initialize(layout);
+  }
+  friend class VulkanApplication;
+  containers::vector<VkDescriptorSetLayout> descriptor_set_layouts_;
+  VkPipelineLayout pipeline_layout_;
+};
+
 // VulkanApplication holds all of the data needed for a typical single-threaded
 // Vulkan application.
 class VulkanApplication {
@@ -193,9 +241,70 @@ class VulkanApplication {
   // Returns the device that was created for this application.
   VkDevice& device() { return device_; }
 
+  VkPipelineCache& pipeline_cache() { return pipeline_cache_; }
+
+  // Creates and returns a shader module from the given spirv code.
+  template <int size>
+  VkShaderModule CreateShaderModule(uint32_t (&vals)[size]) {
+    VkShaderModuleCreateInfo create_info{
+        VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,  // sType
+        nullptr,                                      // pNext
+        0,                                            // flags
+        4 * size,                                     // codeSize
+        vals                                          // pCode
+    };
+    ::VkShaderModule module;
+    LOG_ASSERT(
+        ==, log_, VK_SUCCESS,
+        device_->vkCreateShaderModule(device_, &create_info, nullptr, &module));
+    return VkShaderModule(module, nullptr, &device_);
+  }
+
   // Returns true if the Present queue is not the same as the present queue.
   bool HasSeparatePresentQueue() const {
     return present_queue_ != render_queue_;
+  }
+
+  // Creates and returns a PipelineLayout from the given
+  // DescriptorSetLayoutBindings
+  PipelineLayout CreatePipelineLayout(
+      std::initializer_list<std::initializer_list<VkDescriptorSetLayoutBinding>>
+          layouts) {
+    return PipelineLayout(allocator_, &device_, layouts);
+  }
+
+  VkSwapchainKHR& swapchain() { return swapchain_; }
+
+  // Creates a render pass, from the given VkAttachmentDescriptions,
+  // VkSubpassDescriptions, and VkSubpassDependencies
+  VkRenderPass CreateRenderPass(
+      std::initializer_list<VkAttachmentDescription> attachments,
+      std::initializer_list<VkSubpassDescription> subpasses,
+      std::initializer_list<VkSubpassDependency> dependencies) {
+    containers::vector<VkAttachmentDescription> attach(allocator_);
+    containers::vector<VkSubpassDescription> subpass(allocator_);
+    containers::vector<VkSubpassDependency> dep(allocator_);
+    attach.insert(attach.begin(), attachments.begin(), attachments.end());
+    subpass.insert(subpass.begin(), subpasses.begin(), subpasses.end());
+    dep.insert(dep.begin(), dependencies.begin(), dependencies.end());
+
+    VkRenderPassCreateInfo create_info{
+        VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,  // sType
+        nullptr,                                    // pNext
+        0,                                          // flags
+        static_cast<uint32_t>(attach.size()),       // attachmentCount
+        attach.size() ? attach.data() : nullptr,    // pAttachments
+        static_cast<uint32_t>(subpass.size()),      // subpassCount
+        subpass.size() ? subpass.data() : nullptr,  // pSubpasses
+        static_cast<uint32_t>(dep.size()),          // dependencyCount
+        dep.size() ? dep.data() : nullptr,          // pDependencies
+    };
+
+    ::VkRenderPass render_pass;
+    LOG_ASSERT(==, log_, VK_SUCCESS,
+               device_->vkCreateRenderPass(device_, &create_info, nullptr,
+                                           &render_pass));
+    return vulkan::VkRenderPass(render_pass, nullptr, &device_);
   }
 
  private:
@@ -223,6 +332,7 @@ class VulkanApplication {
   VkDevice device_;
   VkSwapchainKHR swapchain_;
   VkCommandPool command_pool_;
+  VkPipelineCache pipeline_cache_;
   containers::unique_ptr<VulkanArena> host_accessible_heap_;
   containers::unique_ptr<VulkanArena> device_only_image_heap_;
   containers::unique_ptr<VulkanArena> device_only_buffer_heap_;

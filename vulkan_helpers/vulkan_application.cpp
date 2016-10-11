@@ -39,7 +39,8 @@ VulkanApplication::VulkanApplication(containers::Allocator* allocator,
       swapchain_(CreateDefaultSwapchain(&instance_, &device_, &surface_,
                                         allocator_, render_queue_index_,
                                         present_queue_index_)),
-      command_pool_(CreateDefaultCommandPool(allocator_, device_)) {
+      command_pool_(CreateDefaultCommandPool(allocator_, device_)),
+      pipeline_cache_(CreateDefaultPipelineCache(&device_)) {
   vulkan::LoadContainer(log_, device_->vkGetSwapchainImagesKHR,
                         &swapchain_images_, device_, swapchain_);
   // Relevant spec sections for determining what memory we will be allowed
