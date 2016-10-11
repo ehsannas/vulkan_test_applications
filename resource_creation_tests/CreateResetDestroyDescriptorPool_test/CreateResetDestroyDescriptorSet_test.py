@@ -57,6 +57,17 @@ def check_create_descriptor_pool(test, index):
     return create_descriptor_pool, device, descriptor_pool
 
 
+def check_reset_descriptor_pool(test, device, descriptor_pool):
+    """Checks that the next vkResetDescriptorPool command call atom has the
+    passed-in |device| and |descriptor_pool| handle value.
+    """
+    reset_descriptor_pool = require(
+        test.next_call_of("vkResetDescriptorPool"))
+    require_equal(device, reset_descriptor_pool.int_Device)
+    require_equal(descriptor_pool, reset_descriptor_pool.int_DescriptorPool)
+    require_equal(0, reset_descriptor_pool.int_Flags)
+
+
 def check_destroy_descriptor_pool(test, device, descriptor_pool):
     """Checks that the next vkDestroyDescriptorPool command call atom has the
     passed-in |device| and |descriptor_pool| handle value.
@@ -89,7 +100,7 @@ def get_pool_size(create_descriptor_pool, architecture, create_info, index):
                 pool_size_offset + offset, size))))
 
 
-@gapit_test("CreateDestroyDescriptorPool_test.apk")
+@gapit_test("CreateResetDestroyDescriptorPool_test.apk")
 class NoFlagOneDescriptorType(GapitTest):
     def expect(self):
         """1. No create flags, max two sets, one descriptor type"""
@@ -109,10 +120,11 @@ class NoFlagOneDescriptorType(GapitTest):
         require_equal(pool_size.type, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)
         require_equal(pool_size.descriptorCount, 1)
 
+        check_reset_descriptor_pool(self, device, descriptor_pool)
         check_destroy_descriptor_pool(self, device, descriptor_pool)
 
 
-@gapit_test("CreateDestroyDescriptorPool_test.apk")
+@gapit_test("CreateResetDestroyDescriptorPool_test.apk")
 class WithFlagMoreDescriptorTypes(GapitTest):
     def expect(self):
         """2. With create flags, max ten sets, more descriptor types"""
@@ -141,10 +153,11 @@ class WithFlagMoreDescriptorTypes(GapitTest):
         require_equal(pool_size.type, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
         require_equal(pool_size.descriptorCount, 8)
 
+        check_reset_descriptor_pool(self, device, descriptor_pool)
         check_destroy_descriptor_pool(self, device, descriptor_pool)
 
 
-@gapit_test("CreateDestroyDescriptorPool_test.apk")
+@gapit_test("CreateResetDestroyDescriptorPool_test.apk")
 class DestroyNullDescriptorPool(GapitTest):
     def expect(self):
         """3. Destroys a null descriptor pool handle."""

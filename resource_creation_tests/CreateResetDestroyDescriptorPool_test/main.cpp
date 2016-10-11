@@ -45,6 +45,7 @@ int main_entry(const entry::entry_data* data) {
     ::VkDescriptorPool pool;
     device->vkCreateDescriptorPool(device, &create_info, nullptr, &pool);
     data->log->LogInfo("  pool: ", pool);
+    device->vkResetDescriptorPool(device, pool, 0);
     device->vkDestroyDescriptorPool(device, pool, nullptr);
   }
 
@@ -74,6 +75,7 @@ int main_entry(const entry::entry_data* data) {
     ::VkDescriptorPool pool;
     device->vkCreateDescriptorPool(device, &create_info, nullptr, &pool);
     data->log->LogInfo("  pool: ", pool);
+    device->vkResetDescriptorPool(device, pool, 0);
     device->vkDestroyDescriptorPool(device, pool, nullptr);
   }
 

@@ -1,4 +1,4 @@
-# vkCreateDescriptorPool / vkDestroyDescriptorPool
+# vkCreateDescriptorPool / vkResetDescriptorPool / vkDestroyDescriptorPool
 
 ## Signatures
 ```c++
@@ -7,6 +7,11 @@ VkResult vkCreateDescriptorPool(
     const VkDescriptorPoolCreateInfo*           pCreateInfo,
     const VkAllocationCallbacks*                pAllocator,
     VkDescriptorPool*                           pDescriptorPool);
+
+VkResult vkResetDescriptorPool(
+    VkDevice                                    device,
+    VkDescriptorPool                            descriptorPool,
+    VkDescriptorPoolResetFlags                  flags);
 
 void vkDestroyDescriptorPool(
     VkDevice                                    device,
@@ -21,7 +26,9 @@ For `vkCreateDescriptorPool`, according to the Vulkan spec:
 - `poolSizeCount` **must** be greater than 0
 - `descriptorCount` **must** be greater than 0
 
-For `vkDestroyDescriptorPool`, according to the Vulkan spec:
+For `vkResetDescriptorPool`, according to the Vulkan spec:
+- `descriptorPool` **must** be a valid `VkDescriptorPool` handle
+- `flags` **must** be 0
 
 # VkDescriptorPoolCreateInfo
 ```c++

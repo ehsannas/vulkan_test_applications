@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(CreateDestroyDescriptorPool_test
+add_vulkan_executable(CreateResetDestroyDescriptorPool_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers
