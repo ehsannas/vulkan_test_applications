@@ -282,7 +282,7 @@ function(add_shader_library target)
           COMMENT "Compiling SPIR-V binary ${shader}"
           DEPENDS ${shader} ${FILE_DEPS}
             ${VulkanTestApplications_SOURCE_DIR}/cmake/generate_cmake_dep.py
-          COMMAND ${CMAKE_GLSL_COMPILER} -mfmt=c -o ${output_file} -c ${shader} -MD
+          COMMAND ${CMAKE_GLSL_COMPILER} -mfmt=c -o ${output_file} -c ${temp} -MD
           COMMAND ${PYTHON_EXECUTABLE}
             ${VulkanTestApplications_SOURCE_DIR}/cmake/generate_cmake_dep.py
             ${output_file}.d
