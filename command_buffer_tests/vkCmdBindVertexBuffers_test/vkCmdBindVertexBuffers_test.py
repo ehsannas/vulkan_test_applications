@@ -14,7 +14,7 @@ from gapit_test_framework import require_not_equal, little_endian_bytes_to_int
 from gapit_test_framework import GapitTest, get_read_offset_function
 import gapit_test_framework
 from struct_offsets import VulkanStruct, UINT32_T, SIZE_T, POINTER
-from struct_offsets import HANDLE, FLOAT, CHAR, ARRAY
+from struct_offsets import HANDLE, FLOAT, CHAR, ARRAY, DEVICE_SIZE
 from vulkan_constants import *
 
 @gapit_test("vkCmdBindVertexBuffers_test.apk")
@@ -44,3 +44,31 @@ class SingleBuffer(GapitTest):
                     cmd_bind_vertex_buffers.hex_POffsets,
                     8)))
         require_equal(0, sent_offset)
+
+BUFFER_COPY = [
+    ("srcOffset", DEVICE_SIZE),
+    ("dstOffset", DEVICE_SIZE),
+    ("size", DEVICE_SIZE)
+]
+
+@gapit_test("vkCmdBindVertexBuffers_test.apk")
+class CopyBuffer(GapitTest):
+
+    def expect(self):
+        architecture = require(self.next_call_of("architecture"))
+        cmd_copy_buffer = require(
+            self.next_call_of("vkCmdCopyBuffer"))
+
+        require_not_equal(0, cmd_copy_buffer.int_CommandBuffer)
+        require_not_equal(0, cmd_copy_buffer.int_SrcBuffer)
+        require_not_equal(0, cmd_copy_buffer.int_DstBuffer)
+        require_equal(1, cmd_copy_buffer.int_RegionCount)
+        require_not_equal(0, cmd_copy_buffer.hex_PRegions)
+
+        copy = VulkanStruct(
+            architecture, BUFFER_COPY,
+            get_read_offset_function(cmd_copy_buffer,
+                cmd_copy_buffer.hex_PRegions))
+        require_equal(0, copy.srcOffset)
+        require_equal(0, copy.dstOffset)
+        require_equal(1024, copy.size)
