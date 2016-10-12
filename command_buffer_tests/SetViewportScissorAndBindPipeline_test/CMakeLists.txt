@@ -13,10 +13,8 @@
 # limitations under the License.
 #
 
-# Intentionally empty, add all of the test executables here.
-
-add_vulkan_executable(SimpleVertexFragment_test
-  SOURCES simple_vertex_fragment.cpp
+add_vulkan_executable(SetViewportScissorAndBindPipeline_test
+  SOURCES main.cpp
   LIBS
     vulkan_helpers
   SHADERS

@@ -15,6 +15,8 @@
 
 add_shader_library(shader_library
   SOURCES
+    simple_fragment.frag
+    simple_vertex.vert
     test.vert
     foo/test.frag
     foo/test.glsl

@@ -68,6 +68,85 @@ class VulkanArena {
   logging::Logger* log_;
 };
 
+class VulkanApplication;
+class PipelineLayout;
+
+// Customizable Graphics pipeline state.
+// Defaults to the following properties:
+//    Dynamic Viewport & Scissor
+//    POLYGON_MODE_FILL
+//    Backface culling
+//    Clockwise winding
+//    non-multisampled
+//    Depth testing enabled
+//    Depth write enabled
+//    Rasterization enabled
+//    Stencil test disabled
+//    Opaque Color blending
+
+class VulkanGraphicsPipeline {
+ public:
+  struct InputStream {
+    uint32_t binding;
+    VkFormat format;
+    uint32_t offset;
+  };
+
+  VulkanGraphicsPipeline(containers::Allocator* allocator,
+                         PipelineLayout* layout, VulkanApplication* application,
+                         VkRenderPass* render_pass, uint32_t subpass);
+  template <int N>
+  void AddShader(VkShaderStageFlagBits stage, const char* entry,
+                 uint32_t (&code)[N]) {
+    return AddShader(stage, entry, code, N);
+  }
+
+  void AddShader(VkShaderStageFlagBits stage, const char* entry, uint32_t* code,
+                 uint32_t numCodeWords);
+
+  // patch_size is unused unless there is a tessellation shader.
+  void SetTopology(VkPrimitiveTopology topology, uint32_t patch_size = 0);
+  void SetViewport(const VkViewport& viewport);
+  void SetScissor(const VkRect2D& scissor);
+  // Adds an attachment to this pipeline. Sets up default opaque blending
+  // for that attachment.
+  void AddAttachment();
+
+  // Adds a vertex input stream to this pipeline, with the given
+  // bindings.
+  void AddInputStream(uint32_t stride, VkVertexInputRate input_rate,
+                      std::initializer_list<InputStream> inputs);
+  void Commit();
+  operator ::VkPipeline() const { return pipeline_; }
+
+ private:
+  ::VkRenderPass render_pass_;
+  uint32_t subpass_;
+  VulkanApplication* application_;
+  containers::vector<VkPipelineShaderStageCreateInfo> stages_;
+  VkPipelineVertexInputStateCreateInfo vertex_input_state_;
+  VkPipelineInputAssemblyStateCreateInfo input_assembly_state_;
+  VkPipelineTessellationStateCreateInfo tessellation_state_;
+  VkPipelineViewportStateCreateInfo viewport_state_;
+  VkPipelineRasterizationStateCreateInfo rasterization_state_;
+  VkPipelineMultisampleStateCreateInfo multisample_state_;
+  VkPipelineDepthStencilStateCreateInfo depth_stencil_state_;
+  VkPipelineColorBlendStateCreateInfo color_blend_state_;
+  VkPipelineDynamicStateCreateInfo dynamic_state_;
+  VkViewport viewport_;
+  VkRect2D scissor_;
+  containers::vector<VkDynamicState> dynamic_states_;
+  containers::vector<VkVertexInputBindingDescription>
+      vertex_binding_descriptions_;
+  containers::vector<VkVertexInputAttributeDescription>
+      vertex_attribute_descriptions_;
+  containers::vector<VkShaderModule> shader_modules_;
+  containers::vector<VkPipelineColorBlendAttachmentState> attachments_;
+  ::VkPipelineLayout layout_;
+  VkPipeline pipeline_;
+  uint32_t contained_stages_;
+};
+
 // PipelineLayout holds a VkPipelineLayout object as well as as set of
 // VkDescriptorSetLayout objects used to create that pipeline layout.
 class PipelineLayout {
@@ -244,6 +323,8 @@ class VulkanApplication {
 
   VkPipelineCache& pipeline_cache() { return pipeline_cache_; }
 
+  logging::Logger* GetLogger() { return log_; }
+
   // Creates and returns a shader module from the given spirv code.
   template <int size>
   VkShaderModule CreateShaderModule(uint32_t (&vals)[size]) {
@@ -309,6 +390,13 @@ class VulkanApplication {
                device_->vkCreateRenderPass(device_, &create_info, nullptr,
                                            &render_pass));
     return vulkan::VkRenderPass(render_pass, nullptr, &device_);
+  }
+
+  VulkanGraphicsPipeline CreateGraphicsPipeline(PipelineLayout* layout,
+                                                VkRenderPass* render_pass,
+                                                uint32_t subpass_) {
+    return VulkanGraphicsPipeline(allocator_, layout, this, render_pass,
+                                  subpass_);
   }
 
  private:

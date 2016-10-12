@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
-#include "vulkan_helpers/vulkan_application.h"
+#include <algorithm>
+
 #include "vulkan_helpers/helper_functions.h"
+#include "vulkan_helpers/vulkan_application.h"
 
 namespace vulkan {
 
@@ -461,5 +463,219 @@ void VulkanArena::FreeMemory(AllocationToken* token) {
   // Push it back into freeblocks_.
   token->map_location =
       freeblocks_.insert(std::make_pair(token->allocationSize, token));
+}
+
+template <typename T>
+void ZeroMemory(T* val) {
+  memset(val, 0x00, sizeof(T));
+}
+
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
+                                               PipelineLayout* layout,
+                                               VulkanApplication* application,
+                                               VkRenderPass* render_pass,
+                                               uint32_t subpass)
+    : render_pass_(*render_pass),
+      subpass_(subpass),
+      application_(application),
+      stages_(allocator),
+      dynamic_states_(allocator),
+      vertex_binding_descriptions_(allocator),
+      vertex_attribute_descriptions_(allocator),
+      shader_modules_(allocator),
+      attachments_(allocator),
+      layout_(*layout),
+      contained_stages_(0),
+      pipeline_(VK_NULL_HANDLE, nullptr, &application->device()) {
+  ZeroMemory(&vertex_input_state_);
+  ZeroMemory(&input_assembly_state_);
+  ZeroMemory(&tessellation_state_);
+  ZeroMemory(&viewport_state_);
+  ZeroMemory(&rasterization_state_);
+  ZeroMemory(&multisample_state_);
+  ZeroMemory(&depth_stencil_state_);
+  ZeroMemory(&color_blend_state_);
+  ZeroMemory(&dynamic_state_);
+  ZeroMemory(&viewport_);
+  ZeroMemory(&scissor_);
+
+  dynamic_states_.resize(2);
+  dynamic_states_[0] = VK_DYNAMIC_STATE_VIEWPORT;
+  dynamic_states_[1] = VK_DYNAMIC_STATE_SCISSOR;
+
+  vertex_input_state_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+  input_assembly_state_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+
+  tessellation_state_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+
+  viewport_state_.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewport_state_.viewportCount = 1;
+  viewport_state_.pViewports = &viewport_;
+  viewport_state_.scissorCount = 1;
+  viewport_state_.pScissors = &scissor_;
+
+  rasterization_state_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+  rasterization_state_.polygonMode = VK_POLYGON_MODE_FILL;
+  rasterization_state_.cullMode = VK_CULL_MODE_BACK_BIT;
+  rasterization_state_.frontFace = VK_FRONT_FACE_CLOCKWISE;
+  rasterization_state_.lineWidth = 1.0f;
+
+  multisample_state_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+  multisample_state_.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+  depth_stencil_state_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+  depth_stencil_state_.depthTestEnable = VK_TRUE;
+  depth_stencil_state_.depthWriteEnable = VK_TRUE;
+  depth_stencil_state_.depthCompareOp = VK_COMPARE_OP_LESS;
+
+  color_blend_state_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+
+  dynamic_state_.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+}
+
+void VulkanGraphicsPipeline::AddShader(VkShaderStageFlagBits stage,
+                                       const char* entry, uint32_t* code,
+                                       uint32_t numCodeWords) {
+  LOG_ASSERT(==, application_->GetLogger(), 0,
+             static_cast<uint32_t>(stage) & contained_stages_);
+  LOG_ASSERT(==, application_->GetLogger(), stage,
+             stage & VK_SHADER_STAGE_ALL_GRAPHICS);
+  contained_stages_ |= stage;
+  VkShaderModuleCreateInfo create_info{
+      VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,  // sType
+      nullptr,                                      // pNext
+      0,                                            // flags
+      numCodeWords * 4,                             // codeSize
+      code                                          // pCode
+  };
+
+  ::VkShaderModule module;
+  LOG_ASSERT(==, application_->GetLogger(), VK_SUCCESS,
+             application_->device()->vkCreateShaderModule(
+                 application_->device(), &create_info, nullptr, &module));
+  shader_modules_.push_back(
+      VkShaderModule(module, nullptr, &application_->device()));
+
+  stages_.push_back({
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,  // sType
+      nullptr,                                              // pNext
+      0,                                                    // flags
+      stage,                                                // stage
+      shader_modules_.back(),                               // module
+      entry,                                                // name
+      nullptr  // pSpecializationInfo
+  });
+}
+
+void VulkanGraphicsPipeline::SetTopology(VkPrimitiveTopology topology,
+                                         uint32_t patch_size) {
+  input_assembly_state_.topology = topology;
+  if ((contained_stages_ & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) ||
+      (contained_stages_ & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT)) {
+    tessellation_state_.patchControlPoints = patch_size;
+  }
+}
+
+void VulkanGraphicsPipeline::SetViewport(const VkViewport& viewport) {
+  auto state = std::find(dynamic_states_.begin(), dynamic_states_.end(),
+                         VK_DYNAMIC_STATE_VIEWPORT);
+  if (state != dynamic_states_.end()) {
+    dynamic_states_.erase(state);
+  }
+  viewport_ = viewport;
+}
+
+void VulkanGraphicsPipeline::SetScissor(const VkRect2D& scissor) {
+  auto state = std::find(dynamic_states_.begin(), dynamic_states_.end(),
+                         VK_DYNAMIC_STATE_SCISSOR);
+  if (state != dynamic_states_.end()) {
+    dynamic_states_.erase(state);
+  }
+  scissor_ = scissor;
+}
+
+void VulkanGraphicsPipeline::AddAttachment() {
+  attachments_.push_back(
+      {VK_FALSE, VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD,
+       VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD,
+       VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT});
+}
+
+void VulkanGraphicsPipeline::AddInputStream(
+    uint32_t stride, VkVertexInputRate input_rate,
+    std::initializer_list<InputStream> inputs) {
+  vertex_binding_descriptions_.push_back(
+      {static_cast<uint32_t>(vertex_binding_descriptions_.size()), stride,
+       input_rate});
+  for (auto input : inputs) {
+    vertex_attribute_descriptions_.push_back(
+        {input.binding,
+         static_cast<uint32_t>(vertex_binding_descriptions_.size() - 1),
+         input.format, input.offset});
+  }
+}
+
+void VulkanGraphicsPipeline::Commit() {
+  vertex_input_state_.vertexBindingDescriptionCount =
+      static_cast<uint32_t>(vertex_binding_descriptions_.size());
+  vertex_input_state_.pVertexBindingDescriptions =
+      vertex_binding_descriptions_.data();
+  vertex_input_state_.vertexAttributeDescriptionCount =
+      static_cast<uint32_t>(vertex_attribute_descriptions_.size());
+  vertex_input_state_.pVertexAttributeDescriptions =
+      vertex_attribute_descriptions_.data();
+
+  VkPipelineTessellationStateCreateInfo* info = nullptr;
+  if ((contained_stages_ & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) ||
+      (contained_stages_ & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT)) {
+    info = &tessellation_state_;
+  }
+
+  VkPipelineDynamicStateCreateInfo* dynamic_info = nullptr;
+  if (!dynamic_states_.empty()) {
+    dynamic_info = &dynamic_state_;
+    dynamic_state_.dynamicStateCount =
+        static_cast<uint32_t>(dynamic_states_.size());
+    dynamic_state_.pDynamicStates = dynamic_states_.data();
+  }
+
+  color_blend_state_.attachmentCount = attachments_.size();
+  color_blend_state_.pAttachments = attachments_.data();
+
+  VkGraphicsPipelineCreateInfo create_info{
+      VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,  // sType
+      nullptr,                                          // pNext
+      0,                                                // flags
+      static_cast<uint32_t>(stages_.size()),            // stageCount
+      stages_.data(),                                   // pStage
+      &vertex_input_state_,                             // pVertexInputState
+      &input_assembly_state_,                           // pInputAssemblyState
+      info,                                             // pTessellationState
+      &viewport_state_,                                 // pViewportState
+      &rasterization_state_,                            // pRasterizationState
+      &multisample_state_,                              // pMultisampleState
+      &depth_stencil_state_,                            // pDepthStencilState
+      &color_blend_state_,                              // pColorBlendState
+      dynamic_info,                                     // pDynamicState
+      layout_,                                          // layout
+      render_pass_,                                     // renderPass
+      subpass_,                                         // subpass
+      VK_NULL_HANDLE,                                   // basePipelineHandle
+      0                                                 // basePipelineIndex
+  };
+  ::VkPipeline pipeline;
+  application_->device()->vkCreateGraphicsPipelines(
+      application_->device(), application_->pipeline_cache(), 1, &create_info,
+      nullptr, &pipeline);
+  pipeline_.initialize(pipeline);
 }
 }

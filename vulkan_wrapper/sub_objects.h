@@ -252,6 +252,17 @@ struct PipelineLayoutTraits {
 };
 using VkPipelineLayout = VkSubObject<PipelineLayoutTraits, DeviceTraits>;
 
+struct PipelineTraits {
+  using type = ::VkPipeline;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyPipeline>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyPipeline;
+  }
+};
+using VkPipeline = VkSubObject<PipelineTraits, DeviceTraits>;
+
 struct DeviceMemoryTraits {
   using type = ::VkDeviceMemory;
   using destruction_function_pointer_type =
