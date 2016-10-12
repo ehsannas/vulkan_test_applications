@@ -38,6 +38,12 @@ DESCRIPTOR_BUFFER_INFO_ELEMENTS = [
     ("range", DEVICE_SIZE),
 ]
 
+DESCRIPTOR_IMAGE_INFO_ELEMENTS = [
+    ("sampler", HANDLE),
+    ("imageView", HANDLE),
+    ("imageLayout", UINT32_T),
+]
+
 
 def get_buffer(test):
     """Returns the next buffer handle created by vkCreateBuffer."""
@@ -62,30 +68,66 @@ def get_descriptor_set(test, index):
     return d_set
 
 
-def get_write_descriptor_set(update_atom, architecture):
-    """Returns a VulkanStruct representing the VkWriteDescriptorSet
-    struct used in the given |update_atom| atom."""
-    return VulkanStruct(
-        architecture, WRITE_DESCRIPTOR_SET_ELEMENTS,
-        lambda offset, size: little_endian_bytes_to_int(require(
-            update_atom.get_read_data(
-                update_atom.hex_PDescriptorWrites + offset, size))))
+def get_write_descriptor_set(update_atom, architecture, count):
+    """Returns |count| VulkanStructs representing the VkWriteDescriptorSet
+    structs used in the given |update_atom| atom."""
+    sets = [VulkanStruct(architecture, WRITE_DESCRIPTOR_SET_ELEMENTS,
+                         lambda offset, size: little_endian_bytes_to_int(
+                             require(update_atom.get_read_data(
+                                 update_atom.hex_PDescriptorWrites + offset,
+                                 size))))]
+    set_size = sets[-1].total_size
+    for i in range(1, count):
+        sets.append(
+            VulkanStruct(architecture, WRITE_DESCRIPTOR_SET_ELEMENTS,
+                         lambda offset, size: little_endian_bytes_to_int(
+                             require(update_atom.get_read_data(
+                                 (update_atom.hex_PDescriptorWrites +
+                                  i * set_size + offset),
+                                 size)))))
+    return sets
 
 
 def get_buffer_info(update_atom, architecture, base, count):
     """Returns |count| VulkanStructs representing the VkDescriptorBufferInfo
     structs used in the VkWriteDescriptorSet parameter of the given
     |update_atom| atom."""
-    buffer_info_size = 8 + 8 + 8  # handle, device size, device size
+    infos = [VulkanStruct(architecture, DESCRIPTOR_BUFFER_INFO_ELEMENTS,
+                          lambda offset, size: little_endian_bytes_to_int(
+                              require(update_atom.get_read_data(
+                                  base + offset, size))))]
+    buffer_info_size = infos[-1].total_size
 
-    infos = []
-    for i in range(count):
+    for i in range(1, count):
         infos.append(VulkanStruct(
             architecture, DESCRIPTOR_BUFFER_INFO_ELEMENTS,
             lambda offset, size: little_endian_bytes_to_int(require(
                 update_atom.get_read_data(
                     base + i * buffer_info_size + offset, size)))))
     return infos
+
+
+def get_image_info(update_atom, architecture, base):
+    """Returns a VulkanStruct representing the VkDescriptorImageInfo
+    struct used in the VkWriteDescriptorSet parameter of the given
+    |update_atom| atom."""
+    return VulkanStruct(
+        architecture, DESCRIPTOR_IMAGE_INFO_ELEMENTS,
+        lambda offset, size: little_endian_bytes_to_int(
+            require(update_atom.get_read_data(base + offset, size))))
+
+
+def get_sampler(test):
+    """Returns the next VkSampler created in |test|."""
+    create = require(test.next_call_of("vkCreateSampler"))
+    require_equal(VK_SUCCESS, int(create.return_val))
+    require_not_equal(0, create.int_Device)
+    require_not_equal(0, create.hex_PSampler)
+    sampler = little_endian_bytes_to_int(
+        require(create.get_write_data(
+            create.hex_PSampler, NON_DISPATCHABLE_HANDLE_SIZE)))
+    require_not_equal(0, sampler)
+    return sampler
 
 
 @gapit_test("vkUpdateDescriptorSets_test.apk")
@@ -118,7 +160,7 @@ class OneWriteZeroCopy(GapitTest):
         require_equal(0, update_atom.PDescriptorCopies)
 
         # Check VkWriteDescriptorSet
-        write = get_write_descriptor_set(update_atom, arch)
+        write = get_write_descriptor_set(update_atom, arch, 1)[0]
         require_equal(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, write.sType)
         require_equal(0, write.pNext)
         require_equal(d_set, write.dstSet)
@@ -127,7 +169,7 @@ class OneWriteZeroCopy(GapitTest):
         require_equal(2, write.descriptorCount)
         require_equal(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, write.descriptorType)
         require_equal(0, write.pImageInfo)
-        require_not_equal(0, write.pBufferInfo)  # TODO
+        require_not_equal(0, write.pBufferInfo)
         require_equal(0, write.pTexelBufferView)
 
         # Check VkDescriptorBufferInfo
@@ -138,3 +180,51 @@ class OneWriteZeroCopy(GapitTest):
         require_equal(buf, bufinfo[1].buffer)
         require_equal(512, bufinfo[1].offset)
         require_equal(512, bufinfo[1].range)
+
+
+@gapit_test("vkUpdateDescriptorSets_test.apk")
+class TwoWritesZeroCopy(GapitTest):
+    def expect(self):
+        """3. Two writes and zero copies."""
+
+        arch = require(self.next_call_of("architecture"))
+        # Get the VkDescriptorSet handle returned from the driver.
+        # This will also locate us to the proper position in the stream
+        # so we can call next_call_of() for querying the other atoms.
+        d_set = get_descriptor_set(self, 2)
+        sampler = get_sampler(self)
+
+        update_atom = require(self.next_call_of("vkUpdateDescriptorSets"))
+        require_equal(2, update_atom.DescriptorWriteCount)
+        require_not_equal(0, update_atom.PDescriptorWrites)
+        require_equal(0, update_atom.DescriptorCopyCount)
+        require_equal(0, update_atom.PDescriptorCopies)
+
+        # Check VkWriteDescriptorSet
+        writes = get_write_descriptor_set(update_atom, arch, 2)
+        for i in range(2):
+            require_equal(VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                          writes[i].sType)
+            require_equal(0, writes[i].pNext)
+            require_equal(d_set, writes[i].dstSet)
+            require_equal(0, writes[i].dstBinding)
+            require_equal(1, writes[i].descriptorCount)
+            require_equal(VK_DESCRIPTOR_TYPE_SAMPLER,
+                          writes[i].descriptorType)
+            require_not_equal(0, writes[i].pImageInfo)
+            require_equal(0, writes[i].pBufferInfo)
+            require_equal(0, writes[i].pTexelBufferView)
+        require_equal(0, writes[0].dstArrayElement)
+        require_equal(1, writes[1].dstArrayElement)
+
+        # Check VkDescriptorImageInfo
+        imginfo = get_image_info(update_atom, arch, writes[0].pImageInfo)
+        require_equal(sampler, imginfo.sampler)
+        require_equal(0, imginfo.imageView)
+        require_equal(VK_IMAGE_LAYOUT_GENERAL, imginfo.imageLayout)
+
+        imginfo = get_image_info(update_atom, arch, writes[1].pImageInfo)
+        require_equal(sampler, imginfo.sampler)
+        require_equal(0, imginfo.imageView)
+        require_equal(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                      imginfo.imageLayout)

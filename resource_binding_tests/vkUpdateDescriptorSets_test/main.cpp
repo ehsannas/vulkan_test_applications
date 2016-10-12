@@ -90,6 +90,65 @@ int main_entry(const entry::entry_data* data) {
     device->vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
   }
 
+  {  // 3. Two writes and zero copies.
+    vulkan::VkDescriptorPool pool =
+        vulkan::CreateDescriptorPool(&device, VK_DESCRIPTOR_TYPE_SAMPLER, 2, 1);
+    ::VkDescriptorPool raw_pool = pool.get_raw_object();
+
+    vulkan::VkDescriptorSetLayout layout = vulkan::CreateDescriptorSetLayout(
+        &device, VK_DESCRIPTOR_TYPE_SAMPLER, 2);
+    ::VkDescriptorSetLayout raw_layout = layout.get_raw_object();
+
+    vulkan::VkDescriptorSet set = vulkan::AllocateDescriptorSet(
+        &device, raw_pool, raw_layout, VK_DESCRIPTOR_TYPE_SAMPLER, 2);
+    ::VkDescriptorSet raw_set = set.get_raw_object();
+
+    vulkan::VkSampler sampler = vulkan::CreateDefaultSampler(&device);
+    ::VkSampler raw_sampler = sampler.get_raw_object();
+
+    const VkDescriptorImageInfo imginfo[2] = {
+        {
+            /* sampler = */ raw_sampler,
+            /* imageView = */ VK_NULL_HANDLE,             // ignored
+            /* imageLayout = */ VK_IMAGE_LAYOUT_GENERAL,  // ignored
+        },
+        {
+            /* sampler = */ raw_sampler,
+            /* imageView = */ VK_NULL_HANDLE,
+            /* imageLayout = */ VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        },
+    };
+
+    const VkWriteDescriptorSet writes[2] = {
+        {
+            /* sType = */ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            /* pNext = */ nullptr,
+            /* dstSet = */ raw_set,
+            /* dstBinding = */ 0,
+            /* dstArrayElement = */ 0,
+            /* descriptorCount = */ 1,
+            /* descriptorType = */ VK_DESCRIPTOR_TYPE_SAMPLER,
+            /* pImageInfo = */ &imginfo[0],
+            /* pBufferInfo = */ nullptr,
+            /* pTexelBufferView = */ nullptr,
+        },
+        {
+            /* sType = */ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            /* pNext = */ nullptr,
+            /* dstSet = */ raw_set,
+            /* dstBinding = */ 0,
+            /* dstArrayElement = */ 1,
+            /* descriptorCount = */ 1,
+            /* descriptorType = */ VK_DESCRIPTOR_TYPE_SAMPLER,
+            /* pImageInfo = */ &imginfo[1],
+            /* pBufferInfo = */ nullptr,
+            /* pTexelBufferView = */ nullptr,
+        },
+    };
+
+    device->vkUpdateDescriptorSets(device, 2, writes, 0, nullptr);
+  }
+
   data->log->LogInfo("Application Shutdown");
   return 0;
 }

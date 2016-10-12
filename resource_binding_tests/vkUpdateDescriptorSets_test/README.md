@@ -98,20 +98,21 @@ For `vkUpdateDescriptorSets`, these tests should test the following cases:
 For `VkWriteDescriptorSet`, these tests should test the following cases:
 - `dstArraryElement`
   - [x] == 0
-  - [ ] > 0
+  - [x] > 0
 - `descriptorCount`
-  - [ ] == 1
+  - [x] == 1
   - [x] > 1
 - `descriptorType`
+  - [x] == `VK_DESCRIPTOR_TYPE_SAMPLER`
   - [ ] == `VK_DESCRIPTOR_TYPE_STORAGE_IMAGE`
   - [ ] == `VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER`
   - [x] == `VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER`
 - `pImageInfo`
   - [x] == `nullptr`
-  - [ ] == pointer to meaningful data
+  - [x] == pointer to meaningful data
   - [ ] == pointer to random data
 - `pBufferInfo`
-  - [ ] == `nullptr`
+  - [x] == `nullptr`
   - [x] == pointer to meaningful data
   - [ ] == pointer to random data
 - `pTexelBufferView`
@@ -123,6 +124,17 @@ For `VkDescriptorBufferInfo`, these tests should test the following cases:
 - `range`
   - [ ] == `VK_WHOLE_SIZE`
   - [x] == some size
+
+For `VkDescriptorImageInfo`, these tests should test the following cases:
+- `sampler`
+  - [x] used
+  - [ ] not used
+- `imageView`
+  - [ ] used
+  - [x] not used
+- `imageLayout`
+  - [ ] used
+  - [x] not used
 
 For `VkCopyDescriptorSet`, these tests should test the following cases:
 - `dstArraryElement`
