@@ -565,4 +565,21 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
              VK_SUCCESS);
   return vulkan::VkDescriptorSetLayout(raw_layout, nullptr, device);
 }
+
+VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
+                                      ::VkDescriptorSetLayout layout,
+                                      VkDescriptorType type, uint32_t count) {
+  VkDescriptorSetAllocateInfo alloc_info{
+      /* sType = */ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      /* pNext = */ nullptr,
+      /* descriptorPool = */ pool,
+      /* descriptorSetCount = */ 1,
+      /* pSetLayouts = */ &layout,
+  };
+  ::VkDescriptorSet raw_set;
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateDescriptorSets(
+                                          *device, &alloc_info, &raw_set),
+             VK_SUCCESS);
+  return vulkan::VkDescriptorSet(raw_set, pool, device);
+}
 }

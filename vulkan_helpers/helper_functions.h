@@ -19,6 +19,7 @@
 #include "support/containers/vector.h"
 #include "support/entry/entry.h"
 #include "vulkan_wrapper/command_buffer_wrapper.h"
+#include "vulkan_wrapper/descriptor_set_wrapper.h"
 #include "vulkan_wrapper/device_wrapper.h"
 #include "vulkan_wrapper/instance_wrapper.h"
 #include "vulkan_wrapper/library_wrapper.h"
@@ -132,6 +133,13 @@ VkDescriptorPool CreateDescriptorPool(VkDevice* device, ::VkDescriptorType type,
 VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
                                                 ::VkDescriptorType type,
                                                 uint32_t count);
+
+// Allocates a descriptor set with the given |layout| from the given |pool|.
+// The descriptor set should have |count| descriptors of the given |type| bound
+// to bining number 0 and be consistent with the |pool| and |layout|.
+VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
+                                      ::VkDescriptorSetLayout layout,
+                                      VkDescriptorType type, uint32_t count);
 
 // Returns the first queue from the given family.
 VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {

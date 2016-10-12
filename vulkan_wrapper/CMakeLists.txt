@@ -16,6 +16,7 @@
 add_vulkan_static_library(vulkan_wrapper
     SOURCES
         command_buffer_wrapper.h
+        descriptor_set_wrapper.h
         device_wrapper.h
         function_table.h
         instance_wrapper.h

@@ -110,7 +110,7 @@ class VkSubObject {
 
  public:
   operator type() const { return raw_object_; }
-  type get_raw_object() { return raw_object_; }
+  type get_raw_object() const { return raw_object_; }
 
   PFN_vkVoidFunction getProcAddr(raw_owner_type owner, const char* function) {
     return get_proc_addr_fn_(owner, function);
