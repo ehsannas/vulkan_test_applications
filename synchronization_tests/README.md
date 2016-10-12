@@ -1,3 +1,4 @@
 # Synchronization Tests
 These tests are specifically for testing synchronization primitives.
 
+- [Fence_test](Fence_test/README.md)

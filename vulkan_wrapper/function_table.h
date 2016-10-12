@@ -249,7 +249,10 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkDestroyPipeline),
         CONSTRUCT_LAZY_FUNCTION(vkAllocateDescriptorSets),
         CONSTRUCT_LAZY_FUNCTION(vkUpdateDescriptorSets),
-        CONSTRUCT_LAZY_FUNCTION(vkFreeDescriptorSets)
+        CONSTRUCT_LAZY_FUNCTION(vkFreeDescriptorSets),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateFence),
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyFence),
+        CONSTRUCT_LAZY_FUNCTION(vkWaitForFences)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -326,6 +329,9 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkAllocateDescriptorSets);
   LAZY_FUNCTION(vkUpdateDescriptorSets);
   LAZY_FUNCTION(vkFreeDescriptorSets);
+  LAZY_FUNCTION(vkCreateFence);
+  LAZY_FUNCTION(vkDestroyFence);
+  LAZY_FUNCTION(vkWaitForFences);
 #undef LAZY_FUNCTION
 };
 

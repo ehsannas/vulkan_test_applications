@@ -1,1 +1,2 @@
 add_subdirectory(vkCmdPipelineBarrier_test)
+add_subdirectory(Fence_test)
