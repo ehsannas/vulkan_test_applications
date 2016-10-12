@@ -8,3 +8,4 @@ command buffers.
 - [BeginAndEndRenderPass_test](BeginAndEndRenderPass_test/README.md)
 - [QueueSubmitAndWait_test](QueueSubmitAndWait_test/README.md)
 - [SetViewportAndScissor_test](SetViewportAndScissor_test/README.md)
+- [vkCmdBindVertexBuffers_test](vkCmdBindVertexBuffers_test/README.md)
