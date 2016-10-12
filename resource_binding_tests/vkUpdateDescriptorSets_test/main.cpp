@@ -149,6 +149,65 @@ int main_entry(const entry::entry_data* data) {
     device->vkUpdateDescriptorSets(device, 2, writes, 0, nullptr);
   }
 
+  {  // 4. Zero writes and two copies.
+    vulkan::VkDescriptorPool pool = vulkan::CreateDescriptorPool(
+        &device, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        /* descriptor_count = */ 6, /* max_set = */ 2);
+    ::VkDescriptorPool raw_pool = pool.get_raw_object();
+
+    vulkan::VkDescriptorSetLayout layout[2] = {
+        // One descriptors bound to bind number 0.
+        vulkan::CreateDescriptorSetLayout(&device,
+                                          VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
+        // Five descriptors bound to bind number 0.
+        vulkan::CreateDescriptorSetLayout(&device,
+                                          VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 5),
+    };
+
+    ::VkDescriptorSetLayout raw_layout[2] = {
+        layout[0].get_raw_object(), layout[1].get_raw_object(),
+    };
+
+    vulkan::VkDescriptorSet set[2] = {
+        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout[0],
+                                      VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
+        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout[1],
+                                      VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 5),
+    };
+    ::VkDescriptorSet raw_set[2] = {
+        set[0].get_raw_object(), set[1].get_raw_object(),
+    };
+
+    const VkCopyDescriptorSet copies[2] = {
+        // Copy the only descriptor from set[0] to set[1].
+        {
+            /* sType = */ VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET,
+            /* pNext = */ nullptr,
+            /* srcSet = */ raw_set[0],
+            /* srcBinding = */ 0,
+            /* srcArrayElement = */ 0,
+            /* dstSet = */ raw_set[1],
+            /* dstBinding = */ 0,
+            /* dstArrayElement = */ 0,
+            /* descriptorCount = */ 1,
+        },
+        // Copy the 2nd & 3rd descriptors to the 4th & 5th.
+        {
+            /* sType = */ VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET,
+            /* pNext = */ nullptr,
+            /* srcSet = */ raw_set[1],
+            /* srcBinding = */ 0,
+            /* srcArrayElement = */ 1,
+            /* dstSet = */ raw_set[1],
+            /* dstBinding = */ 0,
+            /* dstArrayElement = */ 3,
+            /* descriptorCount = */ 2,
+        },
+    };
+
+    device->vkUpdateDescriptorSets(device, 0, nullptr, 2, copies);
+  }
+
   data->log->LogInfo("Application Shutdown");
   return 0;
 }

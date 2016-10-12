@@ -32,6 +32,18 @@ WRITE_DESCRIPTOR_SET_ELEMENTS = [
     ("pTexelBufferView", POINTER),
 ]
 
+COPY_DESCRIPTOR_SET_ELEMENTS = [
+    ("sType", UINT32_T),
+    ("pNext", POINTER),
+    ("srcSet", HANDLE),
+    ("srcBinding", UINT32_T),
+    ("srcArrayElement", UINT32_T),
+    ("dstSet", HANDLE),
+    ("dstBinding", UINT32_T),
+    ("dstArrayElement", UINT32_T),
+    ("descriptorCount", UINT32_T),
+]
+
 DESCRIPTOR_BUFFER_INFO_ELEMENTS = [
     ("buffer", HANDLE),
     ("offset", DEVICE_SIZE),
@@ -71,21 +83,41 @@ def get_descriptor_set(test, index):
 def get_write_descriptor_set(update_atom, architecture, count):
     """Returns |count| VulkanStructs representing the VkWriteDescriptorSet
     structs used in the given |update_atom| atom."""
-    sets = [VulkanStruct(architecture, WRITE_DESCRIPTOR_SET_ELEMENTS,
-                         lambda offset, size: little_endian_bytes_to_int(
-                             require(update_atom.get_read_data(
-                                 update_atom.hex_PDescriptorWrites + offset,
-                                 size))))]
-    set_size = sets[-1].total_size
+    writes = [VulkanStruct(architecture, WRITE_DESCRIPTOR_SET_ELEMENTS,
+                           lambda offset, size: little_endian_bytes_to_int(
+                               require(update_atom.get_read_data(
+                                   update_atom.hex_PDescriptorWrites + offset,
+                                   size))))]
+    struct_size = writes[-1].total_size
     for i in range(1, count):
-        sets.append(
+        writes.append(
             VulkanStruct(architecture, WRITE_DESCRIPTOR_SET_ELEMENTS,
                          lambda offset, size: little_endian_bytes_to_int(
                              require(update_atom.get_read_data(
                                  (update_atom.hex_PDescriptorWrites +
-                                  i * set_size + offset),
+                                  i * struct_size + offset),
                                  size)))))
-    return sets
+    return writes
+
+
+def get_copy_descriptor_set(update_atom, architecture, count):
+    """Returns |count| VulkanStructs representing the VkCopyDescriptorSet
+    structs used in the given |update_atom| atom."""
+    copies = [VulkanStruct(architecture, COPY_DESCRIPTOR_SET_ELEMENTS,
+                           lambda offset, size: little_endian_bytes_to_int(
+                               require(update_atom.get_read_data(
+                                   update_atom.hex_PDescriptorCopies + offset,
+                                   size))))]
+    struct_size = copies[-1].total_size
+    for i in range(1, count):
+        copies.append(
+            VulkanStruct(architecture, COPY_DESCRIPTOR_SET_ELEMENTS,
+                         lambda offset, size: little_endian_bytes_to_int(
+                             require(update_atom.get_read_data(
+                                 (update_atom.hex_PDescriptorCopies +
+                                  i * struct_size + offset),
+                                 size)))))
+    return copies
 
 
 def get_buffer_info(update_atom, architecture, base, count):
@@ -228,3 +260,41 @@ class TwoWritesZeroCopy(GapitTest):
         require_equal(0, imginfo.imageView)
         require_equal(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                       imginfo.imageLayout)
+
+
+@gapit_test("vkUpdateDescriptorSets_test.apk")
+class ZeroWritesTwoCopies(GapitTest):
+    def expect(self):
+        """4. Zero writes and two copies."""
+
+        arch = require(self.next_call_of("architecture"))
+        # Get the VkDescriptorSet handle returned from the driver.
+        # This will also locate us to the proper position in the stream
+        # so we can call next_call_of() for querying the other atoms.
+        d_set0 = get_descriptor_set(self, 3)
+        d_set1 = get_descriptor_set(self, 1)  # the next one after the previous
+
+        update_atom = require(self.next_call_of("vkUpdateDescriptorSets"))
+        require_equal(0, update_atom.DescriptorWriteCount)
+        require_equal(0, update_atom.PDescriptorWrites)
+        require_equal(2, update_atom.DescriptorCopyCount)
+        require_not_equal(0, update_atom.PDescriptorCopies)
+
+        # Check VkCopyDescriptorSet
+        copies = get_copy_descriptor_set(update_atom, arch, 2)
+        for i in range(2):
+            require_equal(VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET,
+                          copies[i].sType)
+            require_equal(0, copies[i].pNext)
+            require_equal(0, copies[i].srcBinding)
+            require_equal(0, copies[i].dstBinding)
+        require_equal(d_set0, copies[0].srcSet)
+        require_equal(d_set1, copies[1].srcSet)
+        require_equal(d_set1, copies[0].dstSet)
+        require_equal(d_set1, copies[1].dstSet)
+        require_equal(0, copies[0].srcArrayElement)
+        require_equal(1, copies[1].srcArrayElement)
+        require_equal(0, copies[0].dstArrayElement)
+        require_equal(3, copies[1].dstArrayElement)
+        require_equal(1, copies[0].descriptorCount)
+        require_equal(2, copies[1].descriptorCount)

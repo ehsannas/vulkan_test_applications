@@ -86,6 +86,14 @@ For `VkWriteDescriptorSet`, according to the Vulkan spec:
   a pointer to an array of `descriptorCount` valid `VkDescriptorBufferInfo`
   structures
 
+For `VkCopyDescriptorSet`, according to the Vulkan spec:
+- `srcSet` **must** be a valid `VkDescriptorSet` handle
+- `dstSet` **must** be a valid `VkDescriptorSet` handle
+- If `srcSet` is equal to `dstSet`, then the source and destination ranges
+  of descriptors **must** not overlap, where the ranges may include array
+  elements from consecutive bindings as described by consecutive binding
+  updates
+
 # Tests
 
 For `vkUpdateDescriptorSets`, these tests should test the following cases:
@@ -137,9 +145,12 @@ For `VkDescriptorImageInfo`, these tests should test the following cases:
   - [x] not used
 
 For `VkCopyDescriptorSet`, these tests should test the following cases:
+- `srcArraryElement`
+  - [x] == 0
+  - [x] > 0
 - `dstArraryElement`
-  - [ ] == 0
-  - [ ] > 0
+  - [x] == 0
+  - [x] > 0
 - `descriptorCount`
-  - [ ] == 1
-  - [ ] > 1
+  - [x] == 1
+  - [x] > 1
