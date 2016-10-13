@@ -1,2 +1,3 @@
 add_subdirectory(vkGetDeviceQueue)
 add_subdirectory(vkGetSwapchainImagesKHR_test)
+add_subdirectory(vkAcquireNextImageKHR_test)

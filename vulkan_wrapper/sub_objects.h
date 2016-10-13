@@ -230,6 +230,17 @@ struct FramebufferTraits {
 };
 using VkFramebuffer = VkSubObject<FramebufferTraits, DeviceTraits>;
 
+struct SemaphoreTraits {
+  using type = ::VkSemaphore;
+  using destruction_function_pointer_type =
+    LazyDeviceFunction<PFN_vkDestroySemaphore>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroySemaphore;
+  }
+};
+using VkSemaphore = VkSubObject<SemaphoreTraits, DeviceTraits>;
+
 struct PipelineCacheTraits {
   using type = ::VkPipelineCache;
   using destruction_function_pointer_type =
