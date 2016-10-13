@@ -39,7 +39,7 @@ int main_entry(const entry::entry_data* data) {
             nullptr,                          // pDepthStencilAttachment
             0,                                // preserveAttachmentCount
             nullptr                           // pPreserveAttachments
-        }},                                    // subpass
+        }},                                   // subpass
         {});
 
     // Create a framebuffer without any attachments
@@ -180,7 +180,11 @@ int main_entry(const entry::entry_data* data) {
     };
     command_buffer->vkBeginCommandBuffer(command_buffer,
                                          &command_buffer_begin_info);
-    VkClearValue clear_value = {.color.float32 = {0.2f, 0.2f, 0.2f, 0.2f}};
+    VkClearValue clear_value{};
+    clear_value.color.float32[0] = 0.2;
+    clear_value.color.float32[1] = 0.2;
+    clear_value.color.float32[2] = 0.2;
+    clear_value.color.float32[3] = 0.2;
     VkRenderPassBeginInfo render_pass_begin_info{
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,  // sType
         nullptr,                                   // pNext
