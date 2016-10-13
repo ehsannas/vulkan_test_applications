@@ -195,6 +195,31 @@ class PipelineLayout {
   VkPipelineLayout pipeline_layout_;
 };
 
+// DescriptorSet holds a VkDescriptorSet object and the pool and layout used for
+// allocating it.
+class DescriptorSet {
+ public:
+  operator ::VkDescriptorSet() const { return set_; }
+
+  ::VkDescriptorPool pool() const { return pool_.get_raw_object(); }
+  ::VkDescriptorSetLayout layout() const { return layout_.get_raw_object(); }
+
+ private:
+  friend class VulkanApplication;
+
+  // Creates a descriptor set with one descriptor according to the given
+  // |binding|.
+  DescriptorSet(containers::Allocator* allocator, VkDevice* device,
+                const VkDescriptorSetLayoutBinding& binding);
+
+  // Pools is designed to amortize the cost of descriptor set allocation.
+  // But here we create a dedicated pool for each descriptor set. It suffers
+  // for performance, but is easy to write.
+  VkDescriptorPool pool_;
+  VkDescriptorSetLayout layout_;
+  VkDescriptorSet set_;
+};
+
 // VulkanApplication holds all of the data needed for a typical single-threaded
 // Vulkan application.
 class VulkanApplication {
@@ -353,6 +378,13 @@ class VulkanApplication {
       std::initializer_list<std::initializer_list<VkDescriptorSetLayoutBinding>>
           layouts) {
     return PipelineLayout(allocator_, &device_, layouts);
+  }
+
+  // Allocates a descriptor set with one descriptor according to the given
+  // |binding|.
+  DescriptorSet AllocateDescriptorSet(
+      const VkDescriptorSetLayoutBinding& binding) {
+    return DescriptorSet(allocator_, &device_, binding);
   }
 
   VkSwapchainKHR& swapchain() { return swapchain_; }

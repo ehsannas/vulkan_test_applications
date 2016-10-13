@@ -20,6 +20,14 @@
 
 namespace vulkan {
 
+DescriptorSet::DescriptorSet(containers::Allocator* allocator, VkDevice* device,
+                             const VkDescriptorSetLayoutBinding& binding)
+    : pool_(CreateDescriptorPool(device, binding.descriptorType,
+                                 binding.descriptorCount, 1)),
+      layout_(CreateDescriptorSetLayout(allocator, device, {binding})),
+      set_(AllocateDescriptorSet(device, pool_.get_raw_object(),
+                                 layout_.get_raw_object())) {}
+
 VulkanApplication::VulkanApplication(containers::Allocator* allocator,
                                      logging::Logger* log,
                                      const entry::entry_data* entry_data,
@@ -53,8 +61,7 @@ VulkanApplication::VulkanApplication(containers::Allocator* allocator,
   //  and usage2 of type VkBufferUsageFlags are such that the bits set in usage2
   //  are a subset of the bits set in usage1, and they have the same flags,
   //  then the bits set in memoryTypeBits returned for usage1 must be a subset
-  //  of
-  //  the bits set in memoryTypeBits returned for usage2, for all values of
+  //  of the bits set in memoryTypeBits returned for usage2, for all values of
   //  flags.
 
   // Therefore we should be able to satisfy all buffer requests for non
