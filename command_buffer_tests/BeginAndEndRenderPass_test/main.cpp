@@ -20,8 +20,7 @@ int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
 
   vulkan::VulkanApplication application(data->root_allocator, data->log.get(),
-                                        data, 1024 * 100, 1024 * 100,
-                                        1024 * 100);
+                                        data);
   {
     // 1. Render pass and framebuffer without attachments or dependencies. The
     // render pass begin info has render area with x/y offsets of value 5 and
@@ -29,7 +28,7 @@ int main_entry(const entry::entry_data* data) {
     // Create render pass without any attachments, still needs a subpass here.
     vulkan::VkRenderPass render_pass = application.CreateRenderPass(
         {},
-        {
+        {{
             0,                                // flags
             VK_PIPELINE_BIND_POINT_GRAPHICS,  // pipelineBindPoint
             0,                                // inputAttachmentCount
@@ -40,7 +39,7 @@ int main_entry(const entry::entry_data* data) {
             nullptr,                          // pDepthStencilAttachment
             0,                                // preserveAttachmentCount
             nullptr                           // pPreserveAttachments
-        },                                    // subpass
+        }},                                    // subpass
         {});
 
     // Create a framebuffer without any attachments
@@ -59,6 +58,8 @@ int main_entry(const entry::entry_data* data) {
     application.device()->vkCreateFramebuffer(application.device(),
                                               &framebuffer_create_info, nullptr,
                                               &raw_framebuffer);
+    vulkan::VkFramebuffer framebuffer(raw_framebuffer, nullptr,
+                                      &application.device());
     vulkan::VkCommandBuffer command_buffer = application.GetCommandBuffer();
     VkCommandBufferBeginInfo command_buffer_begin_info{
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType
@@ -72,7 +73,7 @@ int main_entry(const entry::entry_data* data) {
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,  // sType
         nullptr,                                   // pNext
         render_pass,                               // renderPass
-        raw_framebuffer,                           // framebuffer
+        framebuffer,                               // framebuffer
         {
             5,   // renderArea.offset.x
             5,   // renderArea.offset.y
@@ -97,7 +98,7 @@ int main_entry(const entry::entry_data* data) {
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // layout
     };
     vulkan::VkRenderPass render_pass = application.CreateRenderPass(
-        {
+        {{
             0,                                 // flags
             application.swapchain().format(),  // format
             VK_SAMPLE_COUNT_1_BIT,             // samples
@@ -107,8 +108,8 @@ int main_entry(const entry::entry_data* data) {
             VK_ATTACHMENT_STORE_OP_DONT_CARE,  // stencilStoreOp
             VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,   // initialLayout
             VK_IMAGE_LAYOUT_PRESENT_SRC_KHR    // finalLayout
-        },
-        {
+        }},
+        {{
             0,                                // flags
             VK_PIPELINE_BIND_POINT_GRAPHICS,  // pipelineBindPoint
             0,                                // inputAttachmentCount
@@ -119,7 +120,7 @@ int main_entry(const entry::entry_data* data) {
             nullptr,                          // pDepthStencilAttachment
             0,                                // preserveAttachmentCount
             nullptr                           // pPreserveAttachments
-        },
+        }},
         {});
 
     // Create image view
@@ -168,6 +169,8 @@ int main_entry(const entry::entry_data* data) {
     application.device()->vkCreateFramebuffer(application.device(),
                                               &framebuffer_create_info, nullptr,
                                               &raw_framebuffer);
+    vulkan::VkFramebuffer framebuffer(raw_framebuffer, nullptr,
+                                      &application.device());
     vulkan::VkCommandBuffer command_buffer = application.GetCommandBuffer();
     VkCommandBufferBeginInfo command_buffer_begin_info{
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType
@@ -182,7 +185,7 @@ int main_entry(const entry::entry_data* data) {
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,  // sType
         nullptr,                                   // pNext
         render_pass,                               // renderPass
-        raw_framebuffer,                           // framebuffer
+        framebuffer,                               // framebuffer
         {
             0,                                 // renderArea.offset.x
             0,                                 // renderArea.offset.y

@@ -219,6 +219,17 @@ struct RenderPassTraits {
 };
 using VkRenderPass = VkSubObject<RenderPassTraits, DeviceTraits>;
 
+struct FramebufferTraits {
+  using type = ::VkFramebuffer;
+  using destruction_function_pointer_type =
+    LazyDeviceFunction<PFN_vkDestroyFramebuffer>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyFramebuffer;
+  }
+};
+using VkFramebuffer = VkSubObject<FramebufferTraits, DeviceTraits>;
+
 struct PipelineCacheTraits {
   using type = ::VkPipelineCache;
   using destruction_function_pointer_type =

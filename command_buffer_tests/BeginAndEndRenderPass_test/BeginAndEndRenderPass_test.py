@@ -44,7 +44,7 @@ CLEAR_DEPTH_STENCIL_VALUE = [
 
 
 @gapit_test("BeginAndEndRenderPass_test.apk")
-class BeginRenderPassWithoutAttachement(GapitTest):
+class BeginRenderPassWithoutAttachment(GapitTest):
     def expect(self):
         """Expect the vkCmdBeginRenderPass() is called and successfully. The
         RenderPassBeginInfo does not contain any ClearValues"""
