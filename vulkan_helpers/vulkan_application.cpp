@@ -541,9 +541,9 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
 
   viewport_state_.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
   viewport_state_.viewportCount = 1;
-  viewport_state_.pViewports = &viewport_;
+  viewport_state_.pViewports = nullptr;
   viewport_state_.scissorCount = 1;
-  viewport_state_.pScissors = &scissor_;
+  viewport_state_.pScissors = nullptr;
 
   rasterization_state_.sType =
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -618,6 +618,7 @@ void VulkanGraphicsPipeline::SetViewport(const VkViewport& viewport) {
     dynamic_states_.erase(state);
   }
   viewport_ = viewport;
+  viewport_state_.pViewports = &viewport_;
 }
 
 void VulkanGraphicsPipeline::SetScissor(const VkRect2D& scissor) {
@@ -627,6 +628,7 @@ void VulkanGraphicsPipeline::SetScissor(const VkRect2D& scissor) {
     dynamic_states_.erase(state);
   }
   scissor_ = scissor;
+  viewport_state_.pScissors = &scissor_;
 }
 
 void VulkanGraphicsPipeline::AddAttachment() {
