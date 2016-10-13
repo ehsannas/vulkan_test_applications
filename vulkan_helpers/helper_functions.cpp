@@ -587,14 +587,16 @@ void SetImageLayout(::VkImage image, VkImageLayout old_layout,
   // As we are changing the image memory layout, we should have a image memory
   // barrier.
   VkImageMemoryBarrier image_memory_barrier = {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .pNext = NULL,
-      .srcAccessMask = src_access_mask,
-      .dstAccessMask = 0,  // Set it in below.
-      .oldLayout = old_layout,
-      .newLayout = new_layout,
-      .image = image,
-      .subresourceRange = {aspect_flags, 0, 1, 0, 1}};
+      VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // sType
+      NULL,                                    // pNext
+      src_access_mask,                         // srcAccessMask
+      0,                            // dstAccessMask: Set it in below.
+      old_layout,                   // oldLayout
+      new_layout,                   // newLayout
+      VK_QUEUE_FAMILY_IGNORED,      // srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,      // dstQueueFamilyIndex
+      image,                        // image
+      {aspect_flags, 0, 1, 0, 1}};  // subresourceRange
   switch (new_layout) {
     case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
       image_memory_barrier.dstAccessMask =
