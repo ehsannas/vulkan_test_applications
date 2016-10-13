@@ -31,10 +31,8 @@ RENDER_PASS_BEGIN_INFO = [
     ("pClearValues", POINTER),
 ]
 
-CLEAR_COLOR_VALUE = [
+CLEAR_COLOR_UNORM_VALUE = [
     ("color_float32", ARRAY, 4, UINT32_T),
-    ("color_int32", ARRAY, 4, UINT32_T),
-    ("color_uint32", ARRAY, 4, UINT32_T),
 ]
 
 CLEAR_DEPTH_STENCIL_VALUE = [
@@ -99,7 +97,7 @@ class BeginColorAttachmentRenderPass(GapitTest):
         require_not_equal(0, begin_render_pass_info.pClearValues)
 
         clear_values = VulkanStruct(
-            architecture, CLEAR_COLOR_VALUE, get_read_offset_function(
+            architecture, CLEAR_COLOR_UNORM_VALUE, get_read_offset_function(
                 begin_render_pass, begin_render_pass_info.pClearValues))
         # 0.2f == 0x3e4ccccd
         expected_color_clear_value = [0x3e4ccccd for i in range(4)]
