@@ -567,8 +567,7 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
 }
 
 VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
-                                      ::VkDescriptorSetLayout layout,
-                                      VkDescriptorType type, uint32_t count) {
+                                      ::VkDescriptorSetLayout layout) {
   VkDescriptorSetAllocateInfo alloc_info{
       /* sType = */ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       /* pNext = */ nullptr,

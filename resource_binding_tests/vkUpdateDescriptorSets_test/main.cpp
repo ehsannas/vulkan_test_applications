@@ -42,8 +42,8 @@ int main_entry(const entry::entry_data* data) {
         &device, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2);
     ::VkDescriptorSetLayout raw_layout = layout.get_raw_object();
 
-    vulkan::VkDescriptorSet set = vulkan::AllocateDescriptorSet(
-        &device, raw_pool, raw_layout, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2);
+    vulkan::VkDescriptorSet set =
+        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout);
     ::VkDescriptorSet raw_set = set.get_raw_object();
 
     const VkBufferCreateInfo info = {
@@ -99,8 +99,8 @@ int main_entry(const entry::entry_data* data) {
         &device, VK_DESCRIPTOR_TYPE_SAMPLER, 2);
     ::VkDescriptorSetLayout raw_layout = layout.get_raw_object();
 
-    vulkan::VkDescriptorSet set = vulkan::AllocateDescriptorSet(
-        &device, raw_pool, raw_layout, VK_DESCRIPTOR_TYPE_SAMPLER, 2);
+    vulkan::VkDescriptorSet set =
+        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout);
     ::VkDescriptorSet raw_set = set.get_raw_object();
 
     vulkan::VkSampler sampler = vulkan::CreateDefaultSampler(&device);
@@ -169,10 +169,8 @@ int main_entry(const entry::entry_data* data) {
     };
 
     vulkan::VkDescriptorSet set[2] = {
-        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout[0],
-                                      VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
-        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout[1],
-                                      VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 5),
+        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout[0]),
+        vulkan::AllocateDescriptorSet(&device, raw_pool, raw_layout[1]),
     };
     ::VkDescriptorSet raw_set[2] = {
         set[0].get_raw_object(), set[1].get_raw_object(),

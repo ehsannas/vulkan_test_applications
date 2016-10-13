@@ -135,11 +135,8 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
                                                 uint32_t count);
 
 // Allocates a descriptor set with the given |layout| from the given |pool|.
-// The descriptor set should have |count| descriptors of the given |type| bound
-// to bining number 0 and be consistent with the |pool| and |layout|.
 VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
-                                      ::VkDescriptorSetLayout layout,
-                                      VkDescriptorType type, uint32_t count);
+                                      ::VkDescriptorSetLayout layout);
 
 // Returns the first queue from the given family.
 VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
