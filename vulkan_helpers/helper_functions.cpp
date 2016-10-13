@@ -578,4 +578,89 @@ VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
              VK_SUCCESS);
   return vulkan::VkDescriptorSet(raw_set, pool, device);
 }
+
+void SetImageLayout(::VkImage image, VkImageLayout old_layout,
+                    VkImageLayout new_layout, VkCommandBuffer* cmd_buffer,
+                    VkQueue* queue, VkImageAspectFlags aspect_flags,
+                    VkAccessFlagBits src_access_mask) {
+  ::VkCommandBuffer raw_cmd_buffer = cmd_buffer->get_command_buffer();
+  // As we are changing the image memory layout, we should have a image memory
+  // barrier.
+  VkImageMemoryBarrier image_memory_barrier = {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      .pNext = NULL,
+      .srcAccessMask = src_access_mask,
+      .dstAccessMask = 0,  // Set it in below.
+      .oldLayout = old_layout,
+      .newLayout = new_layout,
+      .image = image,
+      .subresourceRange = {aspect_flags, 0, 1, 0, 1}};
+  switch (new_layout) {
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+      image_memory_barrier.dstAccessMask =
+          VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+      break;
+
+    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+      image_memory_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      break;
+
+    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+      image_memory_barrier.dstAccessMask =
+          VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+      break;
+
+    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+      /* Make sure any Copy or CPU writes to image are flushed */
+      image_memory_barrier.dstAccessMask =
+          VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+      break;
+    default:
+      break;
+  }
+  // To start a command buffer, we need to create command buffer begin info.
+  VkCommandBufferInheritanceInfo cmd_buffer_hinfo = {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
+      .pNext = NULL,
+      .renderPass = VK_NULL_HANDLE,
+      .subpass = 0,
+      .framebuffer = VK_NULL_HANDLE,
+      .occlusionQueryEnable = VK_FALSE,
+      .queryFlags = 0,
+      .pipelineStatistics = 0,
+  };
+  VkCommandBufferBeginInfo cmd_buffer_begin_info = {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .pNext = NULL,
+      .flags = 0,
+      .pInheritanceInfo = &cmd_buffer_hinfo,
+  };
+  (*cmd_buffer)->vkBeginCommandBuffer(*cmd_buffer, &cmd_buffer_begin_info);
+  (*cmd_buffer)
+      ->vkCmdPipelineBarrier(*cmd_buffer,  // commandBuffer
+                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
+                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // dstStageMask
+                             0,                     // dependencyFlags
+                             0,                     // memoryBarrierCount
+                             nullptr,               // pMemoryBarriers
+                             0,                     // bufferMemoryBarrierCount
+                             nullptr,               // pBufferMemoryBarriers
+                             1,                     // imageMemoryBarrierCount
+                             &image_memory_barrier  // pImageMemoryBarriers
+                             );
+  (*cmd_buffer)->vkEndCommandBuffer(*cmd_buffer);
+  VkSubmitInfo submit_info = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                              .pNext = NULL,
+                              .waitSemaphoreCount = 0,
+                              .pWaitSemaphores = NULL,
+                              .pWaitDstStageMask = NULL,
+                              .commandBufferCount = 1,
+                              .pCommandBuffers = &raw_cmd_buffer,
+                              .signalSemaphoreCount = 0,
+                              .pSignalSemaphores = NULL};
+  VkFence null_fence = {VK_NULL_HANDLE};
+  (*queue)->vkQueueSubmit(*queue, 1, &submit_info, null_fence);
+  (*queue)->vkQueueWaitIdle(*queue);
+  return;
+}
 }

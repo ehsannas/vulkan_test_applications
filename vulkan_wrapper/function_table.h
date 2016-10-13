@@ -144,7 +144,8 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdSetViewport),
         CONSTRUCT_LAZY_FUNCTION(vkCmdCopyBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindDescriptorSets),
-        CONSTRUCT_LAZY_FUNCTION(vkCmdBindVertexBuffers)
+        CONSTRUCT_LAZY_FUNCTION(vkCmdBindVertexBuffers),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdClearColorImage)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -165,6 +166,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdCopyBuffer);
   LAZY_FUNCTION(vkCmdBindDescriptorSets);
   LAZY_FUNCTION(vkCmdBindVertexBuffers);
+  LAZY_FUNCTION(vkCmdClearColorImage);
 #undef LAZY_FUNCTION
 };
 
@@ -175,7 +177,8 @@ struct QueueFunctions {
 #define CONSTRUCT_LAZY_FUNCTION(function) \
   function(device, #function, device_functions)
         CONSTRUCT_LAZY_FUNCTION(vkQueueSubmit),
-        CONSTRUCT_LAZY_FUNCTION(vkQueueWaitIdle)
+        CONSTRUCT_LAZY_FUNCTION(vkQueueWaitIdle),
+        CONSTRUCT_LAZY_FUNCTION(vkQueuePresentKHR)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -184,6 +187,7 @@ struct QueueFunctions {
 #define LAZY_FUNCTION(function) LazyDeviceFunction<PFN_##function> function;
   LAZY_FUNCTION(vkQueueSubmit);
   LAZY_FUNCTION(vkQueueWaitIdle);
+  LAZY_FUNCTION(vkQueuePresentKHR);
 #undef LAZY_FUNCTION
 };
 

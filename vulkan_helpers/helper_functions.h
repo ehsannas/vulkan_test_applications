@@ -174,6 +174,14 @@ uint32_t inline GetMemoryIndex(VkDevice* device, logging::Logger* log,
   return memory_index;
 }
 
+// Sets new image layout through the given command buffer and queue with
+// specified image aspect flags. The access flag bit mask by default is set to
+// zero.
+void SetImageLayout(::VkImage image, VkImageLayout old_layout,
+                    VkImageLayout new_layout, VkCommandBuffer* cmd_buffer,
+                    VkQueue* queue, VkImageAspectFlags aspect_flags,
+                    VkAccessFlagBits src_access_mask = (VkAccessFlagBits)0);
+
 // Runs the given call once with a nullptr value, and gets the numerical result.
 // Resizes the given array, and runs the call again to fill the array.
 // Asserts that the function call succeeded.
