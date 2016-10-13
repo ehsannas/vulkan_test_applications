@@ -30,8 +30,9 @@ int main_entry(const entry::entry_data* data) {
   vulkan::VkDevice device(vulkan::CreateDefaultDevice(allocator, instance));
 
   {  // 1. One descriptor set.
+    VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3};
     vulkan::VkDescriptorPool pool =
-        CreateDescriptorPool(&device, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3, 1);
+        CreateDescriptorPool(&device, 1, &pool_size, 1);
     ::VkDescriptorPool raw_pool = pool.get_raw_object();
 
     vulkan::VkDescriptorSetLayout layout =
@@ -54,8 +55,10 @@ int main_entry(const entry::entry_data* data) {
   {  // 2. Three descriptor sets.
     const uint32_t kNumSets = 3;
 
-    vulkan::VkDescriptorPool pool = CreateDescriptorPool(
-        &device, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, kNumSets, kNumSets);
+    VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                      kNumSets};
+    vulkan::VkDescriptorPool pool =
+        CreateDescriptorPool(&device, 1, &pool_size, kNumSets);
     ::VkDescriptorPool raw_pool = pool.get_raw_object();
 
     vulkan::VkDescriptorSetLayout layout = CreateDescriptorSetLayout(
@@ -81,8 +84,9 @@ int main_entry(const entry::entry_data* data) {
   }
 
   {  // 3. Destroy null descriptor set handles.
+    VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1};
     vulkan::VkDescriptorPool pool =
-        CreateDescriptorPool(&device, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, 1);
+        CreateDescriptorPool(&device, 1, &pool_size, 1);
     ::VkDescriptorPool raw_pool = pool.get_raw_object();
 
     ::VkDescriptorSet sets[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};

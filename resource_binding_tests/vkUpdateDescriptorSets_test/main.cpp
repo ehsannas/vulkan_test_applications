@@ -34,8 +34,9 @@ int main_entry(const entry::entry_data* data) {
   }
 
   {  // 2. One write and zero copies.
-    vulkan::VkDescriptorPool pool = vulkan::CreateDescriptorPool(
-        &device, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2, 1);
+    VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2};
+    vulkan::VkDescriptorPool pool =
+        vulkan::CreateDescriptorPool(&device, 1, &pool_size, 1);
     ::VkDescriptorPool raw_pool = pool.get_raw_object();
 
     vulkan::VkDescriptorSetLayout layout = vulkan::CreateDescriptorSetLayout(
@@ -91,8 +92,9 @@ int main_entry(const entry::entry_data* data) {
   }
 
   {  // 3. Two writes and zero copies.
+    VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_SAMPLER, 2};
     vulkan::VkDescriptorPool pool =
-        vulkan::CreateDescriptorPool(&device, VK_DESCRIPTOR_TYPE_SAMPLER, 2, 1);
+        vulkan::CreateDescriptorPool(&device, 1, &pool_size, 1);
     ::VkDescriptorPool raw_pool = pool.get_raw_object();
 
     vulkan::VkDescriptorSetLayout layout = vulkan::CreateDescriptorSetLayout(
@@ -150,9 +152,9 @@ int main_entry(const entry::entry_data* data) {
   }
 
   {  // 4. Zero writes and two copies.
-    vulkan::VkDescriptorPool pool = vulkan::CreateDescriptorPool(
-        &device, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-        /* descriptor_count = */ 6, /* max_set = */ 2);
+    VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 6};
+    vulkan::VkDescriptorPool pool =
+        vulkan::CreateDescriptorPool(&device, 1, &pool_size, 2);
     ::VkDescriptorPool raw_pool = pool.get_raw_object();
 
     vulkan::VkDescriptorSetLayout layout[2] = {

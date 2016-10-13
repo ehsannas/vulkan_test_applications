@@ -520,19 +520,16 @@ VkPipelineCache CreateDefaultPipelineCache(VkDevice* device) {
   return VkPipelineCache(cache, nullptr, device);
 }
 
-VkDescriptorPool CreateDescriptorPool(VkDevice* device, ::VkDescriptorType type,
-                                      uint32_t count, uint32_t max_sets) {
-  VkDescriptorPoolSize pool_size{
-      /* type = */ type,
-      /* descriptorCount = */ count,
-  };
+VkDescriptorPool CreateDescriptorPool(VkDevice* device, uint32_t num_pool_size,
+                                      const VkDescriptorPoolSize* pool_sizes,
+                                      uint32_t max_sets) {
   VkDescriptorPoolCreateInfo info{
       /* sType = */ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
       /* pNext = */ nullptr,
       /* flags = */ VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
       /* maxSets = */ max_sets,
-      /* poolSizeCount = */ 1,
-      /* pPoolSizes = */ &pool_size};
+      /* poolSizeCount = */ num_pool_size,
+      /* pPoolSizes = */ pool_sizes};
 
   ::VkDescriptorPool raw_pool;
   LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorPool(

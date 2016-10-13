@@ -15,16 +15,36 @@
 
 #include <algorithm>
 
+#include "support/containers/unordered_map.h"
 #include "vulkan_helpers/helper_functions.h"
 #include "vulkan_helpers/vulkan_application.h"
 
 namespace vulkan {
 
-DescriptorSet::DescriptorSet(containers::Allocator* allocator, VkDevice* device,
-                             const VkDescriptorSetLayoutBinding& binding)
-    : pool_(CreateDescriptorPool(device, binding.descriptorType,
-                                 binding.descriptorCount, 1)),
-      layout_(CreateDescriptorSetLayout(allocator, device, {binding})),
+VkDescriptorPool DescriptorSet::CreateDescriptorPool(
+    containers::Allocator* allocator, VkDevice* device,
+    std::initializer_list<VkDescriptorSetLayoutBinding> bindings) {
+  containers::unordered_map<uint32_t, uint32_t> counts(allocator);
+  for (auto binding : bindings) {
+    counts[static_cast<uint32_t>(binding.descriptorType)] +=
+        binding.descriptorCount;
+  }
+
+  containers::vector<VkDescriptorPoolSize> pool_sizes(allocator);
+  pool_sizes.reserve(counts.size());
+  for (auto p : counts) {
+    pool_sizes.push_back({static_cast<VkDescriptorType>(p.first), p.second});
+  }
+
+  return vulkan::CreateDescriptorPool(device, pool_sizes.size(),
+                                      pool_sizes.data(), 1);
+}
+
+DescriptorSet::DescriptorSet(
+    containers::Allocator* allocator, VkDevice* device,
+    std::initializer_list<VkDescriptorSetLayoutBinding> bindings)
+    : pool_(CreateDescriptorPool(allocator, device, bindings)),
+      layout_(CreateDescriptorSetLayout(allocator, device, bindings)),
       set_(AllocateDescriptorSet(device, pool_.get_raw_object(),
                                  layout_.get_raw_object())) {}
 

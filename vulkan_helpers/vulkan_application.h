@@ -207,10 +207,14 @@ class DescriptorSet {
  private:
   friend class VulkanApplication;
 
+  static VkDescriptorPool CreateDescriptorPool(
+      containers::Allocator* allocator, VkDevice* device,
+      std::initializer_list<VkDescriptorSetLayoutBinding> bindings);
+
   // Creates a descriptor set with one descriptor according to the given
   // |binding|.
   DescriptorSet(containers::Allocator* allocator, VkDevice* device,
-                const VkDescriptorSetLayoutBinding& binding);
+                std::initializer_list<VkDescriptorSetLayoutBinding> bindings);
 
   // Pools is designed to amortize the cost of descriptor set allocation.
   // But here we create a dedicated pool for each descriptor set. It suffers
@@ -383,8 +387,8 @@ class VulkanApplication {
   // Allocates a descriptor set with one descriptor according to the given
   // |binding|.
   DescriptorSet AllocateDescriptorSet(
-      const VkDescriptorSetLayoutBinding& binding) {
-    return DescriptorSet(allocator_, &device_, binding);
+      std::initializer_list<VkDescriptorSetLayoutBinding> bindings) {
+    return DescriptorSet(allocator_, &device_, bindings);
   }
 
   VkSwapchainKHR& swapchain() { return swapchain_; }

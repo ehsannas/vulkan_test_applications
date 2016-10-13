@@ -37,7 +37,7 @@ int main_entry(const entry::entry_data* data) {
   };
   vulkan::PipelineLayout pipeline_layout =
       app.CreatePipelineLayout({{binding}});
-  vulkan::DescriptorSet descriptor_set = app.AllocateDescriptorSet(binding);
+  vulkan::DescriptorSet descriptor_set = app.AllocateDescriptorSet({binding});
   ::VkDescriptorSet sets[1] = {descriptor_set};
 
   command_buffer->vkCmdBindDescriptorSets(
