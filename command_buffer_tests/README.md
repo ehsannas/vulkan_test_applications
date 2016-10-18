@@ -10,3 +10,4 @@ command buffers.
 - [vkQueuePresentKHR_test](vkQueuePresentKHR_test/README.md)
 - [SetViewportAndScissor_test](SetViewportAndScissor_test/README.md)
 - [vkCmdBindVertexBuffers_test](vkCmdBindVertexBuffers_test/README.md)
+- [vkCmdDraw_test](vkCmdDraw_test/README.md)
