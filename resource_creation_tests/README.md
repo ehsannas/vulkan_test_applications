@@ -13,6 +13,7 @@ the creation and destruction of vulkan resources.
 - [CreateDestroyImageView_test](CreateDestroyImageView_test/README.md)
 - [CreateDestroySampler_test](CreateDestroySampler_test/README.md)
 - [CreateResetDestroyDescriptorPool_test](CreateResetDestroyDescriptorPool_test/README.md)
+- [FlushAndInvalidateMappedMemoryRanges_test](FlushAndInvalidateMappedMemoryRanges_test/README.md)
 - [ImageMemory_test](ImageMemory_test/README.md)
 - [PipelineCache_test](PipelineCache_test/README.md)
 - [SurfaceCreation_test](SurfaceCreation_test/README.md)
