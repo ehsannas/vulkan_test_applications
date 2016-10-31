@@ -3,20 +3,23 @@
 To build apk files.
 
 ```
-cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk
+cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DCMAKE_GLSL_COMPILER=path/to/glslc
 ```
 
 This assumes the android ndk is installed in the default location of
 path/to/android/sdk/ndk-bundle.
 
+`glslc` is required to compile GLSL shaders to SPIR-V. Its location should be
+specified through `-DCMAKE_GLSL_COMPILER` option.
+
 If it is installed elsewhere, use
 ```
-cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DANDROID_NDK=path/to/ndk
+cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DANDROID_NDK=path/to/ndk -DCMAKE_GLSL_COMPILER=path/to/glslc
 ```
 
 To build only for 32-bit ARM platform.
 ```
-cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DANDROID_ABIS=armeabi-v7a
+cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DANDROID_ABIS=armeabi-v7a -DCMAKE_GLSL_COMPILER=path/to/glslc
 ```
 
 # Support Functionality
