@@ -370,7 +370,8 @@ def parse_trace_file(filename):
         filename is the name of the trace file to read
     '''
     proc = subprocess.Popen(
-        ['gapit', 'dump', '-observations', filename], stdout=subprocess.PIPE)
+        ['gapit', 'dump', '-observations', '-raw-values', filename],
+        stdout=subprocess.PIPE)
 
     # This parsing routine is basically a state machine
     # The very first line of the process is un-necessary
