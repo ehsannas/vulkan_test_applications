@@ -16,6 +16,7 @@
 #include "vulkan_helpers/helper_functions.h"
 
 #include <algorithm>
+#include <tuple>
 
 #include "support/containers/vector.h"
 #include "support/log/log.h"
@@ -645,5 +646,57 @@ void SetImageLayout(::VkImage image,
   (*queue)->vkQueueSubmit(*queue, 1, &submit_info, null_fence);
   (*queue)->vkQueueWaitIdle(*queue);
   return;
+}
+
+namespace {
+// A helper function that returns the round-up result of unsigned integer
+// division.  Returns 0 if the given divisor value is 0.
+uint32_t RoundUpTo(uint32_t dividend, uint32_t divisor) {
+  if (divisor == 0) return 0;
+  return (dividend + divisor - 1) / divisor;
+}
+}
+
+std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
+    VkFormat format) {
+  switch (format) {
+    case VK_FORMAT_R8_UNORM:
+      return std::make_tuple(
+          1, 1, 1);  // element size, texel block width, texel height
+    case VK_FORMAT_D16_UNORM:
+    case VK_FORMAT_R16_UNORM:
+      return std::make_tuple(2, 1, 1);
+    case VK_FORMAT_R8G8B8_UNORM:
+      return std::make_tuple(3, 1, 1);
+    case VK_FORMAT_R32_SFLOAT:
+    case VK_FORMAT_R8G8B8A8_UNORM:
+    case VK_FORMAT_B8G8R8A8_UNORM:
+      return std::make_tuple(4, 1, 1);
+    case VK_FORMAT_D32_SFLOAT_S8_UINT:
+      return std::make_tuple(5, 1, 1);
+    case VK_FORMAT_BC2_UNORM_BLOCK:
+    case VK_FORMAT_BC3_UNORM_BLOCK:
+      return std::make_tuple(16, 4, 4);
+    case VK_FORMAT_R16G16B16A16_SFLOAT:
+      return std::make_tuple(8, 1, 1);
+    case VK_FORMAT_R32G32B32A32_SFLOAT:
+      return std::make_tuple(16, 1, 1);
+    default:
+      break;
+  }
+  return std::make_tuple(0, 0, 0);
+}
+
+size_t GetImageExtentSizeInBytes(const VkExtent3D& extent, VkFormat format) {
+  auto element_texel_block_sizes = GetElementAndTexelBlockSize(format);
+  uint32_t element_size = size_t(std::get<0>(element_texel_block_sizes));
+  uint32_t tb_width_size = std::get<1>(element_texel_block_sizes);
+  uint32_t tb_height_size = std::get<2>(element_texel_block_sizes);
+  if (element_size == 0 || tb_width_size == 0 || tb_height_size == 0) {
+    return 0;
+  }
+  size_t w = size_t(RoundUpTo(extent.width, tb_width_size));
+  size_t h = size_t(RoundUpTo(extent.height, tb_height_size));
+  return w * h * element_size;
 }
 }

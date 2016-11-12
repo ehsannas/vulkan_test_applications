@@ -235,14 +235,20 @@ class VulkanApplication {
    public:
     operator ::VkImage() const { return image_; }
     ~Image() { heap_->FreeMemory(token_); }
+    VkFormat format() const { return format_; }
 
    private:
     friend class ::vulkan::VulkanApplication;
-    Image(VulkanArena* heap, AllocationToken* token, VkImage&& image)
-        : heap_(heap), token_(token), image_(std::move(image)) {}
+    Image(VulkanArena* heap, AllocationToken* token, VkImage&& image,
+          VkFormat format)
+        : heap_(heap),
+          token_(token),
+          image_(std::move(image)),
+          format_(format) {}
     VulkanArena* heap_;
     AllocationToken* token_;
     VkImage image_;
+    VkFormat format_;
   };
 
   // The buffer class holds onto a VkBuffer. If this buffer was created
@@ -333,6 +339,33 @@ class VulkanApplication {
   // device-only-accessible buffer Arena.
   containers::unique_ptr<Buffer> CreateAndBindDeviceBuffer(
       const VkBufferCreateInfo* create_info);
+
+  // Fill the specific layers of a image with the provided data. The operation
+  // will wait for the |wait_semaphores| to begin, signal |signal_semaphores|
+  // and |fence| once finished. It returns true and transitions the target
+  // image layout to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL if the operation is
+  // done successfully, otherwise returns false and keeps the layout unchanged.
+  bool FillImageLayersData(
+      Image* img, const VkImageSubresourceLayers& image_subresource,
+      const VkOffset3D& image_offset, const VkExtent3D& image_extent,
+      VkImageLayout initial_img_layout, const containers::vector<char>& data,
+      const containers::vector<::VkSemaphore>& wait_semaphores,
+      const containers::vector<::VkSemaphore>& signal_semaphores,
+      ::VkFence fence);
+
+  // Dump the data in the specific layers of the given image to the provided
+  // vector. The operation will wait for the |wait_semaphores| to begin, signal
+  // |signal_semaphores| and |fence| once finished. Returns true and changes
+  // the source image layout to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL if the
+  // operation is done successfully, otherwise returns false and keeps the
+  // layout unchanged.
+  bool DumpImageLayersData(
+      Image* img, const VkImageSubresourceLayers& image_subresource,
+      const VkOffset3D& image_offset, const VkExtent3D& image_extent,
+      VkImageLayout initial_img_layout, containers::vector<char>* data,
+      const containers::vector<::VkSemaphore>& wait_semaphores,
+      const containers::vector<::VkSemaphore>& signal_semaphores,
+      ::VkFence fence);
 
   // Creates and returns a new CommandBuffer using the Applications default
   // VkCommandPool.
@@ -434,6 +467,20 @@ class VulkanApplication {
     return VulkanGraphicsPipeline(allocator_, layout, this, render_pass,
                                   subpass_);
   }
+
+  static const VkAccessFlags kAllReadBits =
+      VK_ACCESS_HOST_READ_BIT | VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+      VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+      VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT |
+      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+      VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_MEMORY_READ_BIT |
+      VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+
+  static const VkAccessFlags kAllWriteBits =
+      VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+      VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+      VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
 
  private:
   containers::unique_ptr<Buffer> CreateAndBindBuffer(

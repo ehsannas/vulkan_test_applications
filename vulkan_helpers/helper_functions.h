@@ -16,6 +16,8 @@
 #ifndef VULKAN_HELPERS_HELPER_FUNCTIONS_H_
 #define VULKAN_HELPERS_HELPER_FUNCTIONS_H_
 
+#include <tuple>
+
 #include "support/containers/vector.h"
 #include "support/entry/entry.h"
 #include "vulkan_wrapper/command_buffer_wrapper.h"
@@ -183,6 +185,17 @@ void SetImageLayout(::VkImage image,
                     VkImageLayout old_layout, VkAccessFlags src_access_mask,
                     VkImageLayout new_layout, VkAccessFlags dst_access_mask,
                     VkCommandBuffer* cmd_buffer, VkQueue* queue);
+
+// Returns a tuple of three uint_32 values: element size in bytes, texel block
+// width and height in pixel, for the given format. Returns a tuple with all
+// zero values if the given format is not recognized.
+std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
+    VkFormat format);
+
+// Returns the size of the given image extent specified through width, height,
+// depth and format. Returns 0 a valid size is not available, e.g. the given
+// format is not recognized.
+size_t GetImageExtentSizeInBytes(const VkExtent3D& extent, VkFormat format);
 
 // Runs the given call once with a nullptr value, and gets the numerical result.
 // Resizes the given array, and runs the call again to fill the array.
