@@ -349,9 +349,9 @@ class VulkanApplication {
       Image* img, const VkImageSubresourceLayers& image_subresource,
       const VkOffset3D& image_offset, const VkExtent3D& image_extent,
       VkImageLayout initial_img_layout, const containers::vector<char>& data,
-      const containers::vector<::VkSemaphore>& wait_semaphores,
-      const containers::vector<::VkSemaphore>& signal_semaphores,
-      ::VkFence fence);
+      VkCommandBuffer* command_buffer,
+      std::initializer_list<::VkSemaphore> wait_semaphores,
+      std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence);
 
   // Dump the data in the specific layers of the given image to the provided
   // vector. The operation will wait for the |wait_semaphores| to begin, signal
@@ -363,9 +363,9 @@ class VulkanApplication {
       Image* img, const VkImageSubresourceLayers& image_subresource,
       const VkOffset3D& image_offset, const VkExtent3D& image_extent,
       VkImageLayout initial_img_layout, containers::vector<char>* data,
-      const containers::vector<::VkSemaphore>& wait_semaphores,
-      const containers::vector<::VkSemaphore>& signal_semaphores,
-      ::VkFence fence);
+      VkCommandBuffer* command_buffer,
+      std::initializer_list<::VkSemaphore> wait_semaphores,
+      std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence);
 
   // Creates and returns a new CommandBuffer using the Applications default
   // VkCommandPool.
@@ -382,6 +382,7 @@ class VulkanApplication {
 
   // Returns the device that was created for this application.
   VkDevice& device() { return device_; }
+  VkInstance& instance() { return instance_; }
 
   VkPipelineCache& pipeline_cache() { return pipeline_cache_; }
 

@@ -584,7 +584,10 @@ void SetImageLayout(::VkImage image,
                     const VkImageSubresourceRange& subresource_range,
                     VkImageLayout old_layout, VkAccessFlags src_access_mask,
                     VkImageLayout new_layout, VkAccessFlags dst_access_mask,
-                    VkCommandBuffer* cmd_buffer, VkQueue* queue) {
+                    VkCommandBuffer* cmd_buffer, VkQueue* queue,
+                    std::initializer_list<::VkSemaphore> wait_semaphores,
+                    std::initializer_list<::VkSemaphore> signal_semaphores,
+                    ::VkFence fence, containers::Allocator* allocator) {
   ::VkCommandBuffer raw_cmd_buffer = cmd_buffer->get_command_buffer();
   // As we are changing the image memory layout, we should have a image memory
   // barrier.
@@ -631,20 +634,22 @@ void SetImageLayout(::VkImage image,
                              &image_memory_barrier  // pImageMemoryBarriers
                              );
   (*cmd_buffer)->vkEndCommandBuffer(*cmd_buffer);
+  containers::vector<::VkSemaphore> waits(wait_semaphores, allocator);
+  containers::vector<::VkSemaphore> signals(signal_semaphores, allocator);
+  const VkPipelineStageFlags wait_dst_stage_masks[1] = {
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
   VkSubmitInfo submit_info = {
-      VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
-      NULL,                           // pNext
-      0,                              // waitSemaphoreCount
-      NULL,                           // pWaitSemaphores
-      NULL,                           // pWaitDstStageMask
-      1,                              // commandBufferCount
-      &raw_cmd_buffer,                // pCommandBuffers
-      0,                              // signalSemaphoreCount
-      NULL,                           // pSignalSemaphores
+      VK_STRUCTURE_TYPE_SUBMIT_INFO,                   // sType
+      nullptr,                                         // pNext
+      uint32_t(waits.size()),                          // waitSemaphoreCount
+      waits.size() == 0 ? nullptr : waits.data(),      // pWaitSemaphores
+      wait_dst_stage_masks,                            // pWaitDstStageMask
+      1,                                               // commandBufferCount
+      &raw_cmd_buffer,                                 // pCommandBuffers
+      uint32_t(signals.size()),                        // signalSemaphoreCount
+      signals.size() == 0 ? nullptr : signals.data(),  // pSignalSemaphores
   };
-  VkFence null_fence = {VK_NULL_HANDLE};
-  (*queue)->vkQueueSubmit(*queue, 1, &submit_info, null_fence);
-  (*queue)->vkQueueWaitIdle(*queue);
+  (*queue)->vkQueueSubmit(*queue, 1, &submit_info, fence);
   return;
 }
 

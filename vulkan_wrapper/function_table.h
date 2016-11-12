@@ -147,7 +147,8 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindVertexBuffers),
         CONSTRUCT_LAZY_FUNCTION(vkCmdClearColorImage),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindIndexBuffer),
-        CONSTRUCT_LAZY_FUNCTION(vkCmdDraw)
+        CONSTRUCT_LAZY_FUNCTION(vkCmdDraw),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdBlitImage)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -171,6 +172,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdClearColorImage);
   LAZY_FUNCTION(vkCmdBindIndexBuffer);
   LAZY_FUNCTION(vkCmdDraw);
+  LAZY_FUNCTION(vkCmdBlitImage);
 #undef LAZY_FUNCTION
 };
 
@@ -267,7 +269,8 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCreateFence),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyFence),
         CONSTRUCT_LAZY_FUNCTION(vkWaitForFences),
-        CONSTRUCT_LAZY_FUNCTION(vkAcquireNextImageKHR)
+        CONSTRUCT_LAZY_FUNCTION(vkAcquireNextImageKHR),
+        CONSTRUCT_LAZY_FUNCTION(vkDeviceWaitIdle)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -348,6 +351,7 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkDestroyFence);
   LAZY_FUNCTION(vkWaitForFences);
   LAZY_FUNCTION(vkAcquireNextImageKHR);
+  LAZY_FUNCTION(vkDeviceWaitIdle);
 #undef LAZY_FUNCTION
 };
 

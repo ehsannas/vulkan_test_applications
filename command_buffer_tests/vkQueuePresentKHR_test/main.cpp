@@ -54,7 +54,9 @@ int main_entry(const entry::entry_data* data) {
         raw_image_to_present, {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
         VK_IMAGE_LAYOUT_UNDEFINED, reinterpret_cast<VkAccessFlags>(0u),
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT,
-        &cmd_buf, &app.present_queue());
+        &cmd_buf, &app.present_queue(), {}, {}, VK_NULL_HANDLE,
+        data->root_allocator);
+    app.present_queue()->vkQueueWaitIdle(app.present_queue());
 
     VkCommandBufferBeginInfo info{
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType
@@ -102,7 +104,10 @@ int main_entry(const entry::entry_data* data) {
         raw_image_to_present, {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT,
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, reinterpret_cast<VkAccessFlags>(0u),
-        &cmd_buf, &app.present_queue());
+        &cmd_buf, &app.present_queue(), {}, {}, VK_NULL_HANDLE,
+        data->root_allocator);
+    app.present_queue()->vkQueueWaitIdle(app.present_queue());
+
 
     // Call vkQueuePresentKHR()
     ::VkSwapchainKHR raw_swapchain = app.swapchain().get_raw_object();

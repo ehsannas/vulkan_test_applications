@@ -179,12 +179,17 @@ uint32_t inline GetMemoryIndex(VkDevice* device, logging::Logger* log,
 // Changes the layout of the given |image| with the specified
 // |subresource_range| from |old_layout| with access mask |src_access_mask| to
 // |new_layout| with access mask |dst_access_mask| through the given command
-// buffer |cmd_buffer| which will be submitted to the given |queue|.
+// buffer |cmd_buffer| which will be submitted to the given |queue|. The
+// execution will wait until the |wait_semaphores| signal to begin and signal
+// the |signal_semaphores| and |fence| once finished.
 void SetImageLayout(::VkImage image,
                     const VkImageSubresourceRange& subresource_range,
                     VkImageLayout old_layout, VkAccessFlags src_access_mask,
                     VkImageLayout new_layout, VkAccessFlags dst_access_mask,
-                    VkCommandBuffer* cmd_buffer, VkQueue* queue);
+                    VkCommandBuffer* cmd_buffer, VkQueue* queue,
+                    std::initializer_list<::VkSemaphore> wait_semaphores,
+                    std::initializer_list<::VkSemaphore> signal_semaphores,
+                    ::VkFence fence, containers::Allocator* allocator);
 
 // Returns a tuple of three uint_32 values: element size in bytes, texel block
 // width and height in pixel, for the given format. Returns a tuple with all
