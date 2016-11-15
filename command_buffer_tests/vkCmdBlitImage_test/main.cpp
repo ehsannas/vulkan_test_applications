@@ -115,7 +115,6 @@ int main_entry(const entry::entry_data* data) {
     // image. And the source image has only one layer and one mip level.
     vulkan::ImagePointer dst_image =
         application.CreateAndBindImage(&src_image_create_info);
-    data->log->LogInfo("dst image created");
     VkImageBlit region{
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
         {{0, 0, 0},
@@ -131,7 +130,6 @@ int main_entry(const entry::entry_data* data) {
     cmd_buf->vkCmdBlitImage(
         cmd_buf, *src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, *dst_image,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region, VK_FILTER_LINEAR);
-    data->log->LogInfo("CmdBlitImage() called");
     cmd_buf->vkEndCommandBuffer(cmd_buf);
 
     VkCommandBuffer raw_cmd_buf = cmd_buf.get_command_buffer();

@@ -42,10 +42,10 @@ IMAGE_BLIT = [
 
 
 @gapit_test("vkCmdBlitImage_test.apk")
-class BlitToSameColorImageWithLinearFiler(GapitTest):
+class BlitToSameColorImageWithLinearFilter(GapitTest):
 
     def expect(self):
-        """Check the arguments to vkCmdCopyImageToBuffer"""
+        """Check the arguments to vkCmdBlitImage"""
         architecture = require(self.next_call_of("architecture"))
         blit_image = require(self.nth_call_of("vkCmdBlitImage", 1))
 
