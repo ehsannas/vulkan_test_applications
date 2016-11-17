@@ -11,4 +11,5 @@ command buffers.
 - [SetViewportAndScissor_test](SetViewportAndScissor_test/README.md)
 - [vkCmdBindVertexBuffers_test](vkCmdBindVertexBuffers_test/README.md)
 - [vkCmdDraw_test](vkCmdDraw_test/README.md)
+- [vkCmdBlitImage_test](vkCmdBlitImage_test/README.md)
 - [vkCmdPushConstants_test](vkCmdPushConstants_test/README.md)

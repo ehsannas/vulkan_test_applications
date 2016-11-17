@@ -12,7 +12,7 @@ void vkCmdPushConstants(
 ```
 
 According to the Vulkan spec:
-- `commandBUffer` **must** be a valid `VkCommandBuffer` handle in recording
+- `commandBuffer` **must** be a valid `VkCommandBuffer` handle in recording
   state
 - `stageFlags` **must** be valid combination of `VkShaderStageFlagBits` values
   and **must not** be 0
