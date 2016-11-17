@@ -367,10 +367,17 @@ class VulkanApplication {
       std::initializer_list<::VkSemaphore> wait_semaphores,
       std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence);
 
-  // Creates and returns a new CommandBuffer using the Applications default
-  // VkCommandPool.
+  // Creates and returns a new primary level CommandBuffer using the
+  // Application's default VkCommandPool.
   VkCommandBuffer GetCommandBuffer() {
-    return CreateDefaultCommandBuffer(&command_pool_, &device_);
+    return CreateCommandBuffer(&command_pool_, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                               &device_);
+  }
+
+  // Creates and returns a new CommandBuffer with given command buffer level
+  // using the Application's default VkCommandPool
+  VkCommandBuffer GetCommandBuffer(VkCommandBufferLevel level) {
+    return CreateCommandBuffer(&command_pool_, level, &device_);
   }
 
   // Returns the Graphics and Compute queue for this application.

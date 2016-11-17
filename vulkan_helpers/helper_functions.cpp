@@ -321,11 +321,17 @@ VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
 
 VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
                                            VkDevice* device) {
+  return CreateCommandBuffer(pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, device);
+}
+
+VkCommandBuffer CreateCommandBuffer(VkCommandPool* pool,
+                                    VkCommandBufferLevel level,
+                                    VkDevice* device) {
   VkCommandBufferAllocateInfo info = {
       /* sType = */ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       /* pNext = */ nullptr,
       /* commandPool = */ pool->get_raw_object(),
-      /* level = */ VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      /* level = */ level,
       /* commandBufferCount = */ 1,
   };
   ::VkCommandBuffer raw_command_buffer;

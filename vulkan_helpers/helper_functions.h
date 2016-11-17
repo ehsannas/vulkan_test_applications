@@ -87,10 +87,16 @@ VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
                                   uint32_t* present_queue_index,
                                   uint32_t* graphics_queue_index);
 
-// Creates a default command buffer from the given command pool and the device
-// with primary level.
+// Creates a primary level default command buffer from the given command pool
+// and the device.
 VkCommandBuffer CreateDefaultCommandBuffer(VkCommandPool* pool,
                                            VkDevice* device);
+
+// Creates a command buffer from the given command pool, the given device with
+// the specified command buffer level.
+VkCommandBuffer CreateCommandBuffer(VkCommandPool* pool,
+                                    VkCommandBufferLevel level,
+                                    VkDevice* device);
 
 // Creates a swapchain with a default layout and number of images.
 // It will be able to be rendered to from graphics_queue_index,
