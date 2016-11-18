@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include "support/entry/entry.h"
 #include "support/log/log.h"
 #include "vulkan_helpers/helper_functions.h"
@@ -47,10 +49,13 @@ int main_entry(const entry::entry_data* data) {
 
   vulkan::ImagePointer src_image =
       application.CreateAndBindImage(&src_image_create_info);
-  containers::vector<char> image_data(
-      vulkan::GetImageExtentSizeInBytes(src_image_extent,
-                                        VK_FORMAT_R8G8B8A8_UNORM),
-      0xab, data->root_allocator);
+  size_t image_data_size = vulkan::GetImageExtentSizeInBytes(
+      src_image_extent, VK_FORMAT_R8G8B8A8_UNORM);
+  containers::vector<uint8_t> image_data(image_data_size, 0,
+                                         data->root_allocator);
+  for (size_t i = 0; i < image_data_size; i++) {
+    image_data[i] = i & 0xFF;
+  }
 
   // Create semaphores, one for image data filling, another for layout
   // transitioning.
@@ -113,8 +118,10 @@ int main_entry(const entry::entry_data* data) {
   {
     // 1. Blit to an image with exactly the same image create info as the source
     // image. And the source image has only one layer and one mip level.
+    VkImageCreateInfo dst_image_create_info = src_image_create_info;
+    dst_image_create_info.initialLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     vulkan::ImagePointer dst_image =
-        application.CreateAndBindImage(&src_image_create_info);
+        application.CreateAndBindImage(&dst_image_create_info);
     VkImageBlit region{
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
         {{0, 0, 0},
@@ -149,6 +156,23 @@ int main_entry(const entry::entry_data* data) {
         application.render_queue(), 1, &submit,
         static_cast<VkFence>(VK_NULL_HANDLE));
     application.render_queue()->vkQueueWaitIdle(application.render_queue());
+
+    // Dump the content of the destination image to check the result.
+    containers::vector<uint8_t> dump_data(data->root_allocator);
+    application.DumpImageLayersData(
+        dst_image.get(),
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},  // subresourcelayer
+        {0, 0, 0},                             // offset
+        src_image_extent,                      // extent
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,  // initial layout
+        &dump_data,                            // data
+        &cmd_buf,                              // command_buffer
+        {}                                     // wait_semaphores
+        );
+    LOG_ASSERT(==, data->log, image_data.size(), dump_data.size());
+    LOG_ASSERT(
+        ==, data->log, true,
+        std::equal(image_data.begin(), image_data.end(), dump_data.begin()));
   }
 
   data->log->LogInfo("Application Shutdown");

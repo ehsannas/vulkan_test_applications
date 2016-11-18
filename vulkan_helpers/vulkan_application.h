@@ -348,24 +348,23 @@ class VulkanApplication {
   bool FillImageLayersData(
       Image* img, const VkImageSubresourceLayers& image_subresource,
       const VkOffset3D& image_offset, const VkExtent3D& image_extent,
-      VkImageLayout initial_img_layout, const containers::vector<char>& data,
+      VkImageLayout initial_img_layout, const containers::vector<uint8_t>& data,
       VkCommandBuffer* command_buffer,
       std::initializer_list<::VkSemaphore> wait_semaphores,
       std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence);
 
   // Dump the data in the specific layers of the given image to the provided
-  // vector. The operation will wait for the |wait_semaphores| to begin, signal
-  // |signal_semaphores| and |fence| once finished. Returns true and changes
-  // the source image layout to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL if the
-  // operation is done successfully, otherwise returns false and keeps the
-  // layout unchanged.
+  // vector. The operation will wait for the |wait_semaphores| to begin and
+  // will wait until all the commands are executed then returns. This function
+  // returns true and changes the source image layout to
+  // VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL if the operation is done
+  // successfully, otherwise returns false and keeps the layout unchanged.
   bool DumpImageLayersData(
       Image* img, const VkImageSubresourceLayers& image_subresource,
       const VkOffset3D& image_offset, const VkExtent3D& image_extent,
-      VkImageLayout initial_img_layout, containers::vector<char>* data,
+      VkImageLayout initial_img_layout, containers::vector<uint8_t>* data,
       VkCommandBuffer* command_buffer,
-      std::initializer_list<::VkSemaphore> wait_semaphores,
-      std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence);
+      std::initializer_list<::VkSemaphore> wait_semaphores);
 
   // Creates and returns a new primary level CommandBuffer using the
   // Application's default VkCommandPool.

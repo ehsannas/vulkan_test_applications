@@ -278,7 +278,7 @@ VulkanApplication::CreateAndBindDeviceBuffer(
 bool VulkanApplication::FillImageLayersData(
     Image* img, const VkImageSubresourceLayers& image_subresource,
     const VkOffset3D& image_offset, const VkExtent3D& image_extent,
-    VkImageLayout initial_img_layout, const containers::vector<char>& data,
+    VkImageLayout initial_img_layout, const containers::vector<uint8_t>& data,
     VkCommandBuffer* command_buffer,
     std::initializer_list<::VkSemaphore> wait_semaphores,
     std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence) {
@@ -396,17 +396,15 @@ bool VulkanApplication::FillImageLayersData(
 bool VulkanApplication::DumpImageLayersData(
     Image* img, const VkImageSubresourceLayers& image_subresource,
     const VkOffset3D& image_offset, const VkExtent3D& image_extent,
-    VkImageLayout initial_img_layout, containers::vector<char>* data,
+    VkImageLayout initial_img_layout, containers::vector<uint8_t>* data,
     VkCommandBuffer* command_buffer,
-    std::initializer_list<::VkSemaphore> wait_semaphores,
-    std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence) {
+    std::initializer_list<::VkSemaphore> wait_semaphores) {
   if (!img) {
     log_->LogError("DumpImageLayersData(): The given *img is nullptr");
     return false;
   }
 
   containers::vector<::VkSemaphore> waits(wait_semaphores, allocator_);
-  containers::vector<::VkSemaphore> signals(signal_semaphores, allocator_);
   containers::vector<VkPipelineStageFlags> wait_dst_stage_masks(
       waits.size(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 
@@ -499,15 +497,18 @@ bool VulkanApplication::DumpImageLayersData(
                         : wait_dst_stage_masks.data(),  // pWaitDstStageMask
       1,                                                // commandBufferCount
       &raw_cmd_buf,                                     // pCommandBuffers
-      uint32_t(signals.size()),                         // signalSemaphoreCount
-      signals.size() == 0 ? nullptr : signals.data()    // pSignalSemaphores
+      0,                                                // signalSemaphoreCount
+      nullptr                                           // pSignalSemaphores
   };
-  (*render_queue_)->vkQueueSubmit(render_queue(), 1, &submit_info, fence);
-  // Get the data from buffer.
+  (*render_queue_)
+      ->vkQueueSubmit(render_queue(), 1, &submit_info,
+                      static_cast<VkFence>(VK_NULL_HANDLE));
+  (*render_queue_)->vkQueueWaitIdle(render_queue());
+  // Copy the data from the buffer to |data|.
   dst_buffer->invalidate();
   std::for_each(dst_buffer->base_address(),
                 dst_buffer->base_address() + image_size,
-                [&data](char c) { data->push_back(c); });
+                [&data](uint8_t c) { data->push_back(c); });
   return true;
 }
 
