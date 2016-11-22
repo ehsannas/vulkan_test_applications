@@ -615,10 +615,10 @@ void SetImageLayout(::VkImage image,
       0,         // pipelineStatistics
   };
   VkCommandBufferBeginInfo cmd_buffer_begin_info = {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType
-      .pNext = NULL,                                         // pNext
-      .flags = 0,                                            // flags
-      .pInheritanceInfo = &cmd_buffer_hinfo,                 // pInheritanceInfo
+      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType
+      NULL,                                         // pNext
+      0,                                            // flags
+      &cmd_buffer_hinfo,                            // pInheritanceInfo
   };
   (*cmd_buffer)->vkBeginCommandBuffer(*cmd_buffer, &cmd_buffer_begin_info);
   (*cmd_buffer)
