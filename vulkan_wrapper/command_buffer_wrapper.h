@@ -42,7 +42,9 @@ class VkCommandBuffer {
         functions_((*device)->command_buffer_functions()) {}
 
   ~VkCommandBuffer() {
-    (*destruction_function_)(device_, pool_, 1, &command_buffer_);
+    if (command_buffer_ != VK_NULL_HANDLE) {
+      (*destruction_function_)(device_, pool_, 1, &command_buffer_);
+    }
   }
 
   logging::Logger* GetLogger() { return log_; }
@@ -66,15 +68,3 @@ class VkCommandBuffer {
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_COMMAND_BUFFER_WRAPPER_H_
-
-
-
-
-
-
-
-
-
-
-
-

@@ -340,16 +340,19 @@ class VulkanApplication {
   containers::unique_ptr<Buffer> CreateAndBindDeviceBuffer(
       const VkBufferCreateInfo* create_info);
 
-  // Fill the specific layers of a image with the provided data. The operation
-  // will wait for the |wait_semaphores| to begin, signal |signal_semaphores|
-  // and |fence| once finished. It returns true and transitions the target
-  // image layout to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL if the operation is
-  // done successfully, otherwise returns false and keeps the layout unchanged.
-  bool FillImageLayersData(
+  // Creates a command buffer, appends commands to fill the given |data| to the
+  // specified |image| and submit the command buffer to application's render
+  // queue. If succeed, returns true and the command buffer. The operations
+  // recorded in the command buffer will wait until |wait_semaphores| signals.
+  // Once the operation is done, |signal_semaphores| and |fence| will be
+  // signaled. The target image layout will be changed to
+  // VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL. If the operation can not be done
+  // successfully, this method returns false and a command buffer wrapping
+  // VK_NULL_HANDLE, the layout of the image will not be changed.
+  std::tuple<bool, VkCommandBuffer> FillImageLayersData(
       Image* img, const VkImageSubresourceLayers& image_subresource,
       const VkOffset3D& image_offset, const VkExtent3D& image_extent,
       VkImageLayout initial_img_layout, const containers::vector<uint8_t>& data,
-      VkCommandBuffer* command_buffer,
       std::initializer_list<::VkSemaphore> wait_semaphores,
       std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence);
 
@@ -363,7 +366,6 @@ class VulkanApplication {
       Image* img, const VkImageSubresourceLayers& image_subresource,
       const VkOffset3D& image_offset, const VkExtent3D& image_extent,
       VkImageLayout initial_img_layout, containers::vector<uint8_t>* data,
-      VkCommandBuffer* command_buffer,
       std::initializer_list<::VkSemaphore> wait_semaphores);
 
   // Creates and returns a new primary level CommandBuffer using the

@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
+#include "vulkan_helpers/vulkan_application.h"
+
 #include <algorithm>
+#include <tuple>
 
 #include "support/containers/unordered_map.h"
 #include "vulkan_helpers/helper_functions.h"
-#include "vulkan_helpers/vulkan_application.h"
 
 namespace vulkan {
 
@@ -275,23 +277,25 @@ VulkanApplication::CreateAndBindDeviceBuffer(
   return CreateAndBindBuffer(device_only_buffer_heap_.get(), create_info);
 }
 
-bool VulkanApplication::FillImageLayersData(
+std::tuple<bool, VkCommandBuffer> VulkanApplication::FillImageLayersData(
     Image* img, const VkImageSubresourceLayers& image_subresource,
     const VkOffset3D& image_offset, const VkExtent3D& image_extent,
     VkImageLayout initial_img_layout, const containers::vector<uint8_t>& data,
-    VkCommandBuffer* command_buffer,
     std::initializer_list<::VkSemaphore> wait_semaphores,
     std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence) {
+  auto failure_return = std::make_tuple(
+      false, VkCommandBuffer(static_cast<::VkCommandBuffer>(VK_NULL_HANDLE),
+                             &command_pool_, &device_));
   if (!img) {
     log_->LogError("FillImageLayersData(): The given *img is nullptr");
-    return false;
+    return failure_return;
   }
   size_t image_size = GetImageExtentSizeInBytes(image_extent, img->format()) *
                       image_subresource.layerCount;
   if (data.size() < image_size) {
     log_->LogError(
         "FillImageLayersData(): Not Enough data to fill the image layers");
-    return false;
+    return failure_return;
   }
 
   containers::vector<::VkSemaphore> waits(wait_semaphores, allocator_);
@@ -315,9 +319,10 @@ bool VulkanApplication::FillImageLayersData(
   src_buffer->flush();
 
   // Get a command buffer and add commands/barriers to it.
+  VkCommandBuffer command_buffer = GetCommandBuffer();
   VkCommandBufferBeginInfo cmd_begin_info{
       VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr, 0, nullptr};
-  (*command_buffer)->vkBeginCommandBuffer(*command_buffer, &cmd_begin_info);
+  command_buffer->vkBeginCommandBuffer(command_buffer, &cmd_begin_info);
   // Add a buffer barrier so that the flushed memory becomes visible to the
   // device.
   VkBufferMemoryBarrier buffer_barrier{
@@ -348,35 +353,33 @@ bool VulkanApplication::FillImageLayersData(
           image_subresource.aspectMask, image_subresource.mipLevel, 1,
           image_subresource.baseArrayLayer, image_subresource.layerCount,
       }};
-  (*command_buffer)
-      ->vkCmdPipelineBarrier(*command_buffer, VK_PIPELINE_STAGE_HOST_BIT,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1,
-                             &buffer_barrier, 1, &image_barrier);
+  command_buffer->vkCmdPipelineBarrier(
+      command_buffer, VK_PIPELINE_STAGE_HOST_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &buffer_barrier, 1,
+      &image_barrier);
   // Copy data to the image.
   VkBufferImageCopy copy_info{
       0, 0, 0, image_subresource, image_offset, image_extent};
-  (*command_buffer)
-      ->vkCmdCopyBufferToImage(*command_buffer, *src_buffer, *img,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
-                               &copy_info);
+  command_buffer->vkCmdCopyBufferToImage(command_buffer, *src_buffer, *img,
+                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                         1, &copy_info);
   // Add a global barrier at the end to make sure the data written to the image
   // is available globally.
   VkMemoryBarrier end_barrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER, nullptr,
                               VK_ACCESS_TRANSFER_WRITE_BIT, kAllReadBits};
-  (*command_buffer)
-      ->vkCmdPipelineBarrier(
-          *command_buffer,
-          VK_PIPELINE_STAGE_TRANSFER_BIT,  // The data in image is produced at
-                                           // 'trasfer' stage
-          VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // The data should be available at
-                                              // the
-                                              // very begining for following
-                                              // commands.
-          0, 1, &end_barrier, 0, nullptr, 0, nullptr);
+  command_buffer->vkCmdPipelineBarrier(
+      command_buffer,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,     // The data in image is produced at
+                                          // 'trasfer' stage
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // The data should be available at
+                                          // the
+                                          // very begining for following
+                                          // commands.
+      0, 1, &end_barrier, 0, nullptr, 0, nullptr);
 
-  (*command_buffer)->vkEndCommandBuffer(*command_buffer);
+  command_buffer->vkEndCommandBuffer(command_buffer);
   // Submit the command buffer.
-  ::VkCommandBuffer raw_cmd_buf = command_buffer->get_command_buffer();
+  ::VkCommandBuffer raw_cmd_buf = command_buffer.get_command_buffer();
   VkSubmitInfo submit_info{
       VK_STRUCTURE_TYPE_SUBMIT_INFO,               // sType
       nullptr,                                     // pNext
@@ -390,14 +393,13 @@ bool VulkanApplication::FillImageLayersData(
       signals.size() == 0 ? nullptr : signals.data()    // pSignalSemaphores
   };
   (*render_queue_)->vkQueueSubmit(render_queue(), 1, &submit_info, fence);
-  return true;
+  return std::make_tuple(true, std::move(command_buffer));
 }
 
 bool VulkanApplication::DumpImageLayersData(
     Image* img, const VkImageSubresourceLayers& image_subresource,
     const VkOffset3D& image_offset, const VkExtent3D& image_extent,
     VkImageLayout initial_img_layout, containers::vector<uint8_t>* data,
-    VkCommandBuffer* command_buffer,
     std::initializer_list<::VkSemaphore> wait_semaphores) {
   if (!img) {
     log_->LogError("DumpImageLayersData(): The given *img is nullptr");
@@ -432,9 +434,10 @@ bool VulkanApplication::DumpImageLayersData(
   vulkan::BufferPointer dst_buffer = CreateAndBindHostBuffer(&buf_create_info);
 
   // Get a command buffer and add commands/barriers to it.
+  VkCommandBuffer command_buffer = GetCommandBuffer();
   VkCommandBufferBeginInfo cmd_begin_info{
       VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr, 0, nullptr};
-  (*command_buffer)->vkBeginCommandBuffer(*command_buffer, &cmd_begin_info);
+  command_buffer->vkBeginCommandBuffer(command_buffer, &cmd_begin_info);
 
   // Add a buffer barrier to set the access bit to transfer write.
   VkBufferMemoryBarrier buffer_barrier{
@@ -465,29 +468,27 @@ bool VulkanApplication::DumpImageLayersData(
           image_subresource.aspectMask, image_subresource.mipLevel, 1,
           image_subresource.baseArrayLayer, image_subresource.layerCount,
       }};
-  (*command_buffer)
-      ->vkCmdPipelineBarrier(*command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1,
-                             &buffer_barrier, 1, &image_barrier);
+  command_buffer->vkCmdPipelineBarrier(
+      command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &buffer_barrier, 1,
+      &image_barrier);
   // Copy data from the image.
   VkBufferImageCopy copy_info{
       0, 0, 0, image_subresource, image_offset, image_extent};
-  (*command_buffer)
-      ->vkCmdCopyImageToBuffer(*command_buffer, *img,
-                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                               *dst_buffer, 1, &copy_info);
+  command_buffer->vkCmdCopyImageToBuffer(command_buffer, *img,
+                                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                         *dst_buffer, 1, &copy_info);
 
   // Add a global barrier to make sure the data written to buffer is available
   // globally.
   VkMemoryBarrier end_barrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER, nullptr,
                               VK_ACCESS_TRANSFER_WRITE_BIT, kAllReadBits};
-  (*command_buffer)
-      ->vkCmdPipelineBarrier(*command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_HOST_BIT, 0, 1, &end_barrier, 0,
-                             nullptr, 0, nullptr);
-  (*command_buffer)->vkEndCommandBuffer(*command_buffer);
+  command_buffer->vkCmdPipelineBarrier(
+      command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_PIPELINE_STAGE_HOST_BIT, 0, 1, &end_barrier, 0, nullptr, 0, nullptr);
+  command_buffer->vkEndCommandBuffer(command_buffer);
   // Submit the command buffer.
-  ::VkCommandBuffer raw_cmd_buf = command_buffer->get_command_buffer();
+  ::VkCommandBuffer raw_cmd_buf = command_buffer.get_command_buffer();
   VkSubmitInfo submit_info{
       VK_STRUCTURE_TYPE_SUBMIT_INFO,               // sType
       nullptr,                                     // pNext

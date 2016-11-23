@@ -14,6 +14,7 @@
  */
 
 #include <algorithm>
+#include <tuple>
 
 #include "support/entry/entry.h"
 #include "support/log/log.h"
@@ -76,20 +77,23 @@ int main_entry(const entry::entry_data* data) {
   vulkan::VkSemaphore layout_transition_semaphore_wrapper(
       layout_transition_semaphore, nullptr, &application.device());
 
-  vulkan::VkCommandBuffer fill_image_data_cmd_buf =
-      application.GetCommandBuffer();
-  bool fill_result = application.FillImageLayersData(
-      src_image.get(),
-      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},   // subresourcelayer
-      {0, 0, 0},                              // offset
-      src_image_extent,                       // extent
-      VK_IMAGE_LAYOUT_UNDEFINED,              // initial layout
-      image_data,                             // data
-      &fill_image_data_cmd_buf,               // command_buffer
-      {},                                     // wait_semaphores
-      {image_fill_semaphore},                 // signal_semaphores
-      static_cast<::VkFence>(VK_NULL_HANDLE)  // fence
-      );
+  std::tuple<bool, vulkan::VkCommandBuffer> fill_result =
+      application.FillImageLayersData(
+          src_image.get(),
+          {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},   // subresourcelayer
+          {0, 0, 0},                              // offset
+          src_image_extent,                       // extent
+          VK_IMAGE_LAYOUT_UNDEFINED,              // initial layout
+          image_data,                             // data
+          {},                                     // wait_semaphores
+          {image_fill_semaphore},                 // signal_semaphores
+          static_cast<::VkFence>(VK_NULL_HANDLE)  // fence
+          );
+  bool fill_succeed = std::get<0>(fill_result);
+  // Before the all the image filling commands are executed, the command buffer
+  // must not be freed.
+  vulkan::VkCommandBuffer fill_image_cmd_buf(
+      std::move(std::get<1>(fill_result)));
 
   VkCommandBufferInheritanceInfo cmd_buf_hinfo{
       VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
@@ -166,7 +170,6 @@ int main_entry(const entry::entry_data* data) {
         src_image_extent,                      // extent
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,  // initial layout
         &dump_data,                            // data
-        &cmd_buf,                              // command_buffer
         {}                                     // wait_semaphores
         );
     LOG_ASSERT(==, data->log, image_data.size(), dump_data.size());
