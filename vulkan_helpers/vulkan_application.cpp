@@ -463,7 +463,7 @@ bool VulkanApplication::DumpImageLayersData(
       VK_QUEUE_FAMILY_IGNORED,
       VK_QUEUE_FAMILY_IGNORED,
       *img,
-      // subresource range, only deal one mip level
+      // subresource range, only deal with one mip level
       {
           image_subresource.aspectMask, image_subresource.mipLevel, 1,
           image_subresource.baseArrayLayer, image_subresource.layerCount,

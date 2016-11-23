@@ -150,7 +150,8 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdDraw),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBlitImage),
         CONSTRUCT_LAZY_FUNCTION(vkCmdPushConstants),
-        CONSTRUCT_LAZY_FUNCTION(vkCmdExecuteCommands)
+        CONSTRUCT_LAZY_FUNCTION(vkCmdExecuteCommands),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdResolveImage)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -177,6 +178,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdBlitImage);
   LAZY_FUNCTION(vkCmdPushConstants);
   LAZY_FUNCTION(vkCmdExecuteCommands);
+  LAZY_FUNCTION(vkCmdResolveImage);
 #undef LAZY_FUNCTION
 };
 

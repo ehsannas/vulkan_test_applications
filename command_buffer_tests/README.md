@@ -13,3 +13,4 @@ command buffers.
 - [vkCmdDraw_test](vkCmdDraw_test/README.md)
 - [vkCmdBlitImage_test](vkCmdBlitImage_test/README.md)
 - [vkCmdPushConstants_test](vkCmdPushConstants_test/README.md)
+- [vkCmdResolveImage_test](vkCmdResolveImage_test/README.md)
