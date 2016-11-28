@@ -124,9 +124,14 @@ int main_entry(const entry::entry_data* data) {
     // Dump the resolved image data
     containers::vector<uint8_t> dump_data(data->root_allocator);
     application.DumpImageLayersData(
-        dst_image.get(), {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1}, {0, 0, 0},
-        sample_image_extent, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &dump_data,
-        &cmd_buf, {});
+        dst_image.get(),
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},  // subresourceLayer
+        {0, 0, 0},                             // offset
+        sample_image_extent,                   // extent
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,  // initial layout
+        &dump_data,                            // data
+        {}                                     // wait_semaphores
+        );
     containers::vector<uint8_t> expected_data(32 * 32 * 4, 0.5 * 255,
                                               data->root_allocator);
     LOG_ASSERT(==, data->log, expected_data.size(), dump_data.size());
