@@ -39,7 +39,7 @@ IMAGE_RESOLVE = [
 
 
 @gapit_test("vkCmdResolveImage_test.apk")
-class BlitToSameColorImageWithLinearFilter(GapitTest):
+class ResolveFrom2DOptimalTiling4XMultiSampledColorImage(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdResolveImage"""
