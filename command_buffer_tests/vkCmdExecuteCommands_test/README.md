@@ -64,13 +64,13 @@ According to the Vulkan spec:
   been created, allocated, or retrieved from the same `VkDevice`
 
 These tests should test the following cases:
-- [ ] `pCommandBuffers` without `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT`
+- [x] `pCommandBuffers` without `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT`
 - [ ] `pCommandBuffers` with `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT`,
   i.e., used in multiple `VkCommandBuffer`
 - [ ] `vkCmdExecuteCommands` called within a render pass, i.e., created with
   `VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT`
-- [ ] `vkCmdExecuteCommands` called out of a render pass
-- [ ] `commandBuffer` with `VK_QUERY_TYPE_OCCLUSION` query inactive
+- [x] `vkCmdExecuteCommands` called out of a render pass
+- [x] `commandBuffer` with `VK_QUERY_TYPE_OCCLUSION` query inactive
 - [ ] `commandBuffer` with `VK_QUERY_TYPE_OCCLUSION` query active, i.e., each
   element of `pCommandBuffers` **must** have been recorded with
   `VkCommandBufferInheritanceInfo::queryFlags` having all bits set that are set
@@ -80,7 +80,7 @@ These tests should test the following cases:
   i.e., each element of `pCommandBuffers` **must** have been recorded with
   `VKCommandBufferInheritanceInfo::pipelineStatistics` having all bits set that
   are set in the `VkQueryPool` the query uses
-- [ ] `commandBuffer` and all elements of `pCommandBuffers` are allocated from
+- [x] `commandBuffer` and all elements of `pCommandBuffers` are allocated from
   the same `VkCommandPool`
 - [ ] `commandBuffer` and elements of `pCommandBuffers` are allocated from
   the different `VkCommandPool`s, but the pools are created from the same queue
