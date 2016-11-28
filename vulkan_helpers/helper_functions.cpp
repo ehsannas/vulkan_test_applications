@@ -586,6 +586,23 @@ VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
   return vulkan::VkDescriptorSet(raw_set, pool, device);
 }
 
+VkDeviceMemory AllocateDeviceMemory(VkDevice* device,
+                                    uint32_t memory_type_index,
+                                    ::VkDeviceSize size) {
+  const ::VkMemoryAllocateInfo alloc_info = {
+      /* sType = */ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      /* pNext = */ nullptr,
+      /* allocationSize = */ size,
+      /* memoryTypeIndex = */ memory_type_index,
+  };
+  ::VkDeviceMemory raw_memory;
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkAllocateMemory(*device, &alloc_info, nullptr, &raw_memory),
+      VK_SUCCESS);
+  return vulkan::VkDeviceMemory(raw_memory, nullptr, device);
+}
+
 void SetImageLayout(::VkImage image,
                     const VkImageSubresourceRange& subresource_range,
                     VkImageLayout old_layout, VkAccessFlags src_access_mask,

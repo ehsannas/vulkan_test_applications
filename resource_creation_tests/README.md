@@ -19,6 +19,7 @@ the creation and destruction of vulkan resources.
 - [SurfaceCreation_test](SurfaceCreation_test/README.md)
 - [SynchronizationCreationDestruction_test](SynchronizationCreationDestruction_test/README.md)
 - [vkCreateCommandPool](vkCreateCommandPool/README.md)
+- [vkCreateComputePipelines_test](vkCreateComputePipelines_test/README.md)
 - [vkCreateFramebuffer_test](vkCreateFramebuffer_test/README.md)
 - [vkCreateGraphicsPipelines_test](vkCreateGraphicsPipelines_test/README.md)
 - [vkCreatePipelineLayout_test](vkCreatePipelineLayout_test/README.md)

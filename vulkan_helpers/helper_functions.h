@@ -146,6 +146,30 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
 VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
                                       ::VkDescriptorSetLayout layout);
 
+// Allocates device memory of the given |size| from the given
+// |memory_type_index|.
+VkDeviceMemory AllocateDeviceMemory(VkDevice* device,
+                                    uint32_t memory_type_index,
+                                    ::VkDeviceSize size);
+
+// Creates a shader module out of the given SPIR-V |words|.
+template <unsigned size>
+VkShaderModule CreateShaderModule(VkDevice* device,
+                                  const uint32_t (&words)[size]) {
+  const ::VkShaderModuleCreateInfo create_info = {
+      /* sType = */ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ 0,
+      /* codeSize = */ 4 * size,
+      /* pCode = */ words,
+  };
+  ::VkShaderModule raw_shader_module;
+  LOG_ASSERT(==, device->GetLogger(), VK_SUCCESS,
+             (*device)->vkCreateShaderModule(*device, &create_info, nullptr,
+                                             &raw_shader_module));
+  return VkShaderModule(raw_shader_module, nullptr, device);
+}
+
 // Returns the first queue from the given family.
 VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
   ::VkQueue queue;

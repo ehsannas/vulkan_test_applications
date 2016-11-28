@@ -13,14 +13,10 @@
 # limitations under the License.
 #
 
-add_shader_library(shader_library
-  SOURCES
-    double_numbers.comp
-    hardcode_pos_triangle.frag
-    hardcode_pos_triangle.vert
-    simple_fragment.frag
-    simple_vertex.vert
-    test.vert
-    foo/test.frag
-    foo/test.glsl
+add_vulkan_executable(vkCreateComputePipelines_test
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+  SHADERS
+    shader_library
 )

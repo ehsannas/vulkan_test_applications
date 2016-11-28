@@ -148,6 +148,7 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdClearColorImage),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindIndexBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkCmdDraw),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdDispatch),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBlitImage),
         CONSTRUCT_LAZY_FUNCTION(vkCmdPushConstants),
         CONSTRUCT_LAZY_FUNCTION(vkCmdExecuteCommands),
@@ -175,6 +176,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdClearColorImage);
   LAZY_FUNCTION(vkCmdBindIndexBuffer);
   LAZY_FUNCTION(vkCmdDraw);
+  LAZY_FUNCTION(vkCmdDispatch);
   LAZY_FUNCTION(vkCmdBlitImage);
   LAZY_FUNCTION(vkCmdPushConstants);
   LAZY_FUNCTION(vkCmdExecuteCommands);
@@ -268,6 +270,7 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCreatePipelineLayout),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyPipelineLayout),
         CONSTRUCT_LAZY_FUNCTION(vkCreateGraphicsPipelines),
+        CONSTRUCT_LAZY_FUNCTION(vkCreateComputePipelines),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyPipeline),
         CONSTRUCT_LAZY_FUNCTION(vkAllocateDescriptorSets),
         CONSTRUCT_LAZY_FUNCTION(vkUpdateDescriptorSets),
@@ -349,6 +352,7 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkCreatePipelineLayout);
   LAZY_FUNCTION(vkDestroyPipelineLayout);
   LAZY_FUNCTION(vkCreateGraphicsPipelines);
+  LAZY_FUNCTION(vkCreateComputePipelines);
   LAZY_FUNCTION(vkDestroyPipeline);
   LAZY_FUNCTION(vkAllocateDescriptorSets);
   LAZY_FUNCTION(vkUpdateDescriptorSets);
