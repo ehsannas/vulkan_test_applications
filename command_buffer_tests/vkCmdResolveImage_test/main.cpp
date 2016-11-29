@@ -58,7 +58,7 @@ int main_entry(const entry::entry_data* data) {
     VkImageCreateInfo dst_image_create_info = sample_image_create_info;
     dst_image_create_info.initialLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     vulkan::ImagePointer dst_image =
-        application.CreateAndBindImage(&sample_image_create_info);
+        application.CreateAndBindImage(&dst_image_create_info);
     // Data in the multi-sampled source image
     VkClearColorValue clear_color{
         {0.5, 0.5, 0.5, 0.5}  // uint32[4]
