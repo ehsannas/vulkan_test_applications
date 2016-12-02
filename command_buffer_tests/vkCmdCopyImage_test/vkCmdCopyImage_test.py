@@ -39,7 +39,7 @@ IMAGE_COPY = [
 
 
 @gapit_test("vkCmdCopyImage_test.apk")
-class CopyToSameColorImageOneLayer(GapitTest):
+class CopyWholeColorImageToSameColorImageOneLayer(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdCopyImage"""
@@ -77,4 +77,47 @@ class CopyToSameColorImageOneLayer(GapitTest):
         require_equal(0, image_copy.dstOffset_z)
         require_equal(32, image_copy.extent_x)
         require_equal(32, image_copy.extent_y)
+        require_equal(1, image_copy.extent_z)
+
+
+
+@gapit_test("vkCmdCopyImage_test.apk")
+class CopyCompressedImageRegionToCompatibleImageRegion(GapitTest):
+
+    def expect(self):
+        """Check the arguments to vkCmdCopyImage"""
+        architecture = require(self.next_call_of("architecture"))
+        copy_image = require(self.nth_call_of("vkCmdCopyImage", 2))
+
+        require_not_equal(0, copy_image.int_CommandBuffer)
+        require_not_equal(0, copy_image.int_SrcImage)
+        require_equal(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                      copy_image.int_SrcImageLayout)
+        require_not_equal(0, copy_image.int_DstImage)
+        require_equal(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                      copy_image.int_DstImageLayout)
+        require_equal(1, copy_image.int_RegionCount)
+
+        image_copy = VulkanStruct(architecture, IMAGE_COPY,
+                                  get_read_offset_function(
+                                      copy_image, copy_image.hex_PRegions))
+
+        require_equal(VK_IMAGE_ASPECT_COLOR_BIT,
+                      image_copy.srcSubresource_aspectMask)
+        require_equal(0, image_copy.srcSubresource_mipLevel)
+        require_equal(0, image_copy.srcSubresource_baseArrayLayer)
+        require_equal(1, image_copy.srcSubresource_layerCount)
+        require_equal(8, image_copy.srcOffset_x)
+        require_equal(12, image_copy.srcOffset_y)
+        require_equal(0, image_copy.srcOffset_z)
+        require_equal(VK_IMAGE_ASPECT_COLOR_BIT,
+                      image_copy.dstSubresource_aspectMask)
+        require_equal(0, image_copy.dstSubresource_mipLevel)
+        require_equal(0, image_copy.dstSubresource_baseArrayLayer)
+        require_equal(1, image_copy.dstSubresource_layerCount)
+        require_equal(16, image_copy.dstOffset_x)
+        require_equal(16, image_copy.dstOffset_y)
+        require_equal(0, image_copy.dstOffset_z)
+        require_equal(16, image_copy.extent_x)
+        require_equal(12, image_copy.extent_y)
         require_equal(1, image_copy.extent_z)

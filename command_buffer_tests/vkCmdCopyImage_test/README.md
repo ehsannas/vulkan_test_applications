@@ -83,12 +83,16 @@ These tests should test the following cases:
 - [x] `regionCount` of value 1
 - [ ] `regionCount` of value more than 1
 - [x] `srcOffset` of value 0
-- [ ] `srcOffset` of value other than 0
+- [x] `srcOffset` of value other than 0
 - [x] `dstOffset` of value 0
-- [ ] `dstOffset` of value other than 0
+- [x] `dstOffset` of value other than 0
 - [x] `mipLevel` of value 0
 - [ ] `mipLevel` of value other than 0
 - [x] `baseArrayLayer` of value 0
 - [ ] `baseArrayLayer` of value other than 0
 - [x] `layerCount` of value 1
 - [ ] `layerCount` of value more than 1
+- [x] Copy uncompressed image
+- [ ] Copy compressed image
+- [x] Copy from uncompressed image to compressed image
+- [ ] Copy from compressed image to uncompressed image
