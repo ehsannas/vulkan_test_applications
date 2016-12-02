@@ -179,11 +179,11 @@ int main_entry(const entry::entry_data* data) {
   }
 
   {
-    // 2. Copy a region of an R32G32B32A32 2D color image, with only 1 layer, 1
+    // 2. Copy a region of an BC2 2D color image, with only 1 layer, 1
     // miplevel, to a different region of another 2D image created with same
     // dimensions but in BC3 format.
     VkImageCreateInfo src_image_create_info = sample_image_create_info;
-    src_image_create_info.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    src_image_create_info.format = VK_FORMAT_BC2_UNORM_BLOCK;
     vulkan::ImagePointer src_image =
         application.CreateAndBindImage(&src_image_create_info);
     VkImageCreateInfo dst_image_create_info = sample_image_create_info;
@@ -216,7 +216,7 @@ int main_entry(const entry::entry_data* data) {
     // to the destination image.
     const VkExtent3D copy_extent{16, 12, 1};
     size_t copy_image_data_size = vulkan::GetImageExtentSizeInBytes(
-        copy_extent, VK_FORMAT_R32G32B32A32_SFLOAT);
+        copy_extent, src_image_create_info.format);
     containers::vector<uint8_t> copy_image_data(copy_image_data_size, 0,
                                                 data->root_allocator);
     for (size_t i = 0; i < copy_image_data_size; i++) {

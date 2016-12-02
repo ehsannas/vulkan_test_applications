@@ -708,6 +708,7 @@ std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
     case VK_FORMAT_R16G16B16A16_SFLOAT:
       return std::make_tuple(8, 1, 1);
     case VK_FORMAT_R32G32B32A32_SFLOAT:
+    case VK_FORMAT_R32G32B32A32_UINT:
       return std::make_tuple(16, 1, 1);
     default:
       break;

@@ -78,6 +78,15 @@ According to the Vulkan spec:
   in the calling command's `srcImage`
 - The `aspectMask` member of `dstSubresource` **must** specify aspects present
   in the calling command's `dstImage`
+- When copying between **compressed** and **uncompressed** formats the `extent`
+  members represent the texel dimensions of the source image and **not** the
+  destination.  When copying from a **compressed** image to an **uncompressed**
+  image the image texel dimensions written to the uncompressed image will be
+  source extent **divided by the compressed texel block dimensions**. When
+  copying from an uncompressed image to a compressed image the image texel
+  dimensions written to the compressed image will be the source extent
+  **multiplied by the compressed texel block dimensions**. In both cases the
+  number of bytes read and the number of bytes written will be identical.
 
 These tests should test the following cases:
 - [x] `regionCount` of value 1
@@ -92,7 +101,7 @@ These tests should test the following cases:
 - [ ] `baseArrayLayer` of value other than 0
 - [x] `layerCount` of value 1
 - [ ] `layerCount` of value more than 1
-- [x] Copy uncompressed image
-- [ ] Copy compressed image
-- [x] Copy from uncompressed image to compressed image
+- [x] Copy from/to uncompressed image
+- [x] Copy from/to compressed image
+- [ ] Copy from uncompressed image to compressed image
 - [ ] Copy from compressed image to uncompressed image
