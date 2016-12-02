@@ -31,7 +31,16 @@ namespace vulkan {
 // scope.
 class VkCommandBuffer {
  public:
-  VkCommandBuffer(VkCommandBuffer&& other) = default;
+  VkCommandBuffer(VkCommandBuffer&& other)
+      : command_buffer_(other.command_buffer_),
+        pool_(other.pool_),
+        device_(other.device_),
+        log_(other.log_),
+        destruction_function_(other.destruction_function_),
+        functions_(other.functions_) {
+    other.command_buffer_ = static_cast<::VkCommandBuffer>(VK_NULL_HANDLE);
+  }
+
   VkCommandBuffer(::VkCommandBuffer command_buffer, VkCommandPool* pool,
                   VkDevice* device)
       : command_buffer_(command_buffer),
