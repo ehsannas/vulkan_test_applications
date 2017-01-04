@@ -199,7 +199,7 @@ class Atom(object):
         if mem is not None:
             return (mem, '')
         else:
-            return (None, 'Could not find a read observation starting at ',
+            return (None, 'Could not find a write observation starting at ',
                     str(address), ' containing ', str(num_bytes), ' bytes')
 
     def get_write_string(self, address):
@@ -370,7 +370,7 @@ def parse_trace_file(filename):
         filename is the name of the trace file to read
     '''
     proc = subprocess.Popen(
-        ['gapit', 'dump', '-observations', '-raw-values', filename],
+        ['gapit', 'dump', '-observations', '-raw', filename],
         stdout=subprocess.PIPE)
 
     # This parsing routine is basically a state machine
@@ -392,7 +392,12 @@ def parse_trace_file(filename):
     line = proc.stdout.readline()
     while line != '':
         if current_state == FIRST_LINE:
-            current_state = NEW_ATOM
+            # Only atom lines starts with an index number, and the first atom
+            # always has index value 0, so the string starts with '0' is the
+            # first atom line.
+            if line.startswith('0'):
+                current_state = NEW_ATOM
+                continue
         elif current_state == NEW_ATOM:
             if atom:
                 yield atom
