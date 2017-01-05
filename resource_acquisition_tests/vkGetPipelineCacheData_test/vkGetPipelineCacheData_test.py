@@ -42,22 +42,13 @@ class GetDataOfAnEmptyPipelineCache(GapitTest):
 
         get_cache_data_with_null_pdata = require(
             self.nth_call_of("vkGetPipelineCacheData", 1))
-        read_data_size = VulkanStruct(
-            architecture, DATA_SIZE,
-            get_read_offset_function(get_cache_data_with_null_pdata,
-                                     get_cache_data_with_null_pdata.hex_PDataSize))
         write_data_size = VulkanStruct(
             architecture, DATA_SIZE,
             get_write_offset_function(get_cache_data_with_null_pdata,
                                       get_cache_data_with_null_pdata.hex_PDataSize))
-        require_equal(0, read_data_size.dataSize)
         # The pipeline cache data size must be at least as large as its header size
         require_true(16 + VK_UUID_SIZE <= write_data_size.dataSize)
 
-        print "First atom read observation",
-        get_cache_data_with_null_pdata.get_read_data(get_cache_data_with_null_pdata.hex_PDataSize, 4)
-        print "First atom write observation",
-        get_cache_data_with_null_pdata.get_write_data(get_cache_data_with_null_pdata.hex_PDataSize, 4)
         get_cache_data_with_not_null_pdata = require(
             self.next_call_of("vkGetPipelineCacheData"))
         # Check the header
@@ -91,15 +82,10 @@ class GetPipelineCacheDataOfAGraphicsPipeline(GapitTest):
 
         get_cache_data_with_null_pdata = require(
             self.nth_call_of("vkGetPipelineCacheData", 3))
-        read_data_size = VulkanStruct(
-            architecture, DATA_SIZE,
-            get_read_offset_function(get_cache_data_with_null_pdata,
-                                     get_cache_data_with_null_pdata.hex_PDataSize))
         write_data_size = VulkanStruct(
             architecture, DATA_SIZE,
             get_write_offset_function(get_cache_data_with_null_pdata,
                                       get_cache_data_with_null_pdata.hex_PDataSize))
-        require_equal(0, read_data_size.dataSize)
         # The pipeline cache data size must be at least as large as its header size
         require_true(16 + VK_UUID_SIZE <= write_data_size.dataSize)
 

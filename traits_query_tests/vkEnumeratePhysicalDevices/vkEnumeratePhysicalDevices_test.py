@@ -38,10 +38,6 @@ class EnumeratePhysicalDevices(GapitTest):
         # TODO(qining): Uncomment this once drivers handle it correctly
         #  require_equal(VK_INCOMPLETE, int(get_count.return_val))
 
-        physical_device_count_before_call = require(get_count.get_read_data(
-            get_count.hex_PPhysicalDeviceCount, architecture.int_IntegerSize))
-        require_equal(
-            0, little_endian_bytes_to_int(physical_device_count_before_call))
         physical_device_count_after_call = require(get_count.get_write_data(
             get_count.hex_PPhysicalDeviceCount, architecture.int_IntegerSize))
         physical_device_count = little_endian_bytes_to_int(
@@ -72,11 +68,6 @@ class EnumeratePhysicalDevices(GapitTest):
         require_not_equal(0, one_less_count.hex_PPhysicalDeviceCount)
         require_not_equal(0, one_less_count.hex_PPhysicalDevices)
         require_equal(VK_INCOMPLETE, int(one_less_count.return_val))
-        physical_device_count_before_call = require(one_less_count.get_read_data(
-            one_less_count.hex_PPhysicalDeviceCount, architecture.int_IntegerSize))
-        require_equal(
-            physical_device_count - 1,
-            little_endian_bytes_to_int(physical_device_count_before_call))
 
         # The fourth call is made with non-NULL pPhysicalDevices, while the physical
         # device count is zero. Command should return with VK_INCOMPLETE

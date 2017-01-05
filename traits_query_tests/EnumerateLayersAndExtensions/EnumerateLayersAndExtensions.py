@@ -11,7 +11,7 @@
 
 from gapit_test_framework import gapit_test, require, require_equal
 from gapit_test_framework import require_not_equal, little_endian_bytes_to_int
-from gapit_test_framework import GapitTest, get_read_offset_function
+from gapit_test_framework import GapitTest
 from gapit_test_framework import get_write_offset_function
 import gapit_test_framework
 from struct_offsets import VulkanStruct, POINTER, ARRAY, CHAR, UINT32_T
