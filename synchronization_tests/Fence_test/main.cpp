@@ -43,6 +43,9 @@ int main_entry(const entry::entry_data* data) {
 
     LOG_ASSERT(==, data->log.get(), VK_SUCCESS,
                device->vkWaitForFences(device, 1, &fence, VK_FALSE, 10000));
+    LOG_ASSERT(==, data->log.get(), VK_SUCCESS,
+               device->vkResetFences(device, 1, &fence));
+
     device->vkDestroyFence(device, fence, nullptr);
   }
 

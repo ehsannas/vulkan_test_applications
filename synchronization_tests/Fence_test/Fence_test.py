@@ -31,6 +31,7 @@ class CreateDestroyWaitTest(GapitTest):
         architecture = require(self.next_call_of("architecture"))
         create_fence = require(self.nth_call_of("vkCreateFence", 1))
         wait_for_fences = require(self.next_call_of("vkWaitForFences"))
+        reset_fences = require(self.next_call_of("vkResetFences"))
         destroy_fence = require(self.next_call_of("vkDestroyFence"))
 
         require_not_equal(0, create_fence.int_Device)
@@ -39,17 +40,17 @@ class CreateDestroyWaitTest(GapitTest):
         require_not_equal(0, create_fence.hex_PFence)
 
         create_info = VulkanStruct(architecture,
-            FENCE_CREATE_INFO, get_read_offset_function(
-                create_fence, create_fence.hex_PCreateInfo))
+                                   FENCE_CREATE_INFO, get_read_offset_function(
+                                   create_fence, create_fence.hex_PCreateInfo))
 
         require_equal(VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, create_info.sType)
         require_equal(0, create_info.pNext)
         require_equal(0, create_info.flags)
 
         returned_fence = little_endian_bytes_to_int(
-                require(
-                    create_fence.get_write_data(
-                        create_fence.hex_PFence, NON_DISPATCHABLE_HANDLE_SIZE)))
+            require(
+                create_fence.get_write_data(
+                    create_fence.hex_PFence, NON_DISPATCHABLE_HANDLE_SIZE)))
         require_not_equal(0, returned_fence)
 
         require_equal(create_fence.int_Device, wait_for_fences.int_Device)
@@ -64,6 +65,17 @@ class CreateDestroyWaitTest(GapitTest):
                     wait_for_fences.hex_PFences, NON_DISPATCHABLE_HANDLE_SIZE
                 )))
         require_equal(waited_for_fence, returned_fence)
+
+        require_equal(create_fence.int_Device, reset_fences.int_Device)
+        require_equal(1, reset_fences.int_FenceCount)
+        require_equal(create_fence.int_Device, reset_fences.int_Device)
+
+        reset_fence = little_endian_bytes_to_int(
+            require(
+                reset_fences.get_read_data(
+                    wait_for_fences.hex_PFences, NON_DISPATCHABLE_HANDLE_SIZE
+                )))
+        require_equal(returned_fence, reset_fence)
 
         require_equal(create_fence.int_Device, destroy_fence.int_Device)
         require_equal(returned_fence, destroy_fence.int_Fence)

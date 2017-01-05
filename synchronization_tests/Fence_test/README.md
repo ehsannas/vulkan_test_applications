@@ -17,6 +17,10 @@ VkResult vkWaitForFences(
     const VkFence*                              pFences,
     VkBool32                                    waitAll,
     uint64_t                                    timeout);
+VkResult vkResetFences(
+    VkDevice                                    device,
+    uint32_t                                    fenceCount,
+    const VkFence*                              pFences);
 ```
 
 # VkFenceCreateInfo
@@ -43,3 +47,5 @@ These tests should test the following cases:
 - [ ] `fenceCount` > 1
 - [x] `VkDestroyFence.fence` == Valid Fence
 - [x] `VkDestroyFence.fence` == `VK_NULL_HANDLE`
+- [x] `vkResetFence.fenceCount == 1`
+- [ ] `vkResetFence.fenceCount > 1`

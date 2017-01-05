@@ -284,6 +284,7 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkFreeDescriptorSets),
         CONSTRUCT_LAZY_FUNCTION(vkCreateFence),
         CONSTRUCT_LAZY_FUNCTION(vkDestroyFence),
+        CONSTRUCT_LAZY_FUNCTION(vkResetFences),
         CONSTRUCT_LAZY_FUNCTION(vkWaitForFences),
         CONSTRUCT_LAZY_FUNCTION(vkAcquireNextImageKHR),
         CONSTRUCT_LAZY_FUNCTION(vkDeviceWaitIdle)
@@ -368,6 +369,7 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkCreateFence);
   LAZY_FUNCTION(vkDestroyFence);
   LAZY_FUNCTION(vkWaitForFences);
+  LAZY_FUNCTION(vkResetFences);
   LAZY_FUNCTION(vkAcquireNextImageKHR);
   LAZY_FUNCTION(vkDeviceWaitIdle);
 #undef LAZY_FUNCTION
