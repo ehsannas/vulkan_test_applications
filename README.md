@@ -30,6 +30,7 @@ cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DANDROID
 
 # Tests
 - [command_buffer](command_buffer_tests/README.md)
+- [extensions](extension_tests/README.md)
 - [initialization](initialization_tests/README.md)
 - [resource acquisition](resource_acquisition_tests/README.md)
 - [resource binding](resource_binding_tests/README.md)

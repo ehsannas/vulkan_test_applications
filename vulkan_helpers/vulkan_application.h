@@ -323,6 +323,7 @@ class VulkanApplication {
   //  One for device-only images.
   VulkanApplication(containers::Allocator* allocator, logging::Logger* log,
                     const entry::entry_data* entry_data,
+                    const std::initializer_list<const char*> extensions = {},
                     uint32_t host_buffer_size = 1024 * 128,
                     uint32_t device_image_size = 1024 * 128,
                     uint32_t device_buffer_size = 1024 * 128);
@@ -497,7 +498,7 @@ class VulkanApplication {
 
   // Intended to be called by the constructor to create the device, since
   // VkDevice does not have a default constructor.
-  VkDevice CreateDevice();
+  VkDevice CreateDevice(const std::initializer_list<const char*> extensions);
 
   containers::Allocator* allocator_;
   logging::Logger* log_;

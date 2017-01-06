@@ -190,10 +190,11 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
                           &properties, physical_device);
 }
 
-VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
-                                  VkInstance* instance, VkSurfaceKHR* surface,
-                                  uint32_t* present_queue_index,
-                                  uint32_t* graphics_queue_index) {
+VkDevice CreateDeviceForSwapchain(
+    containers::Allocator* allocator, VkInstance* instance,
+    VkSurfaceKHR* surface, uint32_t* present_queue_index,
+    uint32_t* graphics_queue_index,
+    const std::initializer_list<const char*> extensions) {
   containers::vector<VkPhysicalDevice> physical_devices =
       GetPhysicalDevices(allocator, *instance);
   float priority = 1.f;
@@ -203,6 +204,29 @@ VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
     VkPhysicalDeviceProperties physical_device_properties;
     (*instance)->vkGetPhysicalDeviceProperties(device,
                                                &physical_device_properties);
+
+    containers::vector<VkExtensionProperties> available_extensions(allocator);
+    uint32_t num_extensions = 0;
+    (*instance)->vkEnumerateDeviceExtensionProperties(device, nullptr,
+                                                      &num_extensions, nullptr);
+
+    available_extensions.resize(num_extensions);
+    (*instance)->vkEnumerateDeviceExtensionProperties(
+        device, nullptr, &num_extensions, available_extensions.data());
+
+    bool valid_extensions = true;
+    for (auto ext : extensions) {
+      if (std::find_if(available_extensions.begin(), available_extensions.end(),
+                       [&](const VkExtensionProperties& dat) {
+                         return strcmp(ext, dat.extensionName) == 0;
+                       }) == available_extensions.end()) {
+        valid_extensions = false;
+        break;
+      }
+    }
+    if (!valid_extensions) {
+      continue;
+    }
 
     auto properties = GetQueueFamilyProperties(allocator, *instance, device);
     const uint32_t graphics_queue_family_index =
@@ -240,7 +264,14 @@ VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
          /* pQueuePriorities = */ &priority},
     };
 
-    const char* enabled_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    const char* forced_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    containers::vector<const char*> enabled_extensions(allocator);
+    for (auto ext : forced_extensions) {
+      enabled_extensions.push_back(ext);
+    }
+    for (auto ext : extensions) {
+      enabled_extensions.push_back(ext);
+    }
 
     VkDeviceCreateInfo info{
         VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // stype
@@ -249,13 +280,13 @@ VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
         (present_queue_family_index !=
          ((unsigned int)graphics_queue_family_index))
             ? 2u
-            : 1u,            // queueCreateInfoCount
-        queue_infos,         // pQueueCreateInfos
-        0,                   // enabledLayerCount
-        nullptr,             // ppEnabledLayerNames
-        1,                   // enabledExtensionCount
-        enabled_extensions,  // ppEnabledExtensionNames
-        nullptr              // ppEnabledFeatures
+            : 1u,                   // queueCreateInfoCount
+        queue_infos,                // pQueueCreateInfos
+        0,                          // enabledLayerCount
+        nullptr,                    // ppEnabledLayerNames
+        enabled_extensions.size(),  // enabledExtensionCount
+        enabled_extensions.data(),  // ppEnabledExtensionNames
+        nullptr                     // ppEnabledFeatures
     };
 
     ::VkDevice raw_device;
@@ -263,13 +294,23 @@ VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
                (*instance)->vkCreateDevice(physical_device, &info, nullptr,
                                            &raw_device),
                VK_SUCCESS);
+
+    instance->GetLogger()->LogInfo("Enabled Device Extensions: ");
+    for (auto& extension : enabled_extensions) {
+      instance->GetLogger()->LogInfo("    ", extension);
+    }
+
     *present_queue_index = present_queue_family_index;
     *graphics_queue_index = graphics_queue_family_index;
     return vulkan::VkDevice(allocator, raw_device, nullptr, instance,
                             &physical_device_properties, physical_device);
   }
-  LOG_CRASH(instance->GetLogger(),
-            "Could not find physical device or queue that can present");
+  instance->GetLogger()->LogError(
+      "Could not find physical device or queue that can present");
+
+  VkPhysicalDeviceProperties throwaway_properties;
+  return vulkan::VkDevice(allocator, VK_NULL_HANDLE, nullptr, instance,
+                          &throwaway_properties, VK_NULL_HANDLE);
 }
 
 VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
@@ -282,11 +323,13 @@ VkCommandPool CreateDefaultCommandPool(containers::Allocator* allocator,
       /* queueFamilyIndex = */ 0,
   };
 
-  ::VkCommandPool raw_command_pool;
-  LOG_ASSERT(
-      ==, device.GetLogger(),
-      device->vkCreateCommandPool(device, &info, nullptr, &raw_command_pool),
-      VK_SUCCESS);
+  ::VkCommandPool raw_command_pool = VK_NULL_HANDLE;
+  if (device.is_valid()) {
+    LOG_ASSERT(
+        ==, device.GetLogger(),
+        device->vkCreateCommandPool(device, &info, nullptr, &raw_command_pool),
+        VK_SUCCESS);
+  }
   return vulkan::VkCommandPool(raw_command_pool, nullptr, &device);
 }
 
@@ -335,9 +378,10 @@ VkCommandBuffer CreateCommandBuffer(VkCommandPool* pool,
       /* commandBufferCount = */ 1,
   };
   ::VkCommandBuffer raw_command_buffer;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateCommandBuffers(
-                                          *device, &info, &raw_command_buffer),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkAllocateCommandBuffers(*device, &info, &raw_command_buffer),
+      VK_SUCCESS);
   return vulkan::VkCommandBuffer(raw_command_buffer, pool, device);
 }
 
@@ -346,85 +390,91 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
                                       containers::Allocator* allocator,
                                       uint32_t present_queue_index,
                                       uint32_t graphics_queue_index) {
-  const bool has_multiple_queues = present_queue_index != graphics_queue_index;
-  const uint32_t queues[2] = {graphics_queue_index, present_queue_index};
-  VkSurfaceCapabilitiesKHR surface_caps;
-  LOG_ASSERT(==, instance->GetLogger(),
-             (*instance)->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-                 device->physical_device(), *surface, &surface_caps),
-             VK_SUCCESS);
+  ::VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+  VkExtent2D image_extent = {0, 0};
+  containers::vector<VkSurfaceFormatKHR> surface_formats(1, allocator);
 
-  uint32_t num_formats = 0;
-  LOG_ASSERT(==, instance->GetLogger(),
-             (*instance)->vkGetPhysicalDeviceSurfaceFormatsKHR(
-                 device->physical_device(), *surface, &num_formats, nullptr),
-             VK_SUCCESS);
+  if (device->is_valid()) {
+    const bool has_multiple_queues =
+        present_queue_index != graphics_queue_index;
+    const uint32_t queues[2] = {graphics_queue_index, present_queue_index};
+    VkSurfaceCapabilitiesKHR surface_caps;
+    LOG_ASSERT(==, instance->GetLogger(),
+               (*instance)->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+                   device->physical_device(), *surface, &surface_caps),
+               VK_SUCCESS);
 
-  containers::vector<VkSurfaceFormatKHR> surface_formats(num_formats,
-                                                         allocator);
-  LOG_ASSERT(==, instance->GetLogger(),
-             (*instance)->vkGetPhysicalDeviceSurfaceFormatsKHR(
-                 device->physical_device(), *surface, &num_formats,
-                 surface_formats.data()),
-             VK_SUCCESS);
+    uint32_t num_formats = 0;
+    LOG_ASSERT(==, instance->GetLogger(),
+               (*instance)->vkGetPhysicalDeviceSurfaceFormatsKHR(
+                   device->physical_device(), *surface, &num_formats, nullptr),
+               VK_SUCCESS);
 
-  uint32_t num_present_modes = 0;
-  LOG_ASSERT(
-      ==, instance->GetLogger(),
-      (*instance)->vkGetPhysicalDeviceSurfacePresentModesKHR(
-          device->physical_device(), *surface, &num_present_modes, nullptr),
-      VK_SUCCESS);
-  containers::vector<VkPresentModeKHR> present_modes(num_present_modes,
-                                                     allocator);
-  LOG_ASSERT(==, instance->GetLogger(),
-             (*instance)->vkGetPhysicalDeviceSurfacePresentModesKHR(
-                 device->physical_device(), *surface, &num_present_modes,
-                 present_modes.data()),
-             VK_SUCCESS);
+    surface_formats.resize(num_formats);
+    LOG_ASSERT(==, instance->GetLogger(),
+               (*instance)->vkGetPhysicalDeviceSurfaceFormatsKHR(
+                   device->physical_device(), *surface, &num_formats,
+                   surface_formats.data()),
+               VK_SUCCESS);
 
-  uint32_t chosenAlpha =
-      static_cast<uint32_t>(surface_caps.supportedCompositeAlpha);
-  LOG_ASSERT(!=, instance->GetLogger(), 0,
-             surface_caps.supportedCompositeAlpha);
+    uint32_t num_present_modes = 0;
+    LOG_ASSERT(
+        ==, instance->GetLogger(),
+        (*instance)->vkGetPhysicalDeviceSurfacePresentModesKHR(
+            device->physical_device(), *surface, &num_present_modes, nullptr),
+        VK_SUCCESS);
+    containers::vector<VkPresentModeKHR> present_modes(num_present_modes,
+                                                       allocator);
+    LOG_ASSERT(==, instance->GetLogger(),
+               (*instance)->vkGetPhysicalDeviceSurfacePresentModesKHR(
+                   device->physical_device(), *surface, &num_present_modes,
+                   present_modes.data()),
+               VK_SUCCESS);
 
-  // Time to get the LSB of chosenAlpha;
+    uint32_t chosenAlpha =
+        static_cast<uint32_t>(surface_caps.supportedCompositeAlpha);
+    LOG_ASSERT(!=, instance->GetLogger(), 0,
+               surface_caps.supportedCompositeAlpha);
 
-  chosenAlpha = GetLSB(chosenAlpha);
+    // Time to get the LSB of chosenAlpha;
 
-  VkExtent2D image_extent(surface_caps.currentExtent);
-  if (image_extent.width == 0xFFFFFFFF) {
-    image_extent = VkExtent2D{100, 100};
+    chosenAlpha = GetLSB(chosenAlpha);
+
+    image_extent = surface_caps.currentExtent;
+    if (image_extent.width == 0xFFFFFFFF) {
+      image_extent = VkExtent2D{100, 100};
+    }
+
+    VkSwapchainCreateInfoKHR swapchainCreateInfo{
+        VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,  // sType
+        nullptr,                                      // pNext
+        0,                                            // flags
+        *surface,                                     // surface
+        std::min(surface_caps.minImageCount + 1,
+                 surface_caps.maxImageCount),  // minImageCount
+        surface_formats[0].format,             // surfaceFormat
+        surface_formats[0].colorSpace,         // colorSpace
+        image_extent,                          // imageExtent
+        1,                                     // imageArrayLayers
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,   // imageUsage
+        has_multiple_queues ? VK_SHARING_MODE_CONCURRENT
+                            : VK_SHARING_MODE_EXCLUSIVE,  // sharingMode
+        has_multiple_queues ? 2u : 0u,
+        has_multiple_queues ? queues : nullptr,  // pQueueFamilyIndices
+        surface_caps.currentTransform,           // preTransform,
+        static_cast<VkCompositeAlphaFlagBitsKHR>(
+            chosenAlpha),       // compositeAlpha
+        present_modes.front(),  // presentModes
+        false,                  // clipped
+        VK_NULL_HANDLE          // oldSwapchain
+    };
+
+    LOG_ASSERT(==, instance->GetLogger(),
+               (*device)->vkCreateSwapchainKHR(*device, &swapchainCreateInfo,
+                                               nullptr, &swapchain),
+               VK_SUCCESS);
   }
 
-  VkSwapchainCreateInfoKHR swapchainCreateInfo{
-      VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,  // sType
-      nullptr,                                      // pNext
-      0,                                            // flags
-      *surface,                                     // surface
-      std::min(surface_caps.minImageCount + 1,
-               surface_caps.maxImageCount),  // minImageCount
-      surface_formats[0].format,             // surfaceFormat
-      surface_formats[0].colorSpace,         // colorSpace
-      image_extent,                          // imageExtent
-      1,                                     // imageArrayLayers
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,   // imageUsage
-      has_multiple_queues ? VK_SHARING_MODE_CONCURRENT
-                          : VK_SHARING_MODE_EXCLUSIVE,  // sharingMode
-      has_multiple_queues ? 2u : 0u,
-      has_multiple_queues ? queues : nullptr,  // pQueueFamilyIndices
-      surface_caps.currentTransform,           // preTransform,
-      static_cast<VkCompositeAlphaFlagBitsKHR>(chosenAlpha),  // compositeAlpha
-      present_modes.front(),                                  // presentModes
-      false,                                                  // clipped
-      VK_NULL_HANDLE                                          // oldSwapchain
-  };
-
-  ::VkSwapchainKHR swapchain;
-
-  LOG_ASSERT(==, instance->GetLogger(),
-             (*device)->vkCreateSwapchainKHR(*device, &swapchainCreateInfo,
-                                             nullptr, &swapchain),
-             VK_SUCCESS);
   return VkSwapchainKHR(swapchain, nullptr, device, image_extent.width,
                         image_extent.height, 1u, surface_formats[0].format);
 }
@@ -512,7 +562,7 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(
 
 // Creates a default pipeline cache, it does not load anything from disk.
 VkPipelineCache CreateDefaultPipelineCache(VkDevice* device) {
-  ::VkPipelineCache cache;
+  ::VkPipelineCache cache = VK_NULL_HANDLE;
 
   VkPipelineCacheCreateInfo create_info{
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // sType
@@ -521,9 +571,11 @@ VkPipelineCache CreateDefaultPipelineCache(VkDevice* device) {
       0,                                             // initialDataSize
       nullptr                                        // pInitialData
   };
-  LOG_ASSERT(
-      ==, device->GetLogger(), VK_SUCCESS,
-      (*device)->vkCreatePipelineCache(*device, &create_info, nullptr, &cache));
+  if (device->is_valid()) {
+    LOG_ASSERT(==, device->GetLogger(), VK_SUCCESS,
+               (*device)->vkCreatePipelineCache(*device, &create_info, nullptr,
+                                                &cache));
+  }
   return VkPipelineCache(cache, nullptr, device);
 }
 
@@ -539,9 +591,10 @@ VkDescriptorPool CreateDescriptorPool(VkDevice* device, uint32_t num_pool_size,
       /* pPoolSizes = */ pool_sizes};
 
   ::VkDescriptorPool raw_pool;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorPool(
-                                          *device, &info, nullptr, &raw_pool),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkCreateDescriptorPool(*device, &info, nullptr, &raw_pool),
+      VK_SUCCESS);
   return vulkan::VkDescriptorPool(raw_pool, nullptr, device);
 }
 
@@ -564,8 +617,9 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
   };
 
   ::VkDescriptorSetLayout raw_layout;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorSetLayout(
-                                          *device, &info, nullptr, &raw_layout),
+  LOG_ASSERT(==, device->GetLogger(),
+             (*device)->vkCreateDescriptorSetLayout(*device, &info, nullptr,
+                                                    &raw_layout),
              VK_SUCCESS);
   return vulkan::VkDescriptorSetLayout(raw_layout, nullptr, device);
 }
@@ -580,9 +634,10 @@ VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
       /* pSetLayouts = */ &layout,
   };
   ::VkDescriptorSet raw_set;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateDescriptorSets(
-                                          *device, &alloc_info, &raw_set),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkAllocateDescriptorSets(*device, &alloc_info, &raw_set),
+      VK_SUCCESS);
   return vulkan::VkDescriptorSet(raw_set, pool, device);
 }
 

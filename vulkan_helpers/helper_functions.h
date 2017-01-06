@@ -80,12 +80,15 @@ VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
                                   const entry::entry_data* entry_data);
 
 // Creates a device capable of presenting to the given surface.
+// The device is created with the given extensions.
+// If the given extensions do not exist, an invalid device is returned.
 // Returns the queue indices for the present and graphics queues.
 // Note: They may be the same or different.
-VkDevice CreateDeviceForSwapchain(containers::Allocator* allocator,
-                                  VkInstance* instance, VkSurfaceKHR* surface,
-                                  uint32_t* present_queue_index,
-                                  uint32_t* graphics_queue_index);
+VkDevice CreateDeviceForSwapchain(
+    containers::Allocator* allocator, VkInstance* instance,
+    VkSurfaceKHR* surface, uint32_t* present_queue_index,
+    uint32_t* graphics_queue_index,
+    const std::initializer_list<const char*> extensions = {});
 
 // Creates a primary level default command buffer from the given command pool
 // and the device.
@@ -196,8 +199,8 @@ uint32_t inline GetMemoryIndex(VkDevice* device, logging::Logger* log,
       continue;
     }
 
-    if (!(properties.memoryTypes[memory_index].propertyFlags &
-          required_property_flags)) {
+    if ((properties.memoryTypes[memory_index].propertyFlags &
+         required_property_flags) != required_property_flags) {
       continue;
     }
     break;

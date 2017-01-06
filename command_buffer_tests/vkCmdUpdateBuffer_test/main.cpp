@@ -23,7 +23,7 @@ int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
 
   vulkan::VulkanApplication application(data->root_allocator, data->log.get(),
-                                        data, 1024 * 100, 1024 * 100,
+                                        data, {}, 1024 * 100, 1024 * 100,
                                         1024 * 100);
   {
     // Update a buffer with size 65536 bytes and 0 offset.

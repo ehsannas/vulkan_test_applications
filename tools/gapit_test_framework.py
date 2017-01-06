@@ -32,12 +32,20 @@ from gapit_trace_reader import parse_trace_file, NamedAttributeError
 SUCCESS = 0
 FAILURE = 1
 WARNING = 2
+SKIPPED = 3
 
 PIXEL_C = {"vendor_id": 0x10DE, "device_id": 0x92BA03D7}
 
 
 class GapitTestException(Exception):
+
     """Base test exception"""
+    pass
+
+
+class GapidUnsupportedException(GapitTestException):
+
+    """Unsupported test exception"""
     pass
 
 
@@ -47,7 +55,7 @@ def get_read_offset_function(atom, pointer):
 
     def function(offset, size):
         return little_endian_bytes_to_int(
-            require(atom.get_read_data(pointer + offset, size)))
+            require(atom.get_read_data(pointer + offset, size), 3))
 
     return function
 
@@ -58,7 +66,7 @@ def get_write_offset_function(atom, pointer):
 
     def function(offset, size):
         return little_endian_bytes_to_int(
-            require(atom.get_write_data(pointer + offset, size)))
+            require(atom.get_write_data(pointer + offset, size), 3))
 
     return function
 
@@ -74,39 +82,44 @@ def little_endian_bytes_to_int(val):
     return total
 
 
-def require(val):
+def require(val, stack_depth=0):
     '''Takes a tuple (Object, String).
 
     If Object is None, throws an exception with the string and fails the test,
-    otherwise, prints nothing and returns the Object
+    otherwise, prints nothing and returns the Object. stack_depth is the
+    stack_frame to display, where 0 is the callee of this function.
     '''
     if val[0] is not None:
         return val[0]
     else:
-        call_site = traceback.format_list(traceback.extract_stack(limit=2))
+        call_site = traceback.format_list(
+            traceback.extract_stack(limit=2 + stack_depth))
         raise GapitTestException(val[1] + "\n" + call_site[0])
 
 
-def require_true(val):
+def require_true(val, stack_depth=0):
     """Takes a value. If that value is not true, throws an exception with an
     error message"""
     if val:
         return
-    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    call_site = traceback.format_list(
+        traceback.extract_stack(limit=2 + stack_depth))
     raise GapitTestException("Expected:" + str(val) + "to be true\n" +
                              call_site[0])
 
 
-def require_false(val):
+def require_false(val, stack_depth=0):
     """Takes a value. If that value is true, throws an exception with an
     error message"""
     if not val:
         return
-    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    call_site = traceback.format_list(
+        traceback.extract_stack(limit=2 + stack_depth))
     raise GapitTestException("Expected:" + str(val) + "to be false\n" +
                              call_site[0])
 
-def require_equal(param, val):
+
+def require_equal(param, val, stack_depth=0):
     """Takes 2 values. If they are equal, does nothing, otherwise
     throws an exception with an error message"""
     # For floating point numbers, we do equivalence check like other types.
@@ -119,32 +132,36 @@ def require_equal(param, val):
 
     if type(val)(param) == val:
         return
-    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    call_site = traceback.format_list(
+        traceback.extract_stack(limit=2 + stack_depth))
     raise GapitTestException("Expected:" + str(param) + "==" + str(val) + "\n" +
                              call_site[0])
 
 
-def require_not_equal(param, val):
+def require_not_equal(param, val, stack_depth=0):
     """Takes 2 values. If they are not equal, does nothing, otherwise
     throws an exception with an error message"""
     if type(val)(param) != val:
         return
-    call_site = traceback.format_list(traceback.extract_stack(limit=2))
+    call_site = traceback.format_list(
+        traceback.extract_stack(limit=2 + stack_depth))
     raise GapitTestException("Expected:" + str(param) + "==" + str(val) + "\n" +
                              call_site[0])
 
 
-def require_not(val):
+def require_not(val, stack_depth=0):
     '''Takes a tuple (Object, String). If Object is not None, throws an
     exception stating that we expected this to not exist. Otherwise does
     nothing'''
     if val[0] is not None:
-        call_site = traceback.format_list(traceback.extract_stack(limit=2))
+        call_site = traceback.format_list(
+            traceback.extract_stack(limit=2 + stack_depth))
         raise GapitTestException("Found element we were not expecting\n" +
                                  call_site[0])
 
 
 class GapitTest(object):
+
     '''Base class for all Gapit tests.
 
     This is responsible for tracing our application as well as processing the
@@ -277,6 +294,10 @@ class GapitTest(object):
         print "[ " + "RUN".ljust(10) + " ] " + test_name
         try:
             getattr(self, "expect")()
+        except GapidUnsupportedException as error:
+            print "[ " + "SKIPPED".rjust(10) + " ] " + test_name
+            print "     " + error.message
+            return (SKIPPED, error.message)
         except GapitTestException as error:
             print "[ " + "FAILED".rjust(10) + " ] " + test_name
             print "     " + error.message
@@ -317,6 +338,7 @@ def gapit_test(gapit_test_apk_name):
 
 
 class TestManager(object):
+
     """Manages and runs all requested tests."""
 
     def __init__(self, root_directory, verbose):
@@ -329,6 +351,7 @@ class TestManager(object):
         self.number_of_tests_run = 0
         self.failed_tests = []
         self.warned_tests = []
+        self.skipped_tests = []
 
     def gather_all_tests(self, include_regex, exclude_regex):
         '''Finds all classes in all python files that contain the attribute
@@ -399,18 +422,26 @@ class TestManager(object):
             self.failed_tests.append((test_name, result[1]))
         if result[0] == WARNING:
             self.warned_tests.append(test_name)
+        if result[0] == SKIPPED:
+            self.skipped_tests.append(test_name)
 
     def print_summary_and_return_code(self):
         '''Prints a summary of the test results. Returns 0 if every test
         was successful and -1 if any test failed.
         Warnings do not count as failure, but are printed out in the summary.'''
-        print "Total Tests Run: " + str(self.number_of_tests_run)
+        print "Total Tests Run: " + str(self.number_of_tests_run -
+                                        len(self.skipped_tests))
         print("Total Tests Passed: " +
-              str(self.number_of_tests_run - len(self.failed_tests)))
+              str(self.number_of_tests_run - len(self.failed_tests) -
+                  len(self.skipped_tests)))
         if self.warned_tests:
             print "Total Test Warnings: " + str(len(self.warned_tests))
         for warning in self.warned_tests:
             print "[ " + "WARNING".rjust(10) + " ] " + warning
+        if self.skipped_tests:
+            print "Total Skipped Tests: " + str(len(self.skipped_tests))
+        for skipped in self.skipped_tests:
+            print "[ " + "SKIPPED".rjust(10) + " ] " + skipped
         for failure in self.failed_tests:
             print "[ " + "FAILED".rjust(10) + " ] " + failure[0]
             print "     " + failure[1]
