@@ -308,6 +308,17 @@ struct BufferTraits {
 };
 using VkBuffer = VkSubObject<BufferTraits, DeviceTraits>;
 
+struct BufferViewTraits {
+  using type = ::VkBufferView;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyBufferView>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyBufferView;
+  }
+};
+using VkBufferView = VkSubObject<BufferViewTraits, DeviceTraits>;
+
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_
