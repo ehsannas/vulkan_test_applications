@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(vkCreateCommandBuffer_tests
+add_vulkan_executable(CreateDestroyCommandPool_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers
