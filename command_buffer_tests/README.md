@@ -18,6 +18,7 @@ command buffers.
 - [vkCmdCopyImage_test](vkCmdCopyImage_test/README.md)
 - [vkCmdDraw_test](vkCmdDraw_test/README.md)
 - [vkCmdExecuteCommands_test](vkCmdExecuteCommands_test/README.md)
+- [vkCmdFillBuffer_test](vkCmdFillBuffer_test/README.md)
 - [vkCmdPushConstants_test](vkCmdPushConstants_test/README.md)
 - [vkCmdResolveImage_test](vkCmdResolveImage_test/README.md)
 - [vkCmdUpdateBuffer_test](vkCmdUpdateBuffer_test/README.md)
