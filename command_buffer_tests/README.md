@@ -15,6 +15,7 @@ command buffers.
 - [vkCmdBlitImage_test](vkCmdBlitImage_test/README.md)
 - [vkCmdClearAttachments_test](vkCmdClearAttachments_test/README.md)
 - [vkCmdClearColorImage_test](vkCmdClearColorImage_test/README.md)
+- [vkCmdClearDepthStencilImage_test](vkCmdClearDepthStencilImage_test/README.md)
 - [vkCmdCopyImage_test](vkCmdCopyImage_test/README.md)
 - [vkCmdDraw_test](vkCmdDraw_test/README.md)
 - [vkCmdExecuteCommands_test](vkCmdExecuteCommands_test/README.md)

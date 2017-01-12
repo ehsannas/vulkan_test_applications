@@ -146,6 +146,7 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindDescriptorSets),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindVertexBuffers),
         CONSTRUCT_LAZY_FUNCTION(vkCmdClearColorImage),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdClearDepthStencilImage),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindIndexBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkCmdDraw),
         CONSTRUCT_LAZY_FUNCTION(vkCmdDispatch),
@@ -178,6 +179,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdBindDescriptorSets);
   LAZY_FUNCTION(vkCmdBindVertexBuffers);
   LAZY_FUNCTION(vkCmdClearColorImage);
+  LAZY_FUNCTION(vkCmdClearDepthStencilImage);
   LAZY_FUNCTION(vkCmdBindIndexBuffer);
   LAZY_FUNCTION(vkCmdDraw);
   LAZY_FUNCTION(vkCmdDispatch);
