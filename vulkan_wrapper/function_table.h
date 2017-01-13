@@ -140,6 +140,7 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdBeginRenderPass),
         CONSTRUCT_LAZY_FUNCTION(vkCmdEndRenderPass),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBindPipeline),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdSetDepthBias),
         CONSTRUCT_LAZY_FUNCTION(vkCmdSetScissor),
         CONSTRUCT_LAZY_FUNCTION(vkCmdSetViewport),
         CONSTRUCT_LAZY_FUNCTION(vkCmdCopyBuffer),
@@ -173,6 +174,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdBeginRenderPass);
   LAZY_FUNCTION(vkCmdEndRenderPass);
   LAZY_FUNCTION(vkCmdBindPipeline);
+  LAZY_FUNCTION(vkCmdSetDepthBias);
   LAZY_FUNCTION(vkCmdSetScissor);
   LAZY_FUNCTION(vkCmdSetViewport);
   LAZY_FUNCTION(vkCmdCopyBuffer);

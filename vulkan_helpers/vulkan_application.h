@@ -112,6 +112,9 @@ class VulkanGraphicsPipeline {
   // for that attachment.
   void AddAttachment();
 
+  // Adds a dynamic state to this pipeline.
+  void AddDynamicState(VkDynamicState dynamic_state);
+
   // Adds a vertex input stream to this pipeline, with the given
   // bindings.
   void AddInputStream(uint32_t stride, VkVertexInputRate input_rate,

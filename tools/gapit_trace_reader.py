@@ -98,8 +98,8 @@ class Extra(object):
     def __getattr__(self, name):
         """Returns parameters that were on this extra.
 
-        Based on the prefix (hex_, int_, <none>) we convert the parameter
-        from a string with the given formatting.
+        Based on the prefix (hex_, int_, float_, <none>) we convert the
+        parameter from a string with the given formatting.
         """
 
         if name.startswith('hex_') or name.startswith('int_'):
@@ -108,6 +108,10 @@ class Extra(object):
                     return int(self.parameters[name[4:]], 16)
                 elif name.startswith('int_'):
                     return int(self.parameters[name[4:]])
+
+        if name.startswith('float_'):
+            if name[6:] in self.parameters:
+                return float(self.parameters[name[6:]])
 
         if name in self.parameters:
             return self.parameters[name]
@@ -133,8 +137,8 @@ class Atom(object):
     def __getattr__(self, name):
         """Returns parameters that were on this atom.
 
-        Based on the prefix (hex_, int_, <none>) we convert the parameter
-        from a string with the given formatting.
+        Based on the prefix (hex_, int_, float_, <none>) we convert the
+        parameter from a string with the given formatting.
         """
 
         if name.startswith('hex_') or name.startswith('int_'):
@@ -143,6 +147,10 @@ class Atom(object):
                     return int(self.parameters[name[4:]], 16)
                 elif name.startswith('int_'):
                     return int(self.parameters[name[4:]])
+
+        if name.startswith('float_'):
+            if name[6:] in self.parameters:
+                return float(self.parameters[name[6:]])
 
         if name in self.parameters:
             return self.parameters[name]
@@ -269,7 +277,7 @@ def parse_atom_line(line):
     command = match.group(2)
 
     all_parameters = match.group(3)
-    parameters = re.findall(r'([a-zA-Z]*): ([a-zA-Z0-9]*)', all_parameters)
+    parameters = re.findall(r'([a-zA-Z]*): ([a-zA-Z0-9\.]*)', all_parameters)
 
     return_val = None
     if match.group(4):

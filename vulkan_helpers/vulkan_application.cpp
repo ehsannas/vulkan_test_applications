@@ -885,6 +885,10 @@ void VulkanGraphicsPipeline::AddAttachment() {
            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT});
 }
 
+void VulkanGraphicsPipeline::AddDynamicState(VkDynamicState dynamic_state) {
+  dynamic_states_.push_back(dynamic_state);
+}
+
 void VulkanGraphicsPipeline::AddInputStream(
     uint32_t stride, VkVertexInputRate input_rate,
     std::initializer_list<InputStream> inputs) {
