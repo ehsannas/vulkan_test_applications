@@ -319,6 +319,17 @@ struct BufferViewTraits {
 };
 using VkBufferView = VkSubObject<BufferViewTraits, DeviceTraits>;
 
+struct QueryPoolTraits {
+  using type = ::VkQueryPool;
+  using destruction_function_pointer_type =
+    LazyDeviceFunction<PFN_vkDestroyQueryPool>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyQueryPool;
+  }
+};
+using VkQueryPool = VkSubObject<QueryPoolTraits, DeviceTraits>;
+
 }  // namespace vulkan
 
 #endif  // VULKAN_WRAPPER_SUB_OBJECTS_H_
