@@ -664,6 +664,17 @@ VkPipelineCache CreateDefaultPipelineCache(VkDevice* device) {
   return VkPipelineCache(cache, nullptr, device);
 }
 
+VkQueryPool CreateQueryPool(VkDevice* device,
+                            const VkQueryPoolCreateInfo& create_info) {
+  ::VkQueryPool query_pool = VK_NULL_HANDLE;
+  if (device->is_valid()) {
+    LOG_ASSERT(==, device->GetLogger(), VK_SUCCESS,
+               (*device)->vkCreateQueryPool(*device, &create_info, nullptr,
+                                            &query_pool));
+  }
+  return VkQueryPool(query_pool, nullptr, device);
+}
+
 VkDescriptorPool CreateDescriptorPool(VkDevice* device, uint32_t num_pool_size,
                                       const VkDescriptorPoolSize* pool_sizes,
                                       uint32_t max_sets) {

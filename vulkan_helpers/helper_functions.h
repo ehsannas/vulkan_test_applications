@@ -184,6 +184,12 @@ VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
 // Creates a default pipeline cache, it does not load anything from disk.
 VkPipelineCache CreateDefaultPipelineCache(VkDevice* device);
 
+// Creates a query pool with the given query pool create info from the given
+// device if the given device is valid. Otherwise returns a query pool with
+// VK_NULL_HANDLE inside.
+VkQueryPool CreateQueryPool(VkDevice* device,
+                            const VkQueryPoolCreateInfo& create_info);
+
 // Given a bitmask of required_index_bits and a bitmask of
 // VkMemoryPropertyFlags, return the first memory index
 // from the given device that supports the required_property_flags.
