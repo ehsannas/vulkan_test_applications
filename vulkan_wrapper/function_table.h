@@ -159,7 +159,9 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdClearAttachments),
         CONSTRUCT_LAZY_FUNCTION(vkCmdUpdateBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkCmdFillBuffer),
-        CONSTRUCT_LAZY_FUNCTION(vkCmdResetQueryPool)
+        CONSTRUCT_LAZY_FUNCTION(vkCmdResetQueryPool),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdBeginQuery),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdEndQuery)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -195,6 +197,8 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdUpdateBuffer);
   LAZY_FUNCTION(vkCmdFillBuffer);
   LAZY_FUNCTION(vkCmdResetQueryPool);
+  LAZY_FUNCTION(vkCmdBeginQuery);
+  LAZY_FUNCTION(vkCmdEndQuery);
 #undef LAZY_FUNCTION
 };
 

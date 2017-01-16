@@ -1,5 +1,6 @@
 add_subdirectory(BeginAndEndCommandBuffer_test)
 add_subdirectory(BeginAndEndRenderPass_test)
+add_subdirectory(BeginAndEndQuery_test)
 add_subdirectory(BufferImageCopy_test)
 add_subdirectory(QueueSubmitAndWait_test)
 add_subdirectory(vkQueuePresentKHR_test)
