@@ -44,7 +44,7 @@ int main_entry(const entry::entry_data* data) {
     vulkan::VkRenderPass render_pass = app.CreateRenderPass(
         {{
             0,                                         // flags
-            VK_FORMAT_R8G8B8A8_UNORM,                  // format
+            app.swapchain().format(),                  // format
             VK_SAMPLE_COUNT_1_BIT,                     // samples
             VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // loadOp
             VK_ATTACHMENT_STORE_OP_STORE,              // storeOp
