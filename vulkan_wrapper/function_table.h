@@ -303,7 +303,8 @@ class DeviceFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkAcquireNextImageKHR),
         CONSTRUCT_LAZY_FUNCTION(vkDeviceWaitIdle),
         CONSTRUCT_LAZY_FUNCTION(vkCreateQueryPool),
-        CONSTRUCT_LAZY_FUNCTION(vkDestroyQueryPool)
+        CONSTRUCT_LAZY_FUNCTION(vkDestroyQueryPool),
+        CONSTRUCT_LAZY_FUNCTION(vkGetQueryPoolResults)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -392,6 +393,7 @@ class DeviceFunctions {
   LAZY_FUNCTION(vkDeviceWaitIdle);
   LAZY_FUNCTION(vkCreateQueryPool);
   LAZY_FUNCTION(vkDestroyQueryPool);
+  LAZY_FUNCTION(vkGetQueryPoolResults);
 #undef LAZY_FUNCTION
 };
 
