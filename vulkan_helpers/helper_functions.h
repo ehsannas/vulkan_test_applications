@@ -88,7 +88,8 @@ VkDevice CreateDeviceForSwapchain(
     containers::Allocator* allocator, VkInstance* instance,
     VkSurfaceKHR* surface, uint32_t* present_queue_index,
     uint32_t* graphics_queue_index,
-    const std::initializer_list<const char*> extensions = {});
+    const std::initializer_list<const char*> extensions = {},
+    const VkPhysicalDeviceFeatures& features = {0});
 
 // Creates a primary level default command buffer from the given command pool
 // and the device.
@@ -234,6 +235,15 @@ std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
 // depth and format. Returns 0 a valid size is not available, e.g. the given
 // format is not recognized.
 size_t GetImageExtentSizeInBytes(const VkExtent3D& extent, VkFormat format);
+
+// Returns true if all the request features are supported by the given physical
+// device, otherwise returns false. The supported features are returned from
+// Vulkan command vkGetPhysicalDeviceFeatures, the command is resolved by the
+// given instance.
+bool SupportRequestPhysicalDeviceFeatures(
+    VkInstance* instance,
+    VkPhysicalDevice physical_device,
+    const VkPhysicalDeviceFeatures& request_features);
 
 // Runs the given call once with a nullptr value, and gets the numerical result.
 // Resizes the given array, and runs the call again to fill the array.

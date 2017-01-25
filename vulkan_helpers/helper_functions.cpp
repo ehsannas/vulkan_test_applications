@@ -190,17 +190,103 @@ VkDevice CreateDefaultDevice(containers::Allocator* allocator,
                           &properties, physical_device);
 }
 
+bool SupportRequestPhysicalDeviceFeatures(
+    VkInstance* instance, VkPhysicalDevice physical_device,
+    const VkPhysicalDeviceFeatures& request_features) {
+  VkPhysicalDeviceFeatures supported_features = {0};
+  (*instance)->vkGetPhysicalDeviceFeatures(physical_device,
+                                           &supported_features);
+
+  // If the VkPhysicalDeviceFeatures changes, we need to update this piece of
+  // code, e.g. adding checking for new feature flags.
+  static_assert(
+      sizeof(VkPhysicalDeviceFeatures) ==
+          (uint32_t)offsetof(VkPhysicalDeviceFeatures, inheritedQueries) +
+              sizeof(VkBool32),
+      "VkPhysicalDeviceFeatures layout changed, "
+      "SupportRequestPhysicalDeviceFeatures() needs to be updated.");
+
+#define NotSupportFeature(feature_name)                                    \
+  if (request_features.feature_name && !supported_features.feature_name) { \
+    return false;                                                          \
+  }
+  NotSupportFeature(robustBufferAccess);
+  NotSupportFeature(fullDrawIndexUint32);
+  NotSupportFeature(imageCubeArray);
+  NotSupportFeature(independentBlend);
+  NotSupportFeature(geometryShader);
+  NotSupportFeature(tessellationShader);
+  NotSupportFeature(sampleRateShading);
+  NotSupportFeature(dualSrcBlend);
+  NotSupportFeature(logicOp);
+  NotSupportFeature(multiDrawIndirect);
+  NotSupportFeature(drawIndirectFirstInstance);
+  NotSupportFeature(depthClamp);
+  NotSupportFeature(depthBiasClamp);
+  NotSupportFeature(fillModeNonSolid);
+  NotSupportFeature(depthBounds);
+  NotSupportFeature(wideLines);
+  NotSupportFeature(largePoints);
+  NotSupportFeature(alphaToOne);
+  NotSupportFeature(multiViewport);
+  NotSupportFeature(samplerAnisotropy);
+  NotSupportFeature(textureCompressionETC2);
+  NotSupportFeature(textureCompressionASTC_LDR);
+  NotSupportFeature(textureCompressionBC);
+  NotSupportFeature(occlusionQueryPrecise);
+  NotSupportFeature(pipelineStatisticsQuery);
+  NotSupportFeature(vertexPipelineStoresAndAtomics);
+  NotSupportFeature(fragmentStoresAndAtomics);
+  NotSupportFeature(shaderTessellationAndGeometryPointSize);
+  NotSupportFeature(shaderImageGatherExtended);
+  NotSupportFeature(shaderStorageImageExtendedFormats);
+  NotSupportFeature(shaderStorageImageMultisample);
+  NotSupportFeature(shaderStorageImageReadWithoutFormat);
+  NotSupportFeature(shaderStorageImageWriteWithoutFormat);
+  NotSupportFeature(shaderUniformBufferArrayDynamicIndexing);
+  NotSupportFeature(shaderSampledImageArrayDynamicIndexing);
+  NotSupportFeature(shaderStorageBufferArrayDynamicIndexing);
+  NotSupportFeature(shaderStorageImageArrayDynamicIndexing);
+  NotSupportFeature(shaderClipDistance);
+  NotSupportFeature(shaderCullDistance);
+  NotSupportFeature(shaderFloat64);
+  NotSupportFeature(shaderInt64);
+  NotSupportFeature(shaderInt16);
+  NotSupportFeature(shaderResourceResidency);
+  NotSupportFeature(shaderResourceMinLod);
+  NotSupportFeature(sparseBinding);
+  NotSupportFeature(sparseResidencyBuffer);
+  NotSupportFeature(sparseResidencyImage2D);
+  NotSupportFeature(sparseResidencyImage3D);
+  NotSupportFeature(sparseResidency2Samples);
+  NotSupportFeature(sparseResidency4Samples);
+  NotSupportFeature(sparseResidency8Samples);
+  NotSupportFeature(sparseResidency16Samples);
+  NotSupportFeature(sparseResidencyAliased);
+  NotSupportFeature(variableMultisampleRate);
+  NotSupportFeature(inheritedQueries);
+#undef NotSupportFeature
+  return true;
+}
+
 VkDevice CreateDeviceForSwapchain(
     containers::Allocator* allocator, VkInstance* instance,
     VkSurfaceKHR* surface, uint32_t* present_queue_index,
     uint32_t* graphics_queue_index,
-    const std::initializer_list<const char*> extensions) {
+    const std::initializer_list<const char*> extensions,
+    const VkPhysicalDeviceFeatures& features) {
   containers::vector<VkPhysicalDevice> physical_devices =
       GetPhysicalDevices(allocator, *instance);
   float priority = 1.f;
 
   for (auto device : physical_devices) {
     VkPhysicalDevice physical_device = device;
+
+    if (!SupportRequestPhysicalDeviceFeatures(instance, physical_device,
+                                              features)) {
+      continue;
+    }
+
     VkPhysicalDeviceProperties physical_device_properties;
     (*instance)->vkGetPhysicalDeviceProperties(device,
                                                &physical_device_properties);
@@ -286,7 +372,7 @@ VkDevice CreateDeviceForSwapchain(
         nullptr,                              // ppEnabledLayerNames
         uint32_t(enabled_extensions.size()),  // enabledExtensionCount
         enabled_extensions.data(),            // ppEnabledExtensionNames
-        nullptr                               // ppEnabledFeatures
+        &features                             // ppEnabledFeatures
     };
 
     ::VkDevice raw_device;

@@ -38,6 +38,13 @@ int main_entry(const entry::entry_data* data) {
       data->log->LogInfo("    shaderInt16: ", BoolString(features.shaderInt16));
       data->log->LogInfo("    shaderInt64: ", BoolString(features.shaderInt64));
       data->log->LogInfo("    logicOp: ", BoolString(features.logicOp));
+
+      // Test helper function: vulkan::SupportRequestPhysicalDeviceFeatures().
+      // All the supported features returned before should still be considered
+      // as "supported" by SupportRequestPhysicalDeviceFeatures().
+      LOG_EXPECT(==, data->log, true,
+                 vulkan::SupportRequestPhysicalDeviceFeatures(&instance, device,
+                                                              features));
     }
   }
 
