@@ -82,6 +82,7 @@ macro(gather_deps target)
     get_target_property(SRC ${target} LIB_SRCS)
     get_target_property(LIBS ${target} LIB_DEPS)
     get_target_property(SHADERS ${target} LIB_SHADERS)
+    get_target_property(MODELS ${target} LIB_MODELS)
     if (SRC)
       list(APPEND SOURCE_DEPS ${SRC})
     endif()
@@ -89,6 +90,11 @@ macro(gather_deps target)
       foreach(LIB ${SHADERS})
         gather_deps(${LIB})
       endforeach()
+    endif()
+    if (MODELS)
+      foreach(LIB ${MODELS})
+        gather_deps(${LIB})
+      endforech()
     endif()
     if (LIBS)
       foreach(LIB ${LIBS})
@@ -104,7 +110,7 @@ endmacro()
 # is created. All of the dependencies are correctly tracked and the
 # project will be rebuilt if any dependency changes.
 function(add_vulkan_executable target)
-  cmake_parse_arguments(EXE "NON_DEFAULT" "" "SOURCES;LIBS;SHADERS;ADDITIONAL" ${ARGN})
+  cmake_parse_arguments(EXE "NON_DEFAULT" "" "SOURCES;LIBS;SHADERS;MODELS;ADDITIONAL" ${ARGN})
 
   if (ANDROID)
     add_library(${target} SHARED ${EXE_SOURCES})
@@ -118,6 +124,13 @@ function(add_vulkan_executable target)
         target_include_directories(${target} PRIVATE ${libdir})
         add_dependencies(${target} ${shader})
       endforeach()
+      if (EXE_MODELS)
+        foreach (model ${EXE_MODELS})
+          get_target_property(libdir ${model} MODEL_LIB_DIR)
+          target_include_directories(${target} PRIVATE ${libdir})
+          add_dependencies(${target} ${model})
+        endforeach()
+      endif()
     endif()
   elseif (NOT BUILD_APKS)
     set(ADDITIONAL_ARGS)
@@ -130,6 +143,13 @@ function(add_vulkan_executable target)
       target_link_libraries(${target} PRIVATE ${EXE_LIBS})
     endif()
     target_link_libraries(${target} PRIVATE entry)
+    if (EXE_MODELS)
+      foreach (model ${EXE_MODELS})
+        get_target_property(libdir ${model} MODEL_LIB_DIR)
+        target_include_directories(${target} PRIVATE ${libdir})
+        add_dependencies(${target} ${model})
+      endforeach()
+    endif()
     if (EXE_SHADERS)
       foreach (shader ${EXE_SHADERS})
         get_target_property(libdir ${shader} SHADER_LIB_DIR)
@@ -184,6 +204,8 @@ function(add_vulkan_executable target)
     set_target_properties(${target}_sources PROPERTIES LIB_SRCS "${ABSOLUTE_SOURCES}")
     set_target_properties(${target}_sources PROPERTIES LIB_DEPS "${EXE_LIBS}")
     set_target_properties(${target}_sources PROPERTIES LIB_SHADERS "${EXE_SHADERS}")
+    set_target_properties(${target}_sources PROPERTIES LIB_MODELS "${EXE_MODELS}")
+
 
     set(SOURCE_DEPS)
     gather_deps(${target}_sources)
@@ -252,7 +274,7 @@ function(add_vulkan_shared_library target)
   _add_vulkan_library(${target} TYPE SHARED ${ARGN})
 endfunction(add_vulkan_shared_library)
 
-function(add_shader_library target)
+function(add_model_library target)
   cmake_parse_arguments(LIB "" "TYPE" "SOURCES" ${ARGN})
   if (BUILD_APKS)
     add_custom_target(${target})
@@ -263,6 +285,51 @@ function(add_shader_library target)
     endforeach()
     set_target_properties(${target} PROPERTIES LIB_SRCS "${ABSOLUTE_SOURCES}")
     set_target_properties(${target} PROPERTIES LIB_DEPS "")
+  else()
+    set(output_files)
+    foreach(model ${LIB_SOURCES})
+      get_filename_component(model ${model} ABSOLUTE)
+      file(RELATIVE_PATH rel_pos ${CMAKE_CURRENT_SOURCE_DIR} ${model})
+      set(output_file ${CMAKE_CURRENT_BINARY_DIR}/${rel_pos}.h)
+      get_filename_component(output_file ${output_file} ABSOLUTE)
+      list(APPEND output_files ${output_file})
+
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${rel_pos}.h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Compiling Model ${model}"
+        DEPENDS ${model}
+          ${VulkanTestApplications_SOURCE_DIR}/cmake/convert_obj_to_c.py
+        COMMAND ${PYTHON_EXECUTABLE}
+          ${VulkanTestApplications_SOURCE_DIR}/cmake/convert_obj_to_c.py
+            ${model} -o ${output_file}
+      )
+    endforeach()
+    add_custom_target(${target}
+      DEPENDS ${output_files})
+    set_target_properties(${target} PROPERTIES MODEL_OUT_FILES
+      "${output_files}")
+    set_target_properties(${target} PROPERTIES MODEL_LIB_DIR
+      "${CMAKE_CURRENT_BINARY_DIR}")
+  endif()
+endfunction()
+
+function(add_shader_library target)
+  cmake_parse_arguments(LIB "" "TYPE" "SOURCES;SHADER_DEPS" ${ARGN})
+  if (BUILD_APKS)
+    add_custom_target(${target})
+    set(ABSOLUTE_SOURCES)
+    foreach(SOURCE ${LIB_SOURCES})
+      get_filename_component(TEMP ${SOURCE} ABSOLUTE)
+      list(APPEND ABSOLUTE_SOURCES ${TEMP})
+    endforeach()
+    set_target_properties(${target} PROPERTIES LIB_SRCS "${ABSOLUTE_SOURCES}")
+    if (LIB_SHADER_DEPS)
+      get_filename_component(TEMP ${LIB_SHADER_DEPS} ABSOLUTE)
+      set_target_properties(${target} PROPERTIES LIB_DEPS "${TEMP}")
+    else()
+      set_target_properties(${target} PROPERTIES LIB_DEPS "")
+    endif()
   else()
     set(output_files)
     foreach(shader ${LIB_SOURCES})
@@ -285,6 +352,20 @@ function(add_shader_library target)
 
         include(${output_file}.d.cmake)
 
+        set(ADDITIONAL_ARGS "")
+        if (LIB_SHADER_DEPS)
+          foreach(DEP ${LIB_SHADER_DEPS})
+            if(NOT TARGET ${DEP})
+              message(FATAL_ERROR "Could not find dependent shader library ${DEP}")
+            endif()
+            get_target_property(SRC_DIR ${DEP} SHADER_SOURCE_DIR)
+            if(NOT SRC_DIR)
+              message(FATAL_ERROR "Could not get shader source dir for ${DEP}")
+            endif()
+            list(APPEND ADDITIONAL_ARGS "-I${SRC_DIR}")
+          endforeach()
+        endif()
+
         add_custom_command (
           OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${rel_pos}.spv
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -292,6 +373,7 @@ function(add_shader_library target)
           DEPENDS ${shader} ${FILE_DEPS}
             ${VulkanTestApplications_SOURCE_DIR}/cmake/generate_cmake_dep.py
           COMMAND ${CMAKE_GLSL_COMPILER} -mfmt=c -o ${output_file} -c ${temp} -MD
+            ${ADDITIONAL_ARGS}
           COMMAND ${PYTHON_EXECUTABLE}
             ${VulkanTestApplications_SOURCE_DIR}/cmake/generate_cmake_dep.py
             ${output_file}.d
@@ -308,5 +390,8 @@ function(add_shader_library target)
       "${output_files}")
     set_target_properties(${target} PROPERTIES SHADER_LIB_DIR
       "${CMAKE_CURRENT_BINARY_DIR}")
+    get_filename_component(TEMP ${CMAKE_CURRENT_SOURCE_DIR} ABSOLUTE)
+    set_target_properties(${target} PROPERTIES SHADER_SOURCE_DIR
+      "${TEMP}")
   endif()
 endfunction()

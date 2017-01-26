@@ -30,7 +30,7 @@
 #include "vulkan_wrapper/sub_objects.h"
 
 namespace vulkan {
-
+class VulkanModel;
 struct AllocationToken;
 
 // This class represents a location in GPU memory for storing data.
@@ -119,6 +119,10 @@ class VulkanGraphicsPipeline {
   // bindings.
   void AddInputStream(uint32_t stride, VkVertexInputRate input_rate,
                       std::initializer_list<InputStream> inputs);
+
+  // Sets the vertex input streams from the given model.
+  void SetInputStreams(VulkanModel* model);
+
   void Commit();
   operator ::VkPipeline() const { return pipeline_; }
 
@@ -361,6 +365,17 @@ class VulkanApplication {
       std::initializer_list<::VkSemaphore> wait_semaphores,
       std::initializer_list<::VkSemaphore> signal_semaphores, ::VkFence fence);
 
+  // Fills a small buffer with the given data.
+  // This inserts a series of calls to vkCmdUpdateBuffer into the given
+  // command_buffer, so it is
+  // expected that this be used for buffers that are usually < 65536 bytes.
+  // buffer must have been created with the VK_BUFFER_USAGE_TRANSFER_DST_BIT.
+  // Synchronization must be used to ensure that data remains valid until
+  // the command buffer is done with it.
+  void FillSmallBuffer(Buffer* buffer, const void* data, size_t data_size,
+                       size_t buffer_offset, VkCommandBuffer* command_buffer,
+                       VkAccessFlags target_usage);
+
   // Dump the data in the specific layers of the given image to the provided
   // vector. The operation will wait for the |wait_semaphores| to begin and
   // will wait until all the commands are executed then returns. This function
@@ -495,6 +510,8 @@ class VulkanApplication {
       VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
       VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
       VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+
+  containers::Allocator* GetAllocator() { return allocator_; }
 
  private:
   containers::unique_ptr<Buffer> CreateAndBindBuffer(

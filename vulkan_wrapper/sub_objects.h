@@ -62,23 +62,23 @@ class VkSubObject {
   // question.
   VkSubObject(type raw_object, VkAllocationCallbacks* allocator,
               owner_type* owner)
-      : owner_(*owner),
-        log_(owner->GetLogger()),
+      : owner_(owner ? static_cast<raw_owner_type>(*owner)
+                     : static_cast<raw_owner_type>(VK_NULL_HANDLE)),
+        log_(owner ? owner->GetLogger() : nullptr),
         has_allocator_(allocator != nullptr),
         raw_object_(raw_object),
-        destruction_function_(T::get_destruction_function(owner->functions())) {
+        destruction_function_(
+            owner ? T::get_destruction_function(owner->functions()) : nullptr),
+        get_proc_addr_fn_(nullptr) {
     if (allocator) {
       allocator_ = *allocator;
     }
-    get_proc_addr_fn_ = owner->getProcAddrFunction();
-  }
-
-  ~VkSubObject() {
-    if (raw_object_) {
-      (*destruction_function_)(owner_, raw_object_,
-                               has_allocator_ ? &allocator_ : nullptr);
+    if (owner) {
+      get_proc_addr_fn_ = owner->getProcAddrFunction();
     }
   }
+
+  ~VkSubObject() { clean_up(); }
 
   VkSubObject(VkSubObject<T, O>&& other)
       : owner_(other.owner_),
@@ -99,6 +99,15 @@ class VkSubObject {
   }
 
  private:
+  inline void clean_up() {
+    if (raw_object_) {
+      LOG_ASSERT(!=, log_, destruction_function_, static_cast<void*>(nullptr));
+      (*destruction_function_)(owner_, raw_object_,
+                               has_allocator_ ? &allocator_ : nullptr);
+      raw_object_ = VK_NULL_HANDLE;
+    }
+  }
+
   raw_owner_type owner_;
   logging::Logger* log_;
   proc_addr_type get_proc_addr_fn_;
@@ -110,7 +119,7 @@ class VkSubObject {
 
  public:
   operator type() const { return raw_object_; }
-  type get_raw_object() const { return raw_object_; }
+  const type& get_raw_object() const { return raw_object_; }
 
   PFN_vkVoidFunction getProcAddr(raw_owner_type owner, const char* function) {
     return get_proc_addr_fn_(owner, function);
@@ -186,6 +195,17 @@ struct ImageTraits {
 };
 using VkImage = VkSubObject<ImageTraits, DeviceTraits>;
 
+struct FenceTraits {
+  using type = ::VkFence;
+  using destruction_function_pointer_type =
+      LazyDeviceFunction<PFN_vkDestroyFence>*;
+  static destruction_function_pointer_type get_destruction_function(
+      DeviceFunctions* functions) {
+    return &functions->vkDestroyFence;
+  }
+};
+using VkFence = VkSubObject<FenceTraits, DeviceTraits>;
+
 struct ImageViewTraits {
   using type = ::VkImageView;
   using destruction_function_pointer_type =
@@ -222,7 +242,7 @@ using VkRenderPass = VkSubObject<RenderPassTraits, DeviceTraits>;
 struct FramebufferTraits {
   using type = ::VkFramebuffer;
   using destruction_function_pointer_type =
-    LazyDeviceFunction<PFN_vkDestroyFramebuffer>*;
+      LazyDeviceFunction<PFN_vkDestroyFramebuffer>*;
   static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyFramebuffer;
@@ -233,7 +253,7 @@ using VkFramebuffer = VkSubObject<FramebufferTraits, DeviceTraits>;
 struct SemaphoreTraits {
   using type = ::VkSemaphore;
   using destruction_function_pointer_type =
-    LazyDeviceFunction<PFN_vkDestroySemaphore>*;
+      LazyDeviceFunction<PFN_vkDestroySemaphore>*;
   static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroySemaphore;

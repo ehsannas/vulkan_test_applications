@@ -30,6 +30,13 @@
 #include "vulkan_wrapper/swapchain.h"
 
 namespace vulkan {
+
+// Clears the memory of the given object
+template <typename T>
+void ZeroMemory(T* val) {
+  memset(val, 0x00, sizeof(T));
+}
+
 // Create an empty instance. Vulkan functions that are resolved by the created
 // instance will be stored in the space allocated by the given |allocator|. The
 // |allocator| must continue to exist until the instance is destroied.

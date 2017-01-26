@@ -28,6 +28,9 @@ add_subdirectory(vulkan_helpers)
 # Support shaders
 add_subdirectory(shader_library)
 
+#Support Models
+add_subdirectory(standard_models)
+
 # All of the support code has to go above here, below here should come all of
 # the actual tests.
 add_subdirectory(command_buffer_tests)

@@ -20,6 +20,7 @@
 
 #include "support/containers/unordered_map.h"
 #include "vulkan_helpers/helper_functions.h"
+#include "vulkan_helpers/vulkan_model.h"
 
 namespace vulkan {
 
@@ -403,6 +404,42 @@ std::tuple<bool, VkCommandBuffer> VulkanApplication::FillImageLayersData(
   return std::make_tuple(true, std::move(command_buffer));
 }
 
+const size_t MAX_UPDATE_SIZE = 65536;
+void VulkanApplication::FillSmallBuffer(Buffer* buffer, const void* data,
+                                        size_t data_size, size_t buffer_offset,
+                                        VkCommandBuffer* command_buffer,
+                                        VkAccessFlags target_usage) {
+  LOG_ASSERT(==, log_, 0, data_size % 4);
+  size_t upload_offset = 0;
+  while (upload_offset != data_size) {
+    size_t to_upload =
+        data_size < MAX_UPDATE_SIZE ? data_size : MAX_UPDATE_SIZE;
+
+    (*command_buffer)
+        ->vkCmdUpdateBuffer(
+            *command_buffer, *buffer, upload_offset, to_upload,
+            static_cast<const void*>(static_cast<const uint8_t*>(data) +
+                                     upload_offset));
+    upload_offset += to_upload;
+  }
+
+  VkBufferMemoryBarrier barrier = {
+      VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,  // sType
+      nullptr,                                  // pNext
+      VK_ACCESS_HOST_WRITE_BIT,                 // srcAccessMask
+      target_usage,                             // dstAccessMask
+      VK_QUEUE_FAMILY_IGNORED,                  // srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                  // dstQueueFamilyIndex
+      *buffer,
+      0,
+      data_size};
+
+  (*command_buffer)
+      ->vkCmdPipelineBarrier(*command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr,
+                             1, &barrier, 0, nullptr);
+}
+
 bool VulkanApplication::DumpImageLayersData(
     Image* img, const VkImageSubresourceLayers& image_subresource,
     const VkOffset3D& image_offset, const VkExtent3D& image_extent,
@@ -510,7 +547,7 @@ bool VulkanApplication::DumpImageLayersData(
   };
   (*render_queue_)
       ->vkQueueSubmit(render_queue(), 1, &submit_info,
-                      static_cast<VkFence>(VK_NULL_HANDLE));
+                      static_cast<::VkFence>(VK_NULL_HANDLE));
   (*render_queue_)->vkQueueWaitIdle(render_queue());
   // Copy the data from the buffer to |data|.
   dst_buffer->invalidate();
@@ -738,11 +775,6 @@ void VulkanArena::FreeMemory(AllocationToken* token) {
       freeblocks_.insert(std::make_pair(token->allocationSize, token));
 }
 
-template <typename T>
-void ZeroMemory(T* val) {
-  memset(val, 0x00, sizeof(T));
-}
-
 VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
                                                PipelineLayout* layout,
                                                VulkanApplication* application,
@@ -804,8 +836,8 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
 
   depth_stencil_state_.sType =
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-  depth_stencil_state_.depthTestEnable = VK_TRUE;
-  depth_stencil_state_.depthWriteEnable = VK_TRUE;
+  depth_stencil_state_.depthTestEnable = VK_FALSE;
+  depth_stencil_state_.depthWriteEnable = VK_FALSE;
   depth_stencil_state_.depthCompareOp = VK_COMPARE_OP_LESS;
 
   color_blend_state_.sType =
@@ -903,6 +935,11 @@ void VulkanGraphicsPipeline::AddInputStream(
   }
 }
 
+void VulkanGraphicsPipeline::SetInputStreams(VulkanModel* model) {
+  model->GetAssemblyInfo(&vertex_binding_descriptions_,
+                         &vertex_attribute_descriptions_);
+}
+
 void VulkanGraphicsPipeline::Commit() {
   vertex_input_state_.vertexBindingDescriptionCount =
       static_cast<uint32_t>(vertex_binding_descriptions_.size());
@@ -952,9 +989,10 @@ void VulkanGraphicsPipeline::Commit() {
       0                                                 // basePipelineIndex
   };
   ::VkPipeline pipeline;
-  application_->device()->vkCreateGraphicsPipelines(
-      application_->device(), application_->pipeline_cache(), 1, &create_info,
-      nullptr, &pipeline);
+  LOG_ASSERT(==, application_->GetLogger(), VK_SUCCESS,
+             application_->device()->vkCreateGraphicsPipelines(
+                 application_->device(), application_->pipeline_cache(), 1,
+                 &create_info, nullptr, &pipeline));
   pipeline_.initialize(pipeline);
 }
 }

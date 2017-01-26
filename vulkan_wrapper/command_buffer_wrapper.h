@@ -68,7 +68,7 @@ class VkCommandBuffer {
   CommandBufferFunctions* functions_;
 
  public:
-  ::VkCommandBuffer get_command_buffer() const { return command_buffer_; }
+  const ::VkCommandBuffer& get_command_buffer() const { return command_buffer_; }
   operator ::VkCommandBuffer() const { return command_buffer_; }
   CommandBufferFunctions* operator->() { return functions_; }
   CommandBufferFunctions& operator*() { return *functions_; }
