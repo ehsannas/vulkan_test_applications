@@ -104,7 +104,7 @@ endmacro()
 # is created. All of the dependencies are correctly tracked and the
 # project will be rebuilt if any dependency changes.
 function(add_vulkan_executable target)
-  cmake_parse_arguments(EXE "" "" "SOURCES;LIBS;SHADERS" ${ARGN})
+  cmake_parse_arguments(EXE "NON_DEFAULT" "" "SOURCES;LIBS;SHADERS;ADDITIONAL" ${ARGN})
 
   if (ANDROID)
     add_library(${target} SHARED ${EXE_SOURCES})
@@ -120,7 +120,12 @@ function(add_vulkan_executable target)
       endforeach()
     endif()
   elseif (NOT BUILD_APKS)
-    add_executable(${target} ${EXE_SOURCES} ${EXE_UNPARSED_ARGS})
+    set(ADDITIONAL_ARGS)
+    if (EXE_NON_DEFAULT)
+      list(APPEND ADDITIONAL_ARGS EXCLUDE_FROM_ALL)
+    endif()
+    add_executable(${target} ${ADDITIONAL_ARGS}
+      ${EXE_SOURCES} ${EXE_UNPARSED_ARGS})
     if (EXE_LIBS)
       target_link_libraries(${target} PRIVATE ${EXE_LIBS})
     endif()
@@ -197,8 +202,11 @@ function(add_vulkan_executable target)
       DEPENDS ${SOURCE_DEPS}
               ${TARGET_SOURCES}
               gradle_config)
-
-    add_custom_target(${target} ALL DEPENDS ${target_apk})
+    set(TARGET_DEP ALL)
+    if (EXE_NON_DEFAULT)
+      set(TARGET_DEP)
+    endif()
+    add_custom_target(${target} ${TARGET_DEP} DEPENDS ${target_apk})
   endif()
 endfunction(add_vulkan_executable)
 
