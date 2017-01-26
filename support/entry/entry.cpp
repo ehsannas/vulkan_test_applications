@@ -18,6 +18,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstdint>
+#include <cstring>
 #include <mutex>
 #include <thread>
 
@@ -107,7 +108,21 @@ void android_main(android_app* app) {
 
 // This creates an XCB connection and window for the application.
 // It maps it onto the screen and passes it on to the main_entry function.
+// -w=X will set the window width to X
+// -h=Y will set the window height to Y
 int main(int argc, char** argv) {
+  uint32_t window_width = 100;
+  uint32_t window_height = 100;
+
+  for (size_t i = 0; i < argc; ++i) {
+    if (strncmp(argv[i], "-w=", 3) == 0) {
+      window_width = atoi(argv[i] + 3);
+    }
+    if (strncmp(argv[i], "-h=", 3) == 0) {
+      window_height = atoi(argv[i] + 3);
+    }
+  }
+
   containers::Allocator root_allocator;
   xcb_connection_t* connection = xcb_connect(NULL, NULL);
   const xcb_setup_t* setup = xcb_get_setup(connection);
@@ -116,8 +131,9 @@ int main(int argc, char** argv) {
 
   xcb_window_t window = xcb_generate_id(connection);
   xcb_create_window(connection, XCB_COPY_FROM_PARENT, window, screen->root, 0,
-                    0, 100, 100, 1, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-                    screen->root_visual, 0, NULL);
+                    0, window_width, window_height, 1,
+                    XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, 0,
+                    NULL);
 
   xcb_map_window(connection, window);
   xcb_flush(connection);
