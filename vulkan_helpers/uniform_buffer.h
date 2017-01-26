@@ -16,11 +16,16 @@
 #ifndef VULKAN_HELPERS_UNIFORM_DATA
 #define VULKAN_HELPERS_UNIFORM_DATA
 
-#include "math/common.h"
 #include "vulkan_helpers/vulkan_application.h"
 
 namespace vulkan {
+
 const size_t kMaxOffsetAlignment = 256;
+
+// Rounds to the given power_of_2
+size_t RoundUp(size_t to_round, size_t power_of_2_to_round) {
+  return (to_round + power_of_2_to_round - 1) & ~(power_of_2_to_round - 1);
+}
 
 template <typename T>
 class UniformData {
@@ -39,7 +44,7 @@ class UniformData {
         uninitialized_(true, buffered_data_count, application->GetAllocator()),
         update_commands_(application->GetAllocator()) {
     const size_t aligned_data_size =
-        math::RoundUp(sizeof(set_value_), kMaxOffsetAlignment);
+        RoundUp(sizeof(set_value_), kMaxOffsetAlignment);
 
     VkBufferCreateInfo create_info = {
         VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,     // sType

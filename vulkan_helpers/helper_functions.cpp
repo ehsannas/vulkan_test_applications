@@ -366,13 +366,14 @@ VkDevice CreateDeviceForSwapchain(
         (present_queue_family_index !=
          ((unsigned int)graphics_queue_family_index))
             ? 2u
-            : 1u,                             // queueCreateInfoCount
-        queue_infos,                          // pQueueCreateInfos
-        0,                                    // enabledLayerCount
-        nullptr,                              // ppEnabledLayerNames
-        uint32_t(enabled_extensions.size()),  // enabledExtensionCount
-        enabled_extensions.data(),            // ppEnabledExtensionNames
-        &features                             // ppEnabledFeatures
+            : 1u,     // queueCreateInfoCount
+        queue_infos,  // pQueueCreateInfos
+        0,            // enabledLayerCount
+        nullptr,      // ppEnabledLayerNames
+        static_cast<uint32_t>(
+            enabled_extensions.size()),  // enabledExtensionCount
+        enabled_extensions.data(),       // ppEnabledExtensionNames
+        &features                        // ppEnabledFeatures
     };
 
     ::VkDevice raw_device;
@@ -464,9 +465,10 @@ VkCommandBuffer CreateCommandBuffer(VkCommandPool* pool,
       /* commandBufferCount = */ 1,
   };
   ::VkCommandBuffer raw_command_buffer;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateCommandBuffers(
-                                          *device, &info, &raw_command_buffer),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkAllocateCommandBuffers(*device, &info, &raw_command_buffer),
+      VK_SUCCESS);
   return vulkan::VkCommandBuffer(raw_command_buffer, pool, device);
 }
 
@@ -541,7 +543,8 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
         surface_formats[0].colorSpace,         // colorSpace
         image_extent,                          // imageExtent
         1,                                     // imageArrayLayers
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,   // imageUsage
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,  // imageUsage
         has_multiple_queues ? VK_SHARING_MODE_CONCURRENT
                             : VK_SHARING_MODE_EXCLUSIVE,  // sharingMode
         has_multiple_queues ? 2u : 0u,
@@ -687,9 +690,10 @@ VkDescriptorPool CreateDescriptorPool(VkDevice* device, uint32_t num_pool_size,
       /* pPoolSizes = */ pool_sizes};
 
   ::VkDescriptorPool raw_pool;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorPool(
-                                          *device, &info, nullptr, &raw_pool),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkCreateDescriptorPool(*device, &info, nullptr, &raw_pool),
+      VK_SUCCESS);
   return vulkan::VkDescriptorPool(raw_pool, nullptr, device);
 }
 
@@ -712,8 +716,9 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
   };
 
   ::VkDescriptorSetLayout raw_layout;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorSetLayout(
-                                          *device, &info, nullptr, &raw_layout),
+  LOG_ASSERT(==, device->GetLogger(),
+             (*device)->vkCreateDescriptorSetLayout(*device, &info, nullptr,
+                                                    &raw_layout),
              VK_SUCCESS);
   return vulkan::VkDescriptorSetLayout(raw_layout, nullptr, device);
 }
@@ -728,9 +733,10 @@ VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
       /* pSetLayouts = */ &layout,
   };
   ::VkDescriptorSet raw_set;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateDescriptorSets(
-                                          *device, &alloc_info, &raw_set),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkAllocateDescriptorSets(*device, &alloc_info, &raw_set),
+      VK_SUCCESS);
   return vulkan::VkDescriptorSet(raw_set, pool, device);
 }
 

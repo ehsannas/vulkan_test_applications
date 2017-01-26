@@ -95,6 +95,17 @@ class VulkanGraphicsPipeline {
   VulkanGraphicsPipeline(containers::Allocator* allocator,
                          PipelineLayout* layout, VulkanApplication* application,
                          VkRenderPass* render_pass, uint32_t subpass);
+  VulkanGraphicsPipeline(containers::Allocator* allocator)
+      : stages_(allocator),
+        dynamic_states_(allocator),
+        vertex_binding_descriptions_(allocator),
+        vertex_attribute_descriptions_(allocator),
+        shader_modules_(allocator),
+        attachments_(allocator),
+        pipeline_(VK_NULL_HANDLE, nullptr, nullptr) {}
+
+  VulkanGraphicsPipeline(VulkanGraphicsPipeline&& other) = default;
+
   template <int N>
   void AddShader(VkShaderStageFlagBits stage, const char* entry,
                  uint32_t (&code)[N]) {
@@ -108,6 +119,9 @@ class VulkanGraphicsPipeline {
   void SetTopology(VkPrimitiveTopology topology, uint32_t patch_size = 0);
   void SetViewport(const VkViewport& viewport);
   void SetScissor(const VkRect2D& scissor);
+
+  void SetSamples(VkSampleCountFlagBits samples);
+
   // Adds an attachment to this pipeline. Sets up default opaque blending
   // for that attachment.
   void AddAttachment();
@@ -208,6 +222,7 @@ class DescriptorSet {
  public:
   operator ::VkDescriptorSet() const { return set_; }
 
+  const ::VkDescriptorSet& raw_set() const { return set_.get_raw_object(); }
   ::VkDescriptorPool pool() const { return pool_.get_raw_object(); }
   ::VkDescriptorSetLayout layout() const { return layout_.get_raw_object(); }
 

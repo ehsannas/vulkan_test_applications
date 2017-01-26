@@ -45,3 +45,6 @@ add_subdirectory(resource_binding_tests)
 add_subdirectory(resource_creation_tests)
 add_subdirectory(synchronization_tests)
 add_subdirectory(traits_query_tests)
+
+# Sample Applications and Sandbox
+add_subdirectory(application_sandbox)

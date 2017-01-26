@@ -836,8 +836,8 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
 
   depth_stencil_state_.sType =
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-  depth_stencil_state_.depthTestEnable = VK_FALSE;
-  depth_stencil_state_.depthWriteEnable = VK_FALSE;
+  depth_stencil_state_.depthTestEnable = VK_TRUE;
+  depth_stencil_state_.depthWriteEnable = VK_TRUE;
   depth_stencil_state_.depthCompareOp = VK_COMPARE_OP_LESS;
 
   color_blend_state_.sType =
@@ -907,6 +907,10 @@ void VulkanGraphicsPipeline::SetScissor(const VkRect2D& scissor) {
   }
   scissor_ = scissor;
   viewport_state_.pScissors = &scissor_;
+}
+
+void VulkanGraphicsPipeline::SetSamples(VkSampleCountFlagBits samples) {
+  multisample_state_.rasterizationSamples = samples;
 }
 
 void VulkanGraphicsPipeline::AddAttachment() {

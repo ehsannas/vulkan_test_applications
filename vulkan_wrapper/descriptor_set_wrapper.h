@@ -37,10 +37,20 @@ class VkDescriptorSet {
         device_(*device),
         log_(device->GetLogger()),
         destruction_function_(&(*device)->vkFreeDescriptorSets) {}
-  VkDescriptorSet(VkDescriptorSet&& other) = default;
+
+  VkDescriptorSet(VkDescriptorSet&& other)
+      : descriptor_set_(other.descriptor_set_),
+        pool_(other.pool_),
+        device_(other.device_),
+        log_(other.log_),
+        destruction_function_(other.destruction_function_) {
+    other.descriptor_set_ = VK_NULL_HANDLE;
+  }
 
   ~VkDescriptorSet() {
-    (*destruction_function_)(device_, pool_, 1, &descriptor_set_);
+    if (descriptor_set_ != VK_NULL_HANDLE) {
+      (*destruction_function_)(device_, pool_, 1, &descriptor_set_);
+    }
   }
 
   logging::Logger* GetLogger() { return log_; }
@@ -54,7 +64,7 @@ class VkDescriptorSet {
       destruction_function_;
 
  public:
-  ::VkDescriptorSet get_raw_object() const { return descriptor_set_; }
+  const ::VkDescriptorSet& get_raw_object() const { return descriptor_set_; }
   operator ::VkDescriptorSet() const { return descriptor_set_; }
 };
 

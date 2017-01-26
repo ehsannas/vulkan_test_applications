@@ -244,6 +244,19 @@ void SetImageLayout(::VkImage image,
 std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
     VkFormat format);
 
+inline VkFence CreateFence(VkDevice* device) {
+  ::VkFence raw_fence_;
+  VkFenceCreateInfo create_info = {
+      VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,  // sType
+      nullptr,                              // pNext
+      0,                                    // flags
+  };
+  LOG_ASSERT(
+      ==, device->GetLogger(), VK_SUCCESS,
+      (*device)->vkCreateFence(*device, &create_info, nullptr, &raw_fence_));
+  return VkFence(raw_fence_, nullptr, device);
+}
+
 // Returns the size of the given image extent specified through width, height,
 // depth and format. Returns 0 a valid size is not available, e.g. the given
 // format is not recognized.
