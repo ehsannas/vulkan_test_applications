@@ -21,6 +21,7 @@ add_vulkan_static_library(vulkan_helpers
         known_device_infos.cpp
         structs.h
         structs.cpp
+        uniform_buffer.h
         vulkan_header_wrapper.h
         vulkan_application.h
         vulkan_application.cpp

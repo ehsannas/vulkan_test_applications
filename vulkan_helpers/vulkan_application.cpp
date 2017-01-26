@@ -417,7 +417,7 @@ void VulkanApplication::FillSmallBuffer(Buffer* buffer, const void* data,
 
     (*command_buffer)
         ->vkCmdUpdateBuffer(
-            *command_buffer, *buffer, upload_offset, to_upload,
+            *command_buffer, *buffer, buffer_offset + upload_offset, to_upload,
             static_cast<const void*>(static_cast<const uint8_t*>(data) +
                                      upload_offset));
     upload_offset += to_upload;

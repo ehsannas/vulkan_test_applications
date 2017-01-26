@@ -280,6 +280,16 @@ class VulkanApplication {
       }
     }
 
+    // If this is host-visible memory, flushes only the given range so that
+    // writes are visible to the GPU
+    void flush(size_t offset, size_t size) {
+      if (flush_memory_range_) {
+        VkMappedMemoryRange range{VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+                                  nullptr, memory_, offset_ + offset, size};
+        (*flush_memory_range_)(device_, 1, &range);
+      }
+    }
+
     // if this is host-visible memory, invalidates the range so that
     // GPU writes become visible.
     void invalidate() {
