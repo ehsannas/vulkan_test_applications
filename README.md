@@ -1,5 +1,10 @@
 # Android Vulkan Tests
 
+To clone:
+git clone --recursive path/to/this/repository
+
+This will ensure that you have all of the dependencies checked out.
+
 To build apk files.
 
 ```
@@ -37,3 +42,6 @@ cmake -GNinja {root} -DBUILD_APKS=ON -DANDROID_SDK=path/to/android/sdk -DANDROID
 - [resource creation](resource_creation_tests/README.md)
 - [synchroniation tests](synchroniation_test/README.md)
 - [traits query](traits_query_tests/README.md)
+
+# dependencies
+- [mathfu](https://github.com/google/mathfu)

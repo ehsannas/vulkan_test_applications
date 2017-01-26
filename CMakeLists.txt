@@ -25,6 +25,10 @@ add_subdirectory(support)
 add_subdirectory(vulkan_wrapper)
 add_subdirectory(vulkan_helpers)
 
+set(mathfu_build_benchmarks OFF CACHE BOOL "")
+set(mathfu_build_tests OFF CACHE BOOL "")
+add_subdirectory(third_party/mathfu)
+
 # Support shaders
 add_subdirectory(shader_library)
 

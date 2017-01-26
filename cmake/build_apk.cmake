@@ -118,6 +118,7 @@ function(add_vulkan_executable target)
       target_link_libraries(${target} PRIVATE ${EXE_LIBS})
     endif()
     target_link_libraries(${target} PRIVATE entry)
+    mathfu_configure_flags(${target})
      if (EXE_SHADERS)
       foreach (shader ${EXE_SHADERS})
         get_target_property(libdir ${shader} SHADER_LIB_DIR)
@@ -139,6 +140,7 @@ function(add_vulkan_executable target)
     endif()
     add_executable(${target} ${ADDITIONAL_ARGS}
       ${EXE_SOURCES} ${EXE_UNPARSED_ARGS})
+    mathfu_configure_flags(${target})
     if (EXE_LIBS)
       target_link_libraries(${target} PRIVATE ${EXE_LIBS})
     endif()
@@ -223,6 +225,7 @@ function(add_vulkan_executable target)
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${target}-apk
       DEPENDS ${SOURCE_DEPS}
               ${TARGET_SOURCES}
+              ${MATHFU_HEADERS}
               gradle_config)
     set(TARGET_DEP ALL)
     if (EXE_NON_DEFAULT)
