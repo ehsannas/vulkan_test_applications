@@ -245,7 +245,7 @@ std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
     VkFormat format);
 
 inline VkFence CreateFence(VkDevice* device) {
-  ::VkFence raw_fence_;
+  ::VkFence raw_fence_ = VK_NULL_HANDLE;
   VkFenceCreateInfo create_info = {
       VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,  // sType
       nullptr,                              // pNext

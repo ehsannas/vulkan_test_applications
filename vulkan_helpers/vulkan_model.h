@@ -62,6 +62,14 @@ struct VulkanModel {
                    num_vertices * TEXCOORD_SIZE));
   }
 
+  // Constructs a vulkan model from the output of the convert_obj_to_c.py
+  // script.
+  template <typename T>
+  VulkanModel(containers::Allocator* allocator, logging::Logger* logger,
+              const T& t)
+      : VulkanModel(allocator, logger, t.num_vertices, t.positions, t.uv,
+                    t.normals, t.num_indices, t.indices) {}
+
   // Creates the vertex and index buffers. Adds transfer commands to
   // CmdBuffer to populate the vertex and index buffers with data.
   // If this model has already been initialized, then this re-initializes it.

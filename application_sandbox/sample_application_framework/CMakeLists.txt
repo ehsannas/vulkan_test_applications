@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# Everything else depends on sample_application
-add_subdirectory(sample_application_framework)
-
-add_subdirectory(depth_readback)
+add_vulkan_static_library(sample_application
+  SOURCES sample_application.cpp
+  LIBS
+    vulkan_helpers
+)
