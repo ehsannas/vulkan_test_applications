@@ -32,6 +32,7 @@ const static VkFormat kMultisampledFormat = VK_FORMAT_R8G8B8A8_UNORM;
 struct SampleOptions {
   bool enable_multisampling = false;
   bool enable_depth_buffer = false;
+  bool verbose_output = false;
 
   SampleOptions& EnableMultisampling() {
     enable_multisampling = true;
@@ -39,6 +40,10 @@ struct SampleOptions {
   }
   SampleOptions& EnableDepthBuffer() {
     enable_depth_buffer = true;
+    return *this;
+  }
+  SampleOptions& EnableVerbose() {
+    verbose_output = true;
     return *this;
   }
 };
@@ -64,14 +69,24 @@ const VkSubmitInfo kEmptySubmitInfo{
 
 template <typename FrameData>
 class Sample {
+  // The per-frame data for an application.
   struct SampleFrameData {
+    // The swapchain-image that this frame will use for rendering
     ::VkImage swapchain_image_;
+    // The view for the image that is to be rendered to on this frame.
     containers::unique_ptr<vulkan::VkImageView> image_view;
+    // The view for the depth that is to be rendered to on this frame
     containers::unique_ptr<vulkan::VkImageView> depth_view_;
+    // A commandbuffer to setup the rendering for this frame
     containers::unique_ptr<vulkan::VkCommandBuffer> setup_command_buffer_;
+    // The commandbuffer that resolves the images and gets them ready for
+    // present
     containers::unique_ptr<vulkan::VkCommandBuffer> resolve_command_buffer_;
+    // The depth_stencil image, if it exists.
     vulkan::ImagePointer depth_stencil_;
+    // The multisampled render target if it exists.
     vulkan::ImagePointer multisampled_target_;
+    // The application-specific data for this frame
     FrameData child_data_;
   };
 
@@ -112,6 +127,10 @@ class Sample {
         {application_.swapchain().width(), application_.swapchain().height()}};
   }
 
+  // This must be called before any other methods on this class. It initializes
+  // all of the data for this application. It calls InitializeApplicationData
+  // on the subclass, as well as InitializeLocalFrameData for every
+  // image in the swapchain.
   void Initialize() {
     vulkan::VkFence initialization_fence =
         vulkan::CreateFence(&application_.device());
@@ -160,6 +179,10 @@ class Sample {
   const VkViewport& viewport() const { return default_viewport_; }
   const VkRect2D& scissor() const { return default_scissor_; }
 
+  // This calls both Update(time) and Render() for the subclass.
+  // The update is meant to update all of the non-graphics state of the
+  // application. Render() is used to actually process the commands
+  // for rendering this particular frame.
   void ProcessFrame() {
     auto current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> elapsed_time = current_time - last_frame_time_;
@@ -182,8 +205,10 @@ class Sample {
     LOG_ASSERT(==, app()->GetLogger(), VK_SUCCESS,
                app()->device()->vkResetFences(app()->device(), 1,
                                               &readyFence_.get_raw_object()));
-    app()->GetLogger()->LogInfo("Rendering frame <", elapsed_time.count(),
-                                ">: <", image_idx, ">");
+    if (options_.verbose_output) {
+      app()->GetLogger()->LogInfo("Rendering frame <", elapsed_time.count(),
+                                  ">: <", image_idx, ">");
+    }
 
     VkSubmitInfo init_submit_info{
         VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
@@ -255,17 +280,30 @@ class Sample {
   }
 
  private:
+  // This will be called during Initialize(). The application is expected
+  // to initialize any frame-specific data that it needs.
   virtual void InitializeFrameData(
       FrameData* data, vulkan::VkCommandBuffer* initialization_buffer,
       size_t frame_index) = 0;
+  // This will be called during Initialize(). The application is expected
+  // to intialize any non frame-specific data here, such as images and buffers.
   virtual void InitializeApplicationData(
       vulkan::VkCommandBuffer* initialization_buffer,
       size_t num_swapchain_images) = 0;
 
+  // Will be called to instruct the application to update it's non
+  // frame-specific data.
   virtual void Update(float time_since_last_render) = 0;
+
+  // Will be called to instruct the application to enqueue the necessary
+  // commands for rendering frame <frame_index> into the provided queue
   virtual void Render(vulkan::VkQueue* queue, size_t frame_index,
                       FrameData* data) = 0;
 
+  // This initializes the per-frame data for the sample application framework.
+  //  This is equivalent to the InitializeFrameData(), except this handles
+  //  all of the under-the-hood data that the application itself should not
+  //  have to worry about.
   void InitializeLocalFrameData(SampleFrameData* data,
                                 vulkan::VkCommandBuffer* initialization_buffer,
                                 size_t frame_index) {
@@ -508,12 +546,21 @@ class Sample {
   SampleOptions options_;
   const entry::entry_data* data_;
   containers::Allocator* allocator_;
+  // This contains one SampleFrameData per swapchain image. It will be used
+  // to render frames to the appropriate swapchains
   containers::vector<SampleFrameData> frame_data_;
+  // The VulkanApplication that we build on
   vulkan::VulkanApplication application_;
+  // The number of samples that we will render with
   VkSampleCountFlagBits num_samples_;
+  // The format of our render_target
   VkFormat render_target_format_;
+  // The viewport we use to render
   VkViewport default_viewport_;
+  // The scissor we use to render
   VkRect2D default_scissor_;
+  // The last time ProcessFrame was called. This is used to calculate the delta
+  //  to be passed to Update.
   std::chrono::time_point<std::chrono::high_resolution_clock> last_frame_time_;
 
   // Do not move these above application_, they rely on the fact that

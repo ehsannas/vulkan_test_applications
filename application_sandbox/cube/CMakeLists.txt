@@ -12,9 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_model_library(cube_models
+  SOURCES
+    cube.obj
+)
 
-# Everything else depends on sample_application
-add_subdirectory(sample_application_framework)
+add_shader_library(cube_shaders
+  SOURCES
+    cube.frag
+    cube.vert
+  SHADER_DEPS
+    shader_library
+)
 
-add_subdirectory(cube)
-add_subdirectory(depth_readback)
+add_vulkan_executable(cube
+  NON_DEFAULT
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+  MODELS
+    cube_models
+  SHADERS
+    cube_shaders
+)

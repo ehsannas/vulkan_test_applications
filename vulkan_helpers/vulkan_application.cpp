@@ -827,7 +827,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   rasterization_state_.polygonMode = VK_POLYGON_MODE_FILL;
   rasterization_state_.cullMode = VK_CULL_MODE_BACK_BIT;
-  rasterization_state_.frontFace = VK_FRONT_FACE_CLOCKWISE;
+  rasterization_state_.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
   rasterization_state_.lineWidth = 1.0f;
 
   multisample_state_.sType =
