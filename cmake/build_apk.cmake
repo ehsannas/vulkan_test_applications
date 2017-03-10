@@ -110,7 +110,7 @@ endmacro()
 # is created. All of the dependencies are correctly tracked and the
 # project will be rebuilt if any dependency changes.
 function(add_vulkan_executable target)
-  cmake_parse_arguments(EXE "NON_DEFAULT" "" "SOURCES;LIBS;SHADERS;MODELS;ADDITIONAL" ${ARGN})
+  cmake_parse_arguments(EXE "NON_DEFAULT" "" "SOURCES;LIBS;SHADERS;MODELS;ADDITIONAL;TEXTURES" ${ARGN})
 
   if (ANDROID)
     add_library(${target} SHARED ${EXE_SOURCES})
@@ -132,6 +132,13 @@ function(add_vulkan_executable target)
           add_dependencies(${target} ${model})
         endforeach()
       endif()
+      if (EXE_TEXTURES)
+        foreach (texture ${EXE_TEXTURES})
+          get_target_property(libdir ${texture} TEXTURE_LIB_DIR)
+          target_include_directories(${target} PRIVATE ${libdir})
+          add_dependencies(${target} ${texture})
+        endforeach()
+      endif()
     endif()
   elseif (NOT BUILD_APKS)
     set(ADDITIONAL_ARGS)
@@ -151,6 +158,13 @@ function(add_vulkan_executable target)
         target_include_directories(${target} PRIVATE ${libdir})
         add_dependencies(${target} ${model})
       endforeach()
+    endif()
+    if (EXE_TEXTURES)
+        foreach (texture ${EXE_TEXTURES})
+          get_target_property(libdir ${texture} TEXTURE_LIB_DIR)
+          target_include_directories(${target} PRIVATE ${libdir})
+          add_dependencies(${target} ${texture})
+        endforeach()
     endif()
     if (EXE_SHADERS)
       foreach (shader ${EXE_SHADERS})
@@ -396,5 +410,45 @@ function(add_shader_library target)
     get_filename_component(TEMP ${CMAKE_CURRENT_SOURCE_DIR} ABSOLUTE)
     set_target_properties(${target} PROPERTIES SHADER_SOURCE_DIR
       "${TEMP}")
+  endif()
+endfunction()
+
+function(add_texture_library target)
+  cmake_parse_arguments(LIB "" "TYPE" "SOURCES" ${ARGN})
+  if (BUILD_APKS)
+    add_custom_target(${target})
+    set(ABSOLUTE_SOURCES)
+    foreach(SOURCE ${LIB_SOURCES})
+      get_filename_component(TEMP ${SOURCE} ABSOLUTE)
+      list(APPEND ABSOLUTE_SOURCES ${TEMP})
+    endforeach()
+    set_target_properties(${target} PROPERTIES LIB_SRCS "${ABSOLUTE_SOURCES}")
+    set_target_properties(${target} PROPERTIES LIB_DEPS "")
+  else()
+    set(output_files)
+    foreach(texture ${LIB_SOURCES})
+      get_filename_component(texture ${texture} ABSOLUTE)
+      file(RELATIVE_PATH rel_pos ${CMAKE_CURRENT_SOURCE_DIR} ${texture})
+      set(output_file ${CMAKE_CURRENT_BINARY_DIR}/${rel_pos}.h)
+      get_filename_component(output_file ${output_file} ABSOLUTE)
+      list(APPEND output_files ${output_file})
+
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${rel_pos}.h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Compiling texture ${texture}"
+        DEPENDS ${texture}
+          ${VulkanTestApplications_SOURCE_DIR}/cmake/convert_img_to_c.py
+        COMMAND ${PYTHON_EXECUTABLE}
+          ${VulkanTestApplications_SOURCE_DIR}/cmake/convert_img_to_c.py
+            ${texture} -o ${output_file}
+      )
+    endforeach()
+    add_custom_target(${target}
+      DEPENDS ${output_files})
+    set_target_properties(${target} PROPERTIES TEXTURE_OUT_FILES
+      "${output_files}")
+    set_target_properties(${target} PROPERTIES TEXTURE_LIB_DIR
+      "${CMAKE_CURRENT_BINARY_DIR}")
   endif()
 endfunction()

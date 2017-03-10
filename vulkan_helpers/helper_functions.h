@@ -135,6 +135,11 @@ VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
 // anisotropy and compare is disabled.
 VkSampler CreateDefaultSampler(VkDevice* device);
 
+// Creates a default sampler as above, but with the specified minFilter and
+// magFilter.
+VkSampler CreateSampler(VkDevice* device, VkFilter minFilter,
+                        VkFilter magFilter);
+
 // Creates a DescriptorSetLayout with the given set of layouts.
 VkDescriptorSetLayout CreateDescriptorSetLayout(
     containers::Allocator* allocator, VkDevice* device,
@@ -267,8 +272,7 @@ size_t GetImageExtentSizeInBytes(const VkExtent3D& extent, VkFormat format);
 // Vulkan command vkGetPhysicalDeviceFeatures, the command is resolved by the
 // given instance.
 bool SupportRequestPhysicalDeviceFeatures(
-    VkInstance* instance,
-    VkPhysicalDevice physical_device,
+    VkInstance* instance, VkPhysicalDevice physical_device,
     const VkPhysicalDeviceFeatures& request_features);
 
 // Runs the given call once with a nullptr value, and gets the numerical result.

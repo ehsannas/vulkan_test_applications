@@ -465,10 +465,9 @@ VkCommandBuffer CreateCommandBuffer(VkCommandPool* pool,
       /* commandBufferCount = */ 1,
   };
   ::VkCommandBuffer raw_command_buffer;
-  LOG_ASSERT(
-      ==, device->GetLogger(),
-      (*device)->vkAllocateCommandBuffers(*device, &info, &raw_command_buffer),
-      VK_SUCCESS);
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateCommandBuffers(
+                                          *device, &info, &raw_command_buffer),
+             VK_SUCCESS);
   return vulkan::VkCommandBuffer(raw_command_buffer, pool, device);
 }
 
@@ -625,6 +624,35 @@ VkSampler CreateDefaultSampler(VkDevice* device) {
   return vulkan::VkSampler(raw_sampler, nullptr, device);
 }
 
+VkSampler CreateSampler(VkDevice* device, VkFilter minFilter,
+                        VkFilter magFilter) {
+  VkSamplerCreateInfo info{
+      /* sType = */ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+      /* pNext = */ nullptr,
+      /* flags = */ 0,
+      /* magFilter = */ minFilter,
+      /* minFilter = */ magFilter,
+      /* mipmapMode = */ VK_SAMPLER_MIPMAP_MODE_NEAREST,
+      /* addressModeU = */ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      /* addressModeV = */ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      /* addressModeW = */ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      /* mipLodBias = */ 0.f,
+      /* anisotropyEnable = */ false,
+      /* maxAnisotropy = */ 0.f,
+      /* compareEnable = */ false,
+      /* compareOp = */ VK_COMPARE_OP_NEVER,
+      /* minLod = */ 0.f,
+      /* maxLod = */ 0.f,
+      /* borderColor = */ VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+      /* unnormalizedCoordinates = */ false,
+  };
+  ::VkSampler raw_sampler;
+  LOG_ASSERT(==, device->GetLogger(),
+             (*device)->vkCreateSampler(*device, &info, nullptr, &raw_sampler),
+             VK_SUCCESS);
+  return vulkan::VkSampler(raw_sampler, nullptr, device);
+}
+
 VkDescriptorSetLayout CreateDescriptorSetLayout(
     containers::Allocator* allocator, VkDevice* device,
     std::initializer_list<VkDescriptorSetLayoutBinding> bindings) {
@@ -690,10 +718,9 @@ VkDescriptorPool CreateDescriptorPool(VkDevice* device, uint32_t num_pool_size,
       /* pPoolSizes = */ pool_sizes};
 
   ::VkDescriptorPool raw_pool;
-  LOG_ASSERT(
-      ==, device->GetLogger(),
-      (*device)->vkCreateDescriptorPool(*device, &info, nullptr, &raw_pool),
-      VK_SUCCESS);
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorPool(
+                                          *device, &info, nullptr, &raw_pool),
+             VK_SUCCESS);
   return vulkan::VkDescriptorPool(raw_pool, nullptr, device);
 }
 
@@ -716,9 +743,8 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
   };
 
   ::VkDescriptorSetLayout raw_layout;
-  LOG_ASSERT(==, device->GetLogger(),
-             (*device)->vkCreateDescriptorSetLayout(*device, &info, nullptr,
-                                                    &raw_layout),
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorSetLayout(
+                                          *device, &info, nullptr, &raw_layout),
              VK_SUCCESS);
   return vulkan::VkDescriptorSetLayout(raw_layout, nullptr, device);
 }
@@ -733,10 +759,9 @@ VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
       /* pSetLayouts = */ &layout,
   };
   ::VkDescriptorSet raw_set;
-  LOG_ASSERT(
-      ==, device->GetLogger(),
-      (*device)->vkAllocateDescriptorSets(*device, &alloc_info, &raw_set),
-      VK_SUCCESS);
+  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateDescriptorSets(
+                                          *device, &alloc_info, &raw_set),
+             VK_SUCCESS);
   return vulkan::VkDescriptorSet(raw_set, pool, device);
 }
 

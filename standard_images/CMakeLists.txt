@@ -12,21 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_shader_library(cube_shaders
+add_texture_library(standard_images
   SOURCES
-    cube.frag
-    cube.vert
-  SHADER_DEPS
-    shader_library
-)
-
-add_vulkan_executable(cube
-  NON_DEFAULT
-  SOURCES main.cpp
-  LIBS
-    vulkan_helpers
-  MODELS
-    standard_models
-  SHADERS
-    cube_shaders
+    r8.png
+    rgb8.png
 )

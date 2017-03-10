@@ -32,8 +32,11 @@ add_subdirectory(third_party/mathfu)
 # Support shaders
 add_subdirectory(shader_library)
 
-#Support Models
+# Support Models
 add_subdirectory(standard_models)
+
+# Support Images
+add_subdirectory(standard_images)
 
 # All of the support code has to go above here, below here should come all of
 # the actual tests.

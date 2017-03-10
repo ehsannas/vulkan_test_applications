@@ -18,3 +18,4 @@ add_subdirectory(sample_application_framework)
 
 add_subdirectory(cube)
 add_subdirectory(depth_readback)
+add_subdirectory(textured_cube)

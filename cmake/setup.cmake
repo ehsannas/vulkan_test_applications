@@ -32,6 +32,7 @@ if (NOT CMAKE_BUILD_TYPE)
   message(FATAL_ERROR "Please specify -DCMAKE_BUILD_TYPE")
 endif()
 
+
 if (BUILD_APKS)
   set(ANDROID_SDK "" CACHE STRING "Location of the Android SDK (Sdk must contain gradle support)")
   set(ANDROID_NDK ${ANDROID_SDK}/ndk-bundle CACHE STRING "Location of the Android NDK (required r12b or higher)")

@@ -22,6 +22,8 @@ add_vulkan_static_library(vulkan_helpers
         structs.h
         structs.cpp
         uniform_buffer.h
+        vulkan_texture.h
+        vulkan_model.h
         vulkan_header_wrapper.h
         vulkan_application.h
         vulkan_application.cpp

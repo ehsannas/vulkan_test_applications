@@ -162,6 +162,7 @@ class Sample {
     application_.device()->vkWaitForFences(
         application_.device(), 1, &initialization_fence.get_raw_object(),
         VK_TRUE, 0xFFFFFFFFFFFFFFFF);
+    InitializationComplete();
   }
 
   // The format that we are using to render. This will be either the swapchain
@@ -291,6 +292,10 @@ class Sample {
       vulkan::VkCommandBuffer* initialization_buffer,
       size_t num_swapchain_images) = 0;
 
+  // This will be called during Initialize(). The application is expected
+  // to intialize any non frame-specific data here, such as images and buffers.
+  virtual void InitializationComplete() {}
+
   // Will be called to instruct the application to update it's non
   // frame-specific data.
   virtual void Update(float time_since_last_render) = 0;
@@ -404,7 +409,7 @@ class Sample {
         {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,    // sType
          nullptr,                                   // pNext
          0,                                         // srcAccessMask
-         VK_ACCESS_MEMORY_READ_BIT,                 // dstAccessMask
+         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,      // dstAccessMask
          VK_IMAGE_LAYOUT_UNDEFINED,                 // oldLayout
          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // newLayout
          VK_QUEUE_FAMILY_IGNORED,                   // srcQueueFamilyIndex
@@ -423,7 +428,7 @@ class Sample {
     VkImageMemoryBarrier barrier = {
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,    // sType
         nullptr,                                   // pNext
-        VK_ACCESS_MEMORY_READ_BIT,                 // srcAccessMask
+        0,                                         // srcAccessMask
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,      // dstAccessMask
         VK_IMAGE_LAYOUT_UNDEFINED,                 // oldLayout
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // newLayout
@@ -457,13 +462,15 @@ class Sample {
         ->vkBeginCommandBuffer((*data->resolve_command_buffer_),
                                &kBeginCommandBuffer);
     VkImageLayout old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    VkAccessFlags old_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     if (options_.enable_multisampling) {
       old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+      old_access = VK_ACCESS_TRANSFER_WRITE_BIT;
       VkImageMemoryBarrier resolve_barrier[2] = {
           {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,    // sType
            nullptr,                                   // pNext
            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,      // srcAccessMask
-           VK_ACCESS_MEMORY_READ_BIT,                 // dstAccessMask
+           VK_ACCESS_TRANSFER_READ_BIT,               // dstAccessMask
            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // oldLayout
            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,      // newLayout
            VK_QUEUE_FAMILY_IGNORED,                   // srcQueueFamilyIndex
@@ -472,7 +479,7 @@ class Sample {
            {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}},
           {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // sType
            nullptr,                                 // pNext
-           VK_ACCESS_MEMORY_READ_BIT,               // srcAccessMask
+           0,                                       // srcAccessMask
            VK_ACCESS_TRANSFER_WRITE_BIT,            // dstAccessMask
            VK_IMAGE_LAYOUT_UNDEFINED,               // oldLayout
            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,    // newLayout
@@ -524,7 +531,7 @@ class Sample {
     VkImageMemoryBarrier present_barrier = {
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // sType
         nullptr,                                 // pNext
-        VK_ACCESS_TRANSFER_WRITE_BIT,            // srcAccessMask
+        old_access,                              // srcAccessMask
         VK_ACCESS_MEMORY_READ_BIT,               // dstAccessMask
         old_layout,                              // oldLayout
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,         // newLayout

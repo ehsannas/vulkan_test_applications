@@ -173,9 +173,10 @@ VulkanApplication::VulkanApplication(
         VK_IMAGE_LAYOUT_UNDEFINED,            // initialLayout
     };
     ::VkImage image;
-    LOG_ASSERT(==, log_, device_->vkCreateImage(device_, &image_create_info,
-                                                nullptr, &image),
-               VK_SUCCESS);
+    LOG_ASSERT(
+        ==, log_,
+        device_->vkCreateImage(device_, &image_create_info, nullptr, &image),
+        VK_SUCCESS);
     VkMemoryRequirements requirements;
     device_->vkGetImageMemoryRequirements(device_, image, &requirements);
     device_->vkDestroyImage(device_, image, nullptr);
@@ -590,10 +591,36 @@ VulkanArena::VulkanArena(containers::Allocator* allocator, logging::Logger* log,
       buffer_size,                             // allocationSize
       memory_type_index};
 
+  VkResult res = VK_SUCCESS;
   ::VkDeviceMemory device_memory;
-  LOG_ASSERT(==, log, VK_SUCCESS,
-             (*device)->vkAllocateMemory(*device, &allocate_info, nullptr,
-                                         &device_memory));
+  size_t original_size = buffer_size;
+
+  const auto& memory_properties = device->physical_device_memory_properties();
+
+  log->LogInfo("Trying to allocate ", buffer_size, " bytes from heap that has ",
+               memory_properties
+                   .memoryHeaps[memory_properties.memoryTypes[memory_type_index]
+                                    .heapIndex]
+                   .size,
+               " bytes.");
+
+  do {
+    if (res == VK_ERROR_OUT_OF_DEVICE_MEMORY) {
+      log->LogInfo("Could not allocate ", buffer_size,
+                   " bytes of "
+                   "device memory. Attempting to allocate ",
+                   static_cast<size_t>(buffer_size * 0.75), " bytes instead");
+      buffer_size *= 0.75;
+      allocate_info.allocationSize = buffer_size;
+    }
+
+    res = (*device)->vkAllocateMemory(*device, &allocate_info, nullptr,
+                                      &device_memory);
+    // If we cannot even allocate 1/4 of the requested memory, it is time to
+    // fail.
+  } while (res == VK_ERROR_OUT_OF_DEVICE_MEMORY &&
+           buffer_size > original_size / 4);
+  LOG_ASSERT(==, log, VK_SUCCESS, res);
   memory_.initialize(device_memory);
 
   // Create a new pointer that is the first block of memory. It contains

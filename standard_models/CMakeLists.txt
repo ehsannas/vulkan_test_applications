@@ -15,4 +15,5 @@
 add_model_library(standard_models
   SOURCES
     fullscreen_quad.obj
+    cube.obj
 )

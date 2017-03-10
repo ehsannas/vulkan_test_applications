@@ -12,21 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_shader_library(cube_shaders
+
+add_shader_library(textured_cube_shaders
   SOURCES
-    cube.frag
-    cube.vert
+    textured_cube.frag
+    textured_cube.vert
   SHADER_DEPS
     shader_library
 )
 
-add_vulkan_executable(cube
+add_vulkan_executable(textured_cube
   NON_DEFAULT
   SOURCES main.cpp
   LIBS
     vulkan_helpers
   MODELS
     standard_models
+  TEXTURES
+    standard_images
   SHADERS
-    cube_shaders
+    textured_cube_shaders
 )
