@@ -280,6 +280,12 @@ class Sample {
     return base->image_view->get_raw_object();
   }
 
+  const ::VkImage& swapchain_image(FrameData* data) {
+    SampleFrameData* base = reinterpret_cast<SampleFrameData*>(
+        reinterpret_cast<uint8_t*>(data) - sample_frame_data_offset);
+    return base->swapchain_image_;
+  }
+
  private:
   // This will be called during Initialize(). The application is expected
   // to initialize any frame-specific data that it needs.

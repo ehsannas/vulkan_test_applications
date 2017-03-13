@@ -12,12 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_shader_library(blit_image_shaders
+  SOURCES
+    cube.frag
+    cube.vert
+  SHADER_DEPS
+    shader_library
+)
 
-# Everything else depends on sample_application
-add_subdirectory(sample_application_framework)
-
-add_subdirectory(cube)
-add_subdirectory(depth_readback)
-add_subdirectory(textured_cube)
-add_subdirectory(bufferview)
-add_subdirectory(blit_image)
+add_vulkan_executable(blit_image
+  NON_DEFAULT
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+  MODELS
+    standard_models
+  SHADERS
+    blit_image_shaders
+)
