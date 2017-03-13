@@ -240,10 +240,12 @@ class DepthReadbackSample : public sample_application::Sample<DepthFrameData> {
     depth_read_pipeline_->Commit();
 
     camera_data_ = containers::make_unique<vulkan::UniformData<CameraData>>(
-        data_->root_allocator, app(), num_swapchain_images);
+        data_->root_allocator, app(), num_swapchain_images,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     model_data_ = containers::make_unique<vulkan::UniformData<ModelData>>(
-        data_->root_allocator, app(), num_swapchain_images);
+        data_->root_allocator, app(), num_swapchain_images,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     float aspect = (float)width / (float)height;
     camera_data_->data().projection_matrix =

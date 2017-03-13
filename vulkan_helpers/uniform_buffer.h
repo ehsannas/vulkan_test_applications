@@ -37,9 +37,14 @@ class UniformData {
   // byte for byte into a uniform buffer, so it it must have the proper
   // alignment as defined in SPIR-V.
  public:
-  // buffered_data_count is the number of buffered frames the uniform data
-  // should produce. Typcially this is one per swapchain image.
-  UniformData(VulkanApplication* application, size_t buffered_data_count)
+  // |buffered_data_count| is the number of buffered frames the uniform data
+  // should produce. Typcially this is one per swapchain image. |usage| is the
+  // VkBufferUsageFlags used for the underlying VkBuffer(s) that stores the
+  // uniform data. Note that VK_BUFFER_USAGE_TRANSFER_DST_BIT will be added
+  // along with |usage| to guarantee data can be copied to the underlying
+  // VkBuffer(s).
+  UniformData(VulkanApplication* application, size_t buffered_data_count,
+      VkBufferUsageFlags usage)
       : application_(application),
         uninitialized_(true, buffered_data_count, application->GetAllocator()),
         update_commands_(application->GetAllocator()) {
@@ -47,12 +52,11 @@ class UniformData {
         RoundUp(sizeof(set_value_), kMaxOffsetAlignment);
 
     VkBufferCreateInfo create_info = {
-        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,     // sType
-        nullptr,                                  // pNext
-        0,                                        // flags
-        aligned_data_size * buffered_data_count,  // size
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,  // usage
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,      // sType
+        nullptr,                                   // pNext
+        0,                                         // flags
+        aligned_data_size * buffered_data_count,   // size
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage,  // usage
         VK_SHARING_MODE_EXCLUSIVE,
         0,
         nullptr};

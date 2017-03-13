@@ -129,10 +129,12 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     cube_pipeline_->Commit();
 
     camera_data = containers::make_unique<vulkan::UniformData<camera_data_>>(
-        data_->root_allocator, app(), num_swapchain_images);
+        data_->root_allocator, app(), num_swapchain_images,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     model_data = containers::make_unique<vulkan::UniformData<model_data_>>(
-        data_->root_allocator, app(), num_swapchain_images);
+        data_->root_allocator, app(), num_swapchain_images,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     float aspect =
         (float)app()->swapchain().width() / (float)app()->swapchain().height();
