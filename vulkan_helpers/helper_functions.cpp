@@ -822,7 +822,9 @@ void SetImageLayout(::VkImage image,
       0,                                            // flags
       &cmd_buffer_hinfo,                            // pInheritanceInfo
   };
-  (*cmd_buffer)->vkBeginCommandBuffer(*cmd_buffer, &cmd_buffer_begin_info);
+  if (queue) {
+    (*cmd_buffer)->vkBeginCommandBuffer(*cmd_buffer, &cmd_buffer_begin_info);
+  }
   (*cmd_buffer)
       ->vkCmdPipelineBarrier(*cmd_buffer,  // commandBuffer
                              VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
@@ -835,23 +837,25 @@ void SetImageLayout(::VkImage image,
                              1,                     // imageMemoryBarrierCount
                              &image_memory_barrier  // pImageMemoryBarriers
                              );
-  (*cmd_buffer)->vkEndCommandBuffer(*cmd_buffer);
-  containers::vector<::VkSemaphore> waits(wait_semaphores, allocator);
-  containers::vector<::VkSemaphore> signals(signal_semaphores, allocator);
-  const VkPipelineStageFlags wait_dst_stage_masks[1] = {
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
-  VkSubmitInfo submit_info = {
-      VK_STRUCTURE_TYPE_SUBMIT_INFO,                   // sType
-      nullptr,                                         // pNext
-      uint32_t(waits.size()),                          // waitSemaphoreCount
-      waits.size() == 0 ? nullptr : waits.data(),      // pWaitSemaphores
-      wait_dst_stage_masks,                            // pWaitDstStageMask
-      1,                                               // commandBufferCount
-      &raw_cmd_buffer,                                 // pCommandBuffers
-      uint32_t(signals.size()),                        // signalSemaphoreCount
-      signals.size() == 0 ? nullptr : signals.data(),  // pSignalSemaphores
-  };
-  (*queue)->vkQueueSubmit(*queue, 1, &submit_info, fence);
+  if (queue) {
+    (*cmd_buffer)->vkEndCommandBuffer(*cmd_buffer);
+    containers::vector<::VkSemaphore> waits(wait_semaphores, allocator);
+    containers::vector<::VkSemaphore> signals(signal_semaphores, allocator);
+    const VkPipelineStageFlags wait_dst_stage_masks[1] = {
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
+    VkSubmitInfo submit_info = {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,                   // sType
+        nullptr,                                         // pNext
+        uint32_t(waits.size()),                          // waitSemaphoreCount
+        waits.size() == 0 ? nullptr : waits.data(),      // pWaitSemaphores
+        wait_dst_stage_masks,                            // pWaitDstStageMask
+        1,                                               // commandBufferCount
+        &raw_cmd_buffer,                                 // pCommandBuffers
+        uint32_t(signals.size()),                        // signalSemaphoreCount
+        signals.size() == 0 ? nullptr : signals.data(),  // pSignalSemaphores
+    };
+    (*queue)->vkQueueSubmit(*queue, 1, &submit_info, fence);
+  }
   return;
 }
 
