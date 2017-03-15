@@ -27,8 +27,8 @@
 namespace entry {
 namespace internal {
 void dummy_function() {}
-}
-}
+}  // namespace internal
+}  // namespace entry
 
 #if defined __ANDROID__
 #include <android_native_app_glue.h>
@@ -106,13 +106,21 @@ void android_main(android_app* app) {
 }
 #elif defined __linux__
 
+#ifndef DEFAULT_WINDOW_WIDTH
+#define DEFAULT_WINDOW_WIDTH 100
+#endif
+
+#ifndef DEFAULT_WINDOW_HEIGHT
+#define DEFAULT_WINDOW_HEIGHT 100
+#endif
+
 // This creates an XCB connection and window for the application.
 // It maps it onto the screen and passes it on to the main_entry function.
 // -w=X will set the window width to X
 // -h=Y will set the window height to Y
 int main(int argc, char** argv) {
-  uint32_t window_width = 100;
-  uint32_t window_height = 100;
+  uint32_t window_width = DEFAULT_WINDOW_WIDTH;
+  uint32_t window_height = DEFAULT_WINDOW_HEIGHT;
 
   for (size_t i = 0; i < argc; ++i) {
     if (strncmp(argv[i], "-w=", 3) == 0) {

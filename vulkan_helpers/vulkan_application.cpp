@@ -413,8 +413,9 @@ void VulkanApplication::FillSmallBuffer(Buffer* buffer, const void* data,
   LOG_ASSERT(==, log_, 0, data_size % 4);
   size_t upload_offset = 0;
   while (upload_offset != data_size) {
+    size_t upload_left = (data_size - upload_offset);
     size_t to_upload =
-        data_size < MAX_UPDATE_SIZE ? data_size : MAX_UPDATE_SIZE;
+        upload_left < MAX_UPDATE_SIZE ? upload_left : MAX_UPDATE_SIZE;
 
     (*command_buffer)
         ->vkCmdUpdateBuffer(
@@ -873,6 +874,10 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
   dynamic_state_.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 }
 
+void VulkanGraphicsPipeline::SetRasterizationFill(VkPolygonMode mode) {
+  rasterization_state_.polygonMode = mode;
+}
+
 void VulkanGraphicsPipeline::AddShader(VkShaderStageFlagBits stage,
                                        const char* entry, uint32_t* code,
                                        uint32_t numCodeWords) {
@@ -1026,4 +1031,4 @@ void VulkanGraphicsPipeline::Commit() {
                  &create_info, nullptr, &pipeline));
   pipeline_.initialize(pipeline);
 }
-}
+}  // namespace vulkan

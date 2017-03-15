@@ -25,49 +25,50 @@
 
 using Mat44 = mathfu::Matrix<float, 4, 4>;
 using Vector4 = mathfu::Vector<float, 4>;
-
-namespace cube_model {
-#include "cube.obj.h"
+using Vector3 = mathfu::Vector<float, 3>;
+namespace torus_model {
+#include "torus_knot.obj.h"
 }
-const auto& cube_data = cube_model::model;
+const auto& torus_data = torus_model::model;
 
-uint32_t cube_vertex_shader[] =
-#include "cube.vert.spv"
+uint32_t torus_vertex_shader[] =
+#include "wireframe.vert.spv"
     ;
 
-uint32_t cube_fragment_shader[] =
-#include "cube.frag.spv"
+uint32_t torus_fragment_shader[] =
+#include "wireframe.frag.spv"
     ;
-
-struct CubeFrameData {
+#include <unistd.h>
+struct WireframeFrameData {
   containers::unique_ptr<vulkan::VkCommandBuffer> command_buffer_;
   containers::unique_ptr<vulkan::VkFramebuffer> framebuffer_;
-  containers::unique_ptr<vulkan::DescriptorSet> cube_descriptor_set_;
+  containers::unique_ptr<vulkan::DescriptorSet> torus_descriptor_set_;
 };
 
 // This creates an application wiht 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class CubeSample : public sample_application::Sample<CubeFrameData> {
+class WireframeSample : public sample_application::Sample<WireframeFrameData> {
  public:
-  CubeSample(const entry::entry_data* data)
+  WireframeSample(const entry::entry_data* data)
       : data_(data),
-        Sample<CubeFrameData>(
-            data->root_allocator, data, 1, 512, 1,
-            sample_application::SampleOptions().EnableMultisampling()),
-        cube_(data->root_allocator, data->log.get(), cube_data) {}
+        Sample<WireframeFrameData>(data->root_allocator, data, 1, 512, 1,
+                                   sample_application::SampleOptions()
+                                       .EnableDepthBuffer()
+                                       .EnableMultisampling()),
+        torus_(data->root_allocator, data->log.get(), torus_data) {}
   virtual void InitializeApplicationData(
       vulkan::VkCommandBuffer* initialization_buffer,
       size_t num_swapchain_images) override {
-    cube_.InitializeData(app(), initialization_buffer);
+    torus_.InitializeData(app(), initialization_buffer);
 
-    cube_descritor_set_layouts_[0] = {
+    torus_descritor_set_layouts_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    cube_descritor_set_layouts_[1] = {
+    torus_descritor_set_layouts_[1] = {
         1,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
@@ -77,26 +78,39 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
-        app()->CreatePipelineLayout({{cube_descritor_set_layouts_[0],
-                                      cube_descritor_set_layouts_[1]}}));
+        app()->CreatePipelineLayout({{torus_descritor_set_layouts_[0],
+                                      torus_descritor_set_layouts_[1]}}));
 
+    VkAttachmentReference depth_attachment = {
+        0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
     VkAttachmentReference color_attachment = {
-        0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+        1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
     render_pass_ = containers::make_unique<vulkan::VkRenderPass>(
         data_->root_allocator,
         app()->CreateRenderPass(
             {{
-                0,                                         // flags
-                render_format(),                           // format
-                num_samples(),                             // samples
-                VK_ATTACHMENT_LOAD_OP_CLEAR,               // loadOp
-                VK_ATTACHMENT_STORE_OP_STORE,              // storeOp
-                VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // stenilLoadOp
-                VK_ATTACHMENT_STORE_OP_DONT_CARE,          // stenilStoreOp
-                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // initialLayout
-                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL   // finalLayout
-            }},  // AttachmentDescriptions
+                 0,                                 // flags
+                 depth_format(),                    // format
+                 num_samples(),                     // samples
+                 VK_ATTACHMENT_LOAD_OP_CLEAR,       // loadOp
+                 VK_ATTACHMENT_STORE_OP_STORE,      // storeOp
+                 VK_ATTACHMENT_LOAD_OP_DONT_CARE,   // stenilLoadOp
+                 VK_ATTACHMENT_STORE_OP_DONT_CARE,  // stenilStoreOp
+                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,  // initialLayout
+                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL  // finalLayout
+             },
+             {
+                 0,                                         // flags
+                 render_format(),                           // format
+                 num_samples(),                             // samples
+                 VK_ATTACHMENT_LOAD_OP_CLEAR,               // loadOp
+                 VK_ATTACHMENT_STORE_OP_STORE,              // storeOp
+                 VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // stenilLoadOp
+                 VK_ATTACHMENT_STORE_OP_DONT_CARE,          // stenilStoreOp
+                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // initialLayout
+                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL   // finalLayout
+             }},  // AttachmentDescriptions
             {{
                 0,                                // flags
                 VK_PIPELINE_BIND_POINT_GRAPHICS,  // pipelineBindPoint
@@ -105,28 +119,30 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
                 1,                                // colorAttachmentCount
                 &color_attachment,                // colorAttachment
                 nullptr,                          // pResolveAttachments
-                nullptr,                          // pDepthStencilAttachment
+                &depth_attachment,                // pDepthStencilAttachment
                 0,                                // preserveAttachmentCount
                 nullptr                           // pPreserveAttachments
             }},                                   // SubpassDescriptions
             {}                                    // SubpassDependencies
             ));
 
-    cube_pipeline_ = containers::make_unique<vulkan::VulkanGraphicsPipeline>(
+    torus_pipeline_ = containers::make_unique<vulkan::VulkanGraphicsPipeline>(
         data_->root_allocator,
         app()->CreateGraphicsPipeline(pipeline_layout_.get(),
                                       render_pass_.get(), 0));
-    cube_pipeline_->AddShader(VK_SHADER_STAGE_VERTEX_BIT, "main",
-                              cube_vertex_shader);
-    cube_pipeline_->AddShader(VK_SHADER_STAGE_FRAGMENT_BIT, "main",
-                              cube_fragment_shader);
-    cube_pipeline_->SetTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    cube_pipeline_->SetInputStreams(&cube_);
-    cube_pipeline_->SetViewport(viewport());
-    cube_pipeline_->SetScissor(scissor());
-    cube_pipeline_->SetSamples(num_samples());
-    cube_pipeline_->AddAttachment();
-    cube_pipeline_->Commit();
+    torus_pipeline_->AddShader(VK_SHADER_STAGE_VERTEX_BIT, "main",
+                               torus_vertex_shader);
+    torus_pipeline_->AddShader(VK_SHADER_STAGE_FRAGMENT_BIT, "main",
+                               torus_fragment_shader);
+    torus_pipeline_->AddDynamicState(VK_DYNAMIC_STATE_LINE_WIDTH);
+    torus_pipeline_->SetTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    torus_pipeline_->SetRasterizationFill(VK_POLYGON_MODE_LINE);
+    torus_pipeline_->SetInputStreams(&torus_);
+    torus_pipeline_->SetViewport(viewport());
+    torus_pipeline_->SetScissor(scissor());
+    torus_pipeline_->SetSamples(num_samples());
+    torus_pipeline_->AddAttachment();
+    torus_pipeline_->Commit();
 
     camera_data_ = containers::make_unique<vulkan::BufferFrameData<CameraData>>(
         data_->root_allocator, app(), num_swapchain_images,
@@ -139,25 +155,27 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     float aspect =
         (float)app()->swapchain().width() / (float)app()->swapchain().height();
     camera_data_->data().projection_matrix =
-        Mat44::FromScaleVector(mathfu::Vector<float, 3>{1.0f, -1.0f, 1.0f}) *
+        Mat44::FromScaleVector(Vector3{1.0f, -1.0f, 1.0f}) *
         Mat44::Perspective(1.5708, aspect, 0.1f, 100.0f);
 
     model_data_->data().transform =
-        Mat44::FromTranslationVector(mathfu::Vector<float, 3>{0.0, 0.0, -3.0});
+        Mat44::FromTranslationVector(Vector3{0.0, 0.0, -3.0}) *
+        Mat44::FromScaleVector(Vector3{0.5, 0.5, 0.5});
   }
 
   virtual void InitializeFrameData(
-      CubeFrameData* frame_data, vulkan::VkCommandBuffer* initialization_buffer,
+      WireframeFrameData* frame_data,
+      vulkan::VkCommandBuffer* initialization_buffer,
       size_t frame_index) override {
     frame_data->command_buffer_ =
         containers::make_unique<vulkan::VkCommandBuffer>(
             data_->root_allocator, app()->GetCommandBuffer());
 
-    frame_data->cube_descriptor_set_ =
+    frame_data->torus_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
-            app()->AllocateDescriptorSet({cube_descritor_set_layouts_[0],
-                                          cube_descritor_set_layouts_[1]}));
+            app()->AllocateDescriptorSet({torus_descritor_set_layouts_[0],
+                                          torus_descritor_set_layouts_[1]}));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -174,7 +192,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     VkWriteDescriptorSet write{
         VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,  // sType
         nullptr,                                 // pNext
-        *frame_data->cube_descriptor_set_,       // dstSet
+        *frame_data->torus_descriptor_set_,      // dstSet
         0,                                       // dstbinding
         0,                                       // dstArrayElement
         2,                                       // descriptorCount
@@ -187,7 +205,8 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     app()->device()->vkUpdateDescriptorSets(app()->device(), 1, &write, 0,
                                             nullptr);
 
-    ::VkImageView raw_view = color_view(frame_data);
+    ::VkImageView raw_views[2] = {depth_view(frame_data),
+                                  color_view(frame_data)};
 
     // Create a framebuffer with depth and image attachments
     VkFramebufferCreateInfo framebuffer_create_info{
@@ -195,8 +214,8 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
         nullptr,                                    // pNext
         0,                                          // flags
         *render_pass_,                              // renderPass
-        1,                                          // attachmentCount
-        &raw_view,                                  // attachments
+        2,                                          // attachmentCount
+        raw_views,                                  // attachments
         app()->swapchain().width(),                 // width
         app()->swapchain().height(),                // height
         1                                           // layers
@@ -214,8 +233,10 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
                                &sample_application::kBeginCommandBuffer);
     vulkan::VkCommandBuffer& cmdBuffer = (*frame_data->command_buffer_);
 
-    VkClearValue clear;
-    vulkan::ZeroMemory(&clear);
+    VkClearValue clears[2];
+    vulkan::ZeroMemory(&clears[0]);
+    clears[0].depthStencil.depth = 1.0f;
+    vulkan::ZeroMemory(&clears[1]);
 
     VkRenderPassBeginInfo pass_begin = {
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,  // sType
@@ -225,20 +246,21 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
         {{0, 0},
          {app()->swapchain().width(),
           app()->swapchain().height()}},  // renderArea
-        1,                                // clearValueCount
-        &clear                            // clears
+        2,                                // clearValueCount
+        clears                            // clears
     };
 
     cmdBuffer->vkCmdBeginRenderPass(cmdBuffer, &pass_begin,
                                     VK_SUBPASS_CONTENTS_INLINE);
 
     cmdBuffer->vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                 *cube_pipeline_);
+                                 *torus_pipeline_);
+    cmdBuffer->vkCmdSetLineWidth(cmdBuffer, 1.0f);
     cmdBuffer->vkCmdBindDescriptorSets(
         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
         ::VkPipelineLayout(*pipeline_layout_), 0, 1,
-        &frame_data->cube_descriptor_set_->raw_set(), 0, nullptr);
-    cube_.Draw(&cmdBuffer);
+        &frame_data->torus_descriptor_set_->raw_set(), 0, nullptr);
+    torus_.Draw(&cmdBuffer);
     cmdBuffer->vkCmdEndRenderPass(cmdBuffer);
 
     (*frame_data->command_buffer_)
@@ -249,11 +271,11 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     model_data_->data().transform =
         model_data_->data().transform *
         Mat44::FromRotationMatrix(
-            Mat44::RotationX(3.14 * time_since_last_render) *
-            Mat44::RotationY(3.14 * time_since_last_render * 0.5));
+            Mat44::RotationX(3.14 * time_since_last_render * 0.1) *
+            Mat44::RotationY(3.14 * time_since_last_render * 0.1));
   }
   virtual void Render(vulkan::VkQueue* queue, size_t frame_index,
-                      CubeFrameData* frame_data) {
+                      WireframeFrameData* frame_data) {
     // Update our uniform buffers.
     camera_data_->UpdateBuffer(queue, frame_index);
     model_data_->UpdateBuffer(queue, frame_index);
@@ -288,10 +310,10 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
   const entry::entry_data* data_;
   containers::unique_ptr<vulkan::PipelineLayout> pipeline_layout_;
-  containers::unique_ptr<vulkan::VulkanGraphicsPipeline> cube_pipeline_;
+  containers::unique_ptr<vulkan::VulkanGraphicsPipeline> torus_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> render_pass_;
-  VkDescriptorSetLayoutBinding cube_descritor_set_layouts_[2];
-  vulkan::VulkanModel cube_;
+  VkDescriptorSetLayoutBinding torus_descritor_set_layouts_[2];
+  vulkan::VulkanModel torus_;
 
   containers::unique_ptr<vulkan::BufferFrameData<CameraData>> camera_data_;
   containers::unique_ptr<vulkan::BufferFrameData<ModelData>> model_data_;
@@ -299,7 +321,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
-  CubeSample sample(data);
+  WireframeSample sample(data);
   sample.Initialize();
 
   while (true) {

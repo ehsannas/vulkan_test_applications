@@ -57,12 +57,14 @@ def main():
     vertices = []
     indices = []
 
+    number = r'(-?\d+(?:.\d+)?(?:e-?\d+)?)'
+
     position_matcher = re.compile(
-        r'v (-?\d+(?:.\d+)?) (-?\d+(?:.\d+)?) (-?\d+(?:.\d+)?).*')
+        r'v ' + number + r' ' + number + r' ' + number + r'.*')
     texture_matcher = re.compile(
-        r'vt (-?\d+(?:.\d+)?) (-?\d+(?:.\d+)?).*')
+        r'vt ' + number + r' ' + number + r'.*')
     normal_matcher = re.compile(
-        r'vn (-?\d+(?:.\d+)?) (-?\d+(?:.\d+)?) (-?\d+(?:.\d+)?).*')
+        r'vn ' + number + r' ' + number + r' ' + number + r'.*')
     face_matcher = re.compile(
         r'f (\d+)/(\d+)/(\d+) (\d+)/(\d+)/(\d+) (\d+)/(\d+)/(\d+)')
 
@@ -162,8 +164,8 @@ def main():
             for vertex in vertices:
                 if not first_element:
                     f.write(", ")
-                f.write(str(vertex[0][0]) + "f, " + str(vertex[0][1]) +
-                        "f, " + str(vertex[0][2]) + "f")
+                f.write(str(vertex[2][0]) + "f, " + str(vertex[2][1]) +
+                        "f, " + str(vertex[2][2]) + "f")
                 first_element = False
             f.write("},\n")
             f.write(str(len(indices)) + ",\n")

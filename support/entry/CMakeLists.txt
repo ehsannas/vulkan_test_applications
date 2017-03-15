@@ -19,6 +19,20 @@ elseif(UNIX)
 set(ADDITIONAL_LIBS xcb pthread)
 endif()
 
+
+if (NOT DEFAULT_WINDOW_WIDTH)
+  set(DEFAULT_WINDOW_WIDTH 100)
+endif()
+
+if (NOT DEFAULT_WINDOW_HEIGHT)
+  set(DEFAULT_WINDOW_HEIGHT 100)
+endif()
+
+SET(DEFAULT_WINDOW_WIDTH ${DEFAULT_WINDOW_WIDTH} CACHE INT
+    "Default window width for platforms that have resizable windows")
+SET(DEFAULT_WINDOW_HEIGHT ${DEFAULT_WINDOW_HEIGHT} CACHE INT
+    "Default window height for platforms that have resizable windows")
+
 add_vulkan_static_library(entry
     SOURCES
         entry.cpp
@@ -26,3 +40,9 @@ add_vulkan_static_library(entry
         ${ADDITIONAL_LIBS}
         logger
         containers)
+
+if (NOT BUILD_APKS)
+    target_compile_options(entry PRIVATE
+        -DDEFAULT_WINDOW_WIDTH=${DEFAULT_WINDOW_WIDTH}
+        -DDEFAULT_WINDOW_HEIGHT=${DEFAULT_WINDOW_HEIGHT})
+endif()

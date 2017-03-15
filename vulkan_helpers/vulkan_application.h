@@ -122,6 +122,9 @@ class VulkanGraphicsPipeline {
 
   void SetSamples(VkSampleCountFlagBits samples);
 
+  // Sets the rasterization fill mode of the polygon.
+  void SetRasterizationFill(VkPolygonMode mode);
+
   // Adds an attachment to this pipeline. Sets up default opaque blending
   // for that attachment.
   void AddAttachment();
