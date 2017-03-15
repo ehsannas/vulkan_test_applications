@@ -16,6 +16,13 @@
 # Everything else depends on sample_application
 add_subdirectory(sample_application_framework)
 
+add_custom_target(ALL_SAMPLES)
+
+function(add_vulkan_sample_application name)
+    add_vulkan_executable(${name} NON_DEFAULT ${ARGN})
+    add_dependencies(ALL_SAMPLES ${name})
+endfunction()
+
 add_subdirectory(cube)
 add_subdirectory(depth_readback)
 add_subdirectory(textured_cube)

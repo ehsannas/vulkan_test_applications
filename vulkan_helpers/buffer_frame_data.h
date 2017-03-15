@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef VULKAN_HELPERS_UNIFORM_DATA
-#define VULKAN_HELPERS_UNIFORM_DATA
+#ifndef VULKAN_HELPERS_BUFFER_FRAME_DATA_H
+#define VULKAN_HELPERS_BUFFER_FRAME_DATA_H
 
 #include "vulkan_helpers/vulkan_application.h"
 
@@ -28,8 +28,8 @@ size_t RoundUp(size_t to_round, size_t power_of_2_to_round) {
 }
 
 template <typename T>
-class UniformData {
-  // UniformData is a class that wraps some amount of data for multi-frame
+class BufferFrameData {
+  // BufferFrameData is a class that wraps some amount of data for multi-frame
   // updates.
   // It handles the creation of uniform buffers, and can update them
   // when it is appropriate.
@@ -43,8 +43,8 @@ class UniformData {
   // uniform data. Note that VK_BUFFER_USAGE_TRANSFER_DST_BIT will be added
   // along with |usage| to guarantee data can be copied to the underlying
   // VkBuffer(s).
-  UniformData(VulkanApplication* application, size_t buffered_data_count,
-      VkBufferUsageFlags usage)
+  BufferFrameData(VulkanApplication* application, size_t buffered_data_count,
+                  VkBufferUsageFlags usage)
       : application_(application),
         uninitialized_(true, buffered_data_count, application->GetAllocator()),
         update_commands_(application->GetAllocator()) {
@@ -120,8 +120,7 @@ class UniformData {
       // If the data for this frame is not what was previously recorded into
       // the buffer, then copy the data into the buffer and update it.
       uninitialized_[buffer_index] = false;
-      memcpy(host_buffer_->base_address() + offset, &set_value_,
-             size());
+      memcpy(host_buffer_->base_address() + offset, &set_value_, size());
       host_buffer_->flush(offset, size());
       VkSubmitInfo init_submit_info{
           VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
@@ -166,4 +165,4 @@ class UniformData {
 };
 }  // namespace vulkan
 
-#endif  // VULKAN_HELPERS_UNIFORM_DATA
+#endif  // VULKAN_HELPERS_BUFFER_FRAME_DATA_H

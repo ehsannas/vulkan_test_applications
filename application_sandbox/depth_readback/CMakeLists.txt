@@ -27,8 +27,7 @@ add_shader_library(depth_readback_shaders
     shader_library
 )
 
-add_vulkan_executable(depth_readback
-  NON_DEFAULT
+add_vulkan_sample_application(depth_readback
   SOURCES main.cpp
   LIBS
     vulkan_helpers

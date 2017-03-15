@@ -14,8 +14,8 @@
 
 #include "application_sandbox/sample_application_framework/sample_application.h"
 #include "support/entry/entry.h"
+#include "vulkan_helpers/buffer_frame_data.h"
 #include "vulkan_helpers/helper_functions.h"
-#include "vulkan_helpers/uniform_buffer.h"
 #include "vulkan_helpers/vulkan_application.h"
 #include "vulkan_helpers/vulkan_model.h"
 
@@ -52,9 +52,8 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
  public:
   CubeSample(const entry::entry_data* data)
       : data_(data),
-        Sample<CubeFrameData>(
-            data->root_allocator, data, 1, 512, 1,
-            sample_application::SampleOptions()),
+        Sample<CubeFrameData>(data->root_allocator, data, 1, 512, 1,
+                              sample_application::SampleOptions()),
         cube_(data->root_allocator, data->log.get(), cube_data) {}
   virtual void InitializeApplicationData(
       vulkan::VkCommandBuffer* initialization_buffer,
@@ -85,10 +84,10 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
-        app()->CreatePipelineLayout({{cube_descriptor_set_layouts_[0],
-                                      cube_descriptor_set_layouts_[1],
-                                      cube_descriptor_set_layouts_[2],
-                                      }}));
+        app()->CreatePipelineLayout({{
+            cube_descriptor_set_layouts_[0], cube_descriptor_set_layouts_[1],
+            cube_descriptor_set_layouts_[2],
+        }}));
 
     VkAttachmentReference color_attachment = {
         0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
@@ -138,15 +137,16 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     cube_pipeline_->AddAttachment();
     cube_pipeline_->Commit();
 
-    camera_data = containers::make_unique<vulkan::UniformData<camera_data_>>(
+    camera_data =
+        containers::make_unique<vulkan::BufferFrameData<camera_data_>>(
+            data_->root_allocator, app(), num_swapchain_images,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+
+    model_data = containers::make_unique<vulkan::BufferFrameData<model_data_>>(
         data_->root_allocator, app(), num_swapchain_images,
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
-    model_data = containers::make_unique<vulkan::UniformData<model_data_>>(
-        data_->root_allocator, app(), num_swapchain_images,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-
-    alpha_data_ = containers::make_unique<vulkan::UniformData<AlphaData>>(
+    alpha_data_ = containers::make_unique<vulkan::BufferFrameData<AlphaData>>(
         data_->root_allocator, app(), num_swapchain_images,
         VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);
 
@@ -183,17 +183,18 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
                app()->device()->vkCreateBufferView(
                    app()->device(), &alpha_data_buffer_view_create_info,
                    nullptr, &raw_buf_view));
-    frame_data->alpha_data_buffer_view_ = containers::make_unique<vulkan::VkBufferView>(
-        data_->root_allocator,
-        vulkan::VkBufferView(raw_buf_view, nullptr, &app()->device()));
+    frame_data->alpha_data_buffer_view_ =
+        containers::make_unique<vulkan::VkBufferView>(
+            data_->root_allocator,
+            vulkan::VkBufferView(raw_buf_view, nullptr, &app()->device()));
 
     frame_data->cube_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
-            data_->root_allocator,
-            app()->AllocateDescriptorSet({cube_descriptor_set_layouts_[0],
-                                          cube_descriptor_set_layouts_[1],
-                                          cube_descriptor_set_layouts_[2],
-                                          }));
+            data_->root_allocator, app()->AllocateDescriptorSet({
+                                       cube_descriptor_set_layouts_[0],
+                                       cube_descriptor_set_layouts_[1],
+                                       cube_descriptor_set_layouts_[2],
+                                   }));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -303,8 +304,9 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
             Mat44::RotationX(3.14 * time_since_last_render) *
             Mat44::RotationY(3.14 * time_since_last_render * 0.5));
     alpha_data_->data().alpha =
-        alpha_data_->data().alpha > 2.0 ? 0.0 : alpha_data_->data().alpha +
-                                                    time_since_last_render / 2;
+        alpha_data_->data().alpha > 2.0
+            ? 0.0
+            : alpha_data_->data().alpha + time_since_last_render / 2;
   }
   virtual void Render(vulkan::VkQueue* queue, size_t frame_index,
                       CubeFrameData* frame_data) override {
@@ -355,9 +357,9 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
   VkDescriptorSetLayoutBinding cube_descriptor_set_layouts_[3];
   vulkan::VulkanModel cube_;
 
-  containers::unique_ptr<vulkan::UniformData<camera_data_>> camera_data;
-  containers::unique_ptr<vulkan::UniformData<model_data_>> model_data;
-  containers::unique_ptr<vulkan::UniformData<AlphaData>> alpha_data_;
+  containers::unique_ptr<vulkan::BufferFrameData<camera_data_>> camera_data;
+  containers::unique_ptr<vulkan::BufferFrameData<model_data_>> model_data;
+  containers::unique_ptr<vulkan::BufferFrameData<AlphaData>> alpha_data_;
 };
 
 int main_entry(const entry::entry_data* data) {

@@ -20,8 +20,7 @@ add_shader_library(blit_image_shaders
     shader_library
 )
 
-add_vulkan_executable(blit_image
-  NON_DEFAULT
+add_vulkan_sample_application(blit_image
   SOURCES main.cpp
   LIBS
     vulkan_helpers

@@ -20,8 +20,7 @@ add_shader_library(bufferview_shaders
     shader_library
 )
 
-add_vulkan_executable(bufferview
-  NON_DEFAULT
+add_vulkan_sample_application(bufferview
   SOURCES main.cpp
   LIBS
     vulkan_helpers

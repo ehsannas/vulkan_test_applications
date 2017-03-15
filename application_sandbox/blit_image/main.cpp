@@ -14,8 +14,8 @@
 
 #include "application_sandbox/sample_application_framework/sample_application.h"
 #include "support/entry/entry.h"
+#include "vulkan_helpers/buffer_frame_data.h"
 #include "vulkan_helpers/helper_functions.h"
-#include "vulkan_helpers/uniform_buffer.h"
 #include "vulkan_helpers/vulkan_application.h"
 #include "vulkan_helpers/vulkan_model.h"
 
@@ -53,9 +53,8 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
  public:
   CubeSample(const entry::entry_data* data)
       : data_(data),
-        Sample<CubeFrameData>(
-            data->root_allocator, data, 1, 512, 1,
-            sample_application::SampleOptions()),
+        Sample<CubeFrameData>(data->root_allocator, data, 1, 512, 1,
+                              sample_application::SampleOptions()),
         cube_(data->root_allocator, data->log.get(), cube_data) {}
   virtual void InitializeApplicationData(
       vulkan::VkCommandBuffer* initialization_buffer,
@@ -130,11 +129,14 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     cube_pipeline_->AddAttachment();
     cube_pipeline_->Commit();
 
-    camera_data = containers::make_unique<vulkan::UniformData<camera_data_>>(
-        data_->root_allocator, app(), num_swapchain_images);
+    camera_data =
+        containers::make_unique<vulkan::BufferFrameData<camera_data_>>(
+            data_->root_allocator, app(), num_swapchain_images,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
-    model_data = containers::make_unique<vulkan::UniformData<model_data_>>(
-        data_->root_allocator, app(), num_swapchain_images);
+    model_data = containers::make_unique<vulkan::BufferFrameData<model_data_>>(
+        data_->root_allocator, app(), num_swapchain_images,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     float aspect =
         (float)app()->swapchain().width() / (float)app()->swapchain().height();
@@ -184,7 +186,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
         0,                                         // flags
         *frame_data->blit_src_,                    // image
         VK_IMAGE_VIEW_TYPE_2D,                     // viewType
-        app()->swapchain().format(),                // format
+        app()->swapchain().format(),               // format
         {VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B,
          VK_COMPONENT_SWIZZLE_A},
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
@@ -237,15 +239,15 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
     // Create a framebuffer with the blit source image as attachment
     VkFramebufferCreateInfo framebuffer_create_info{
-        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,     // sType
-        nullptr,                                       // pNext
-        0,                                             // flags
-        *render_pass_,                                 // renderPass
-        1,                                             // attachmentCount
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,      // sType
+        nullptr,                                        // pNext
+        0,                                              // flags
+        *render_pass_,                                  // renderPass
+        1,                                              // attachmentCount
         &frame_data->blit_src_view_->get_raw_object(),  // attachments
-        app()->swapchain().width(),                    // width
-        app()->swapchain().height(),                   // height
-        1                                              // layers
+        app()->swapchain().width(),                     // width
+        app()->swapchain().height(),                    // height
+        1                                               // layers
     };
 
     ::VkFramebuffer raw_framebuffer;
@@ -283,7 +285,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,      // srcAccessMask
         VK_ACCESS_TRANSFER_READ_BIT,               // dstAccessMask
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // oldLayout
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,     // newLayout
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,      // newLayout
         VK_QUEUE_FAMILY_IGNORED,                   // srcQueueFamilyIndex
         VK_QUEUE_FAMILY_IGNORED,                   // dstQueueFamilyIndex
         *frame_data->blit_src_,                    // image
@@ -368,16 +370,19 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
     // Blit the blit source image to the swapchain image
     VkImageBlit blit_region{
-      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-      {{0, 0, 0}, {int32_t(app()->swapchain().width()), int32_t(app()->swapchain().height()), 1}},
-      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-      {{0, 0, 0}, {int32_t(app()->swapchain().width()), int32_t(app()->swapchain().height()), 1}},
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+        {{0, 0, 0},
+         {int32_t(app()->swapchain().width()),
+          int32_t(app()->swapchain().height()), 1}},
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+        {{0, 0, 0},
+         {int32_t(app()->swapchain().width()),
+          int32_t(app()->swapchain().height()), 1}},
     };
     cmdBuffer->vkCmdBlitImage(
-        cmdBuffer,
-        *frame_data->blit_src_, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        swapchain_image(frame_data), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1, &blit_region, VK_FILTER_NEAREST);
+        cmdBuffer, *frame_data->blit_src_, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        swapchain_image(frame_data), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+        &blit_region, VK_FILTER_NEAREST);
 
     // Change the layout of swapchain image to COLOR_ATTACHMENT_OPTIMAL
     cmdBuffer->vkCmdPipelineBarrier(
@@ -439,8 +444,8 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
   VkDescriptorSetLayoutBinding cube_descritor_set_layouts_[2];
   vulkan::VulkanModel cube_;
 
-  containers::unique_ptr<vulkan::UniformData<camera_data_>> camera_data;
-  containers::unique_ptr<vulkan::UniformData<model_data_>> model_data;
+  containers::unique_ptr<vulkan::BufferFrameData<camera_data_>> camera_data;
+  containers::unique_ptr<vulkan::BufferFrameData<model_data_>> model_data;
 };
 
 int main_entry(const entry::entry_data* data) {

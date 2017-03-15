@@ -20,8 +20,7 @@ add_shader_library(cube_shaders
     shader_library
 )
 
-add_vulkan_executable(cube
-  NON_DEFAULT
+add_vulkan_sample_application(cube
   SOURCES main.cpp
   LIBS
     vulkan_helpers

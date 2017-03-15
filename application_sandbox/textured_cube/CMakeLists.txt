@@ -21,8 +21,7 @@ add_shader_library(textured_cube_shaders
     shader_library
 )
 
-add_vulkan_executable(textured_cube
-  NON_DEFAULT
+add_vulkan_sample_application(textured_cube
   SOURCES main.cpp
   LIBS
     vulkan_helpers
