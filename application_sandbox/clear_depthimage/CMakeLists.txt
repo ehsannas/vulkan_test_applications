@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_shader_library(clear_depthimage_shaders
+  SOURCES
+    cube.frag
+    cube.vert
+    depth.frag
+    depth.vert
+  SHADER_DEPS
+    shader_library
+)
 
-# Everything else depends on sample_application
-add_subdirectory(sample_application_framework)
-
-add_custom_target(ALL_SAMPLES)
-
-function(add_vulkan_sample_application name)
-    add_vulkan_executable(${name} NON_DEFAULT ${ARGN})
-    add_dependencies(ALL_SAMPLES ${name})
-endfunction()
-
-add_subdirectory(blit_image)
-add_subdirectory(bufferview)
-add_subdirectory(clear_attachments)
-add_subdirectory(clear_colorimage)
-add_subdirectory(clear_depthimage)
-add_subdirectory(cube)
-add_subdirectory(depth_readback)
-add_subdirectory(textured_cube)
-add_subdirectory(wireframe)
+add_vulkan_executable(clear_depthimage
+  NON_DEFAULT
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+  MODELS
+    standard_models
+  SHADERS
+    clear_depthimage_shaders
+)

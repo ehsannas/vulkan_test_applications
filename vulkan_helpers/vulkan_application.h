@@ -259,6 +259,7 @@ class VulkanApplication {
   class Image {
    public:
     operator ::VkImage() const { return image_; }
+    const ::VkImage& get_raw_image() const { return image_.get_raw_object(); }
     ~Image() { heap_->FreeMemory(token_); }
     VkFormat format() const { return format_; }
 
