@@ -1040,4 +1040,8 @@ void VulkanGraphicsPipeline::Commit() {
                  &create_info, nullptr, &pipeline));
   pipeline_.initialize(pipeline);
 }
+
+::VkDeviceSize VulkanApplication::Image::size() const {
+  return token_ ? token_->allocationSize : 0u;
+}
 }  // namespace vulkan

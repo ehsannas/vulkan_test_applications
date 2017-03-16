@@ -267,6 +267,7 @@ class VulkanApplication {
     const ::VkImage& get_raw_image() const { return image_.get_raw_object(); }
     ~Image() { heap_->FreeMemory(token_); }
     VkFormat format() const { return format_; }
+    ::VkDeviceSize size() const;
 
    private:
     friend class ::vulkan::VulkanApplication;
