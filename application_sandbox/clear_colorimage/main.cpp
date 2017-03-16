@@ -15,7 +15,7 @@
 #include "application_sandbox/sample_application_framework/sample_application.h"
 #include "support/entry/entry.h"
 #include "vulkan_helpers/helper_functions.h"
-#include "vulkan_helpers/uniform_buffer.h"
+#include "vulkan_helpers/buffer_frame_data.h"
 #include "vulkan_helpers/vulkan_application.h"
 #include "vulkan_helpers/vulkan_model.h"
 
@@ -128,11 +128,11 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     cube_pipeline_->AddAttachment();
     cube_pipeline_->Commit();
 
-    camera_data = containers::make_unique<vulkan::UniformData<camera_data_>>(
+    camera_data = containers::make_unique<vulkan::BufferFrameData<camera_data_>>(
         data_->root_allocator, app(), num_swapchain_images,
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
-    model_data = containers::make_unique<vulkan::UniformData<model_data_>>(
+    model_data = containers::make_unique<vulkan::BufferFrameData<model_data_>>(
         data_->root_allocator, app(), num_swapchain_images,
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
@@ -318,8 +318,8 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
   VkDescriptorSetLayoutBinding cube_descritor_set_layouts_[2];
   vulkan::VulkanModel cube_;
 
-  containers::unique_ptr<vulkan::UniformData<camera_data_>> camera_data;
-  containers::unique_ptr<vulkan::UniformData<model_data_>> model_data;
+  containers::unique_ptr<vulkan::BufferFrameData<camera_data_>> camera_data;
+  containers::unique_ptr<vulkan::BufferFrameData<model_data_>> model_data;
 };
 
 int main_entry(const entry::entry_data* data) {
