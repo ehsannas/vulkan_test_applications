@@ -331,8 +331,6 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
         0,                                              // dependencyFlags
         0, nullptr, 0, nullptr, 1, &attach_to_src);
 
-    // Qining
-
     // Image barriers for swapchain image, COLOR_ATTACHMENT_OPTIMAL ->
     // TRANSFER_DST_OPTIMAL and TRANSFER_DST_OPTIMAL ->
     // COLOR_ATTACHMENT_OPTIMAL
