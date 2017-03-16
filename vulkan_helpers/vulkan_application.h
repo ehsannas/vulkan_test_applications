@@ -129,6 +129,9 @@ class VulkanGraphicsPipeline {
   // for that attachment.
   void AddAttachment();
 
+  // Adds an attachment to this pipeline.
+  void AddAttachment(const VkPipelineColorBlendAttachmentState& state);
+
   // Adds a dynamic state to this pipeline.
   void AddDynamicState(VkDynamicState dynamic_state);
 

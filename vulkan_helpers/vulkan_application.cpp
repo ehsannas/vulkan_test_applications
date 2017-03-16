@@ -953,6 +953,11 @@ void VulkanGraphicsPipeline::AddAttachment() {
            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT});
 }
 
+void VulkanGraphicsPipeline::AddAttachment(
+    const VkPipelineColorBlendAttachmentState& state) {
+  attachments_.push_back(state);
+}
+
 void VulkanGraphicsPipeline::AddDynamicState(VkDynamicState dynamic_state) {
   dynamic_states_.push_back(dynamic_state);
 }
