@@ -1,8 +1,8 @@
 #version 450
 
 layout(location = 0) out vec4 out_color;
-layout (location = 2) in vec2 tex_coord;
+layout (location = 2) in vec3 normal;
 
 void main() {
-    out_color = vec4(tex_coord, 0.0, 1.0);
+    out_color = vec4(normal, 1.0);
 }

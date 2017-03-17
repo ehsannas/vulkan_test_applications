@@ -263,7 +263,7 @@ class blendSample : public sample_application::Sample<BlendFrameData> {
 
     cmdBuffer->vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                                  *icos_pipeline_);
-    float blend_constants[] = {1.0, 1.0, 1.0, 1.0};
+    float blend_constants[] = {2.0, 0.25, 1.0, 1.0};
     cmdBuffer->vkCmdSetBlendConstants(cmdBuffer, blend_constants);
     cmdBuffer->vkCmdBindDescriptorSets(
         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
