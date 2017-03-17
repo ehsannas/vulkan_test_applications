@@ -12,9 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_model_library(standard_models
+add_shader_library(copy_querypool_results_shader
   SOURCES
-    fullscreen_quad.obj
-    cube.obj
-    torus_knot.obj
+    wireframe.frag
+    wireframe.vert
+  SHADER_DEPS
+    shader_library
+)
+
+add_vulkan_sample_application(copy_querypool_results
+  SOURCES main.cpp
+  LIBS
+    vulkan_helpers
+  MODELS
+    standard_models
+  SHADERS
+    copy_querypool_results_shader
 )

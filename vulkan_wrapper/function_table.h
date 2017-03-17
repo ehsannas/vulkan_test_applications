@@ -166,7 +166,8 @@ struct CommandBufferFunctions {
         CONSTRUCT_LAZY_FUNCTION(vkCmdFillBuffer),
         CONSTRUCT_LAZY_FUNCTION(vkCmdResetQueryPool),
         CONSTRUCT_LAZY_FUNCTION(vkCmdBeginQuery),
-        CONSTRUCT_LAZY_FUNCTION(vkCmdEndQuery)
+        CONSTRUCT_LAZY_FUNCTION(vkCmdEndQuery),
+        CONSTRUCT_LAZY_FUNCTION(vkCmdCopyQueryPoolResults)
 #undef CONSTRUCT_LAZY_FUNCTION
   {
   }
@@ -209,6 +210,7 @@ struct CommandBufferFunctions {
   LAZY_FUNCTION(vkCmdResetQueryPool);
   LAZY_FUNCTION(vkCmdBeginQuery);
   LAZY_FUNCTION(vkCmdEndQuery);
+  LAZY_FUNCTION(vkCmdCopyQueryPoolResults);
 #undef LAZY_FUNCTION
 };
 

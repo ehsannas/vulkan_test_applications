@@ -20,17 +20,12 @@ add_shader_library(wireframe_shaders
     shader_library
 )
 
-add_model_library(wireframe_models
-  SOURCES
-    torus_knot.obj
-)
-
 add_vulkan_sample_application(wireframe
   SOURCES main.cpp
   LIBS
     vulkan_helpers
   MODELS
-    wireframe_models
+    standard_models
   SHADERS
     wireframe_shaders
 )

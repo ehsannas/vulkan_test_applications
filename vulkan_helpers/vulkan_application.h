@@ -309,6 +309,7 @@ class VulkanApplication {
    public:
     operator ::VkBuffer() const { return buffer_; }
     ~Buffer() { heap_->FreeMemory(token_); }
+    ::VkDeviceSize size() const { return size_; }
 
     // Returns the base_address of the host-visible section of memory.
     // Returns nullptr if the host-visible memory is not available.
