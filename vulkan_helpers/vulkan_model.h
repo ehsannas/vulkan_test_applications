@@ -163,8 +163,9 @@ struct VulkanModel {
   // the draw call.
   void Draw(vulkan::VkCommandBuffer* cmdBuffer) {
     ::VkBuffer buffers[3] = {*vertexBuffer_, *vertexBuffer_, *vertexBuffer_};
-    ::VkDeviceSize offsets[3] = {0, num_vertices_ * POSITION_SIZE,
-                                 num_vertices_ * (POSITION_SIZE + NORMAL_SIZE)};
+    ::VkDeviceSize offsets[3] = {
+        0, num_vertices_ * POSITION_SIZE,
+        num_vertices_ * (POSITION_SIZE + TEXCOORD_SIZE)};
     (*cmdBuffer)->vkCmdBindVertexBuffers(*cmdBuffer, 0, 3, buffers, offsets);
     (*cmdBuffer)
         ->vkCmdBindIndexBuffer(*cmdBuffer, *indexBuffer_, 0,
