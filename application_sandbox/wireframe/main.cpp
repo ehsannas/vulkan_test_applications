@@ -137,6 +137,7 @@ class WireframeSample : public sample_application::Sample<WireframeFrameData> {
     torus_pipeline_->AddDynamicState(VK_DYNAMIC_STATE_LINE_WIDTH);
     torus_pipeline_->SetTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     torus_pipeline_->SetRasterizationFill(VK_POLYGON_MODE_LINE);
+    torus_pipeline_->SetCullMode(VK_CULL_MODE_NONE);
     torus_pipeline_->SetInputStreams(&torus_);
     torus_pipeline_->SetViewport(viewport());
     torus_pipeline_->SetScissor(scissor());

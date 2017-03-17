@@ -13,5 +13,5 @@ layout (binding = 1, set = 0) uniform model_data {
 
 void main() {
     gl_Position =  projection * transform * get_position();
-    normal = get_normal();
+    normal = abs(get_normal());
 }

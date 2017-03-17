@@ -874,6 +874,10 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(containers::Allocator* allocator,
   dynamic_state_.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 }
 
+void VulkanGraphicsPipeline::SetCullMode(VkCullModeFlagBits mode) {
+  rasterization_state_.cullMode = mode;
+}
+
 void VulkanGraphicsPipeline::SetRasterizationFill(VkPolygonMode mode) {
   rasterization_state_.polygonMode = mode;
 }

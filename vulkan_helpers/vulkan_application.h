@@ -122,6 +122,8 @@ class VulkanGraphicsPipeline {
 
   void SetSamples(VkSampleCountFlagBits samples);
 
+  void SetCullMode(VkCullModeFlagBits mode);
+
   // Sets the rasterization fill mode of the polygon.
   void SetRasterizationFill(VkPolygonMode mode);
 
