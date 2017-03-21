@@ -121,7 +121,7 @@ class BufferFrameData {
       // the buffer, then copy the data into the buffer and update it.
       uninitialized_[buffer_index] = false;
       memcpy(host_buffer_->base_address() + offset, &set_value_, size());
-      host_buffer_->flush(offset, size());
+      host_buffer_->flush(offset, aligned_data_size());
       VkSubmitInfo init_submit_info{
           VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
           nullptr,                        // pNext
@@ -142,12 +142,15 @@ class BufferFrameData {
   ::VkBuffer get_buffer() const { return *buffer_; }
   // Returns the offset in the buffer for each frame.
   size_t get_offset_for_frame(size_t buffer_index) const {
-    const size_t aligned_data_size = RoundUp(size(), kMaxOffsetAlignment);
-
-    return aligned_data_size * buffer_index;
+    return aligned_data_size() * buffer_index;
   }
   // Returns the size of the data used for each frame.
   size_t size() const { return sizeof(set_value_); }
+
+  // Returns the aligned size of the data for each frame.
+  size_t aligned_data_size() const {
+    return RoundUp(size(), kMaxOffsetAlignment);
+  }
 
  private:
   VulkanApplication* application_;
