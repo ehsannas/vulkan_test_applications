@@ -176,6 +176,25 @@ class VulkanGraphicsPipeline {
   uint32_t contained_stages_;
 };
 
+// Customizable Compute pipeline state.
+class VulkanComputePipeline {
+  public:
+   VulkanComputePipeline(containers::Allocator* allocator,
+                         PipelineLayout* layout,
+                         VulkanApplication* application,
+                         const VkShaderModuleCreateInfo& shader_module_create_info,
+                         const char* shader_entry);
+   VulkanComputePipeline(VulkanComputePipeline&& other) = default;
+
+   operator ::VkPipeline() const { return pipeline_; }
+
+  private:
+   VulkanApplication* application_;
+   VkPipeline pipeline_;
+   VkShaderModule shader_module_;
+   ::VkPipelineLayout layout_;
+};
+
 // PipelineLayout holds a VkPipelineLayout object as well as as set of
 // VkDescriptorSetLayout objects used to create that pipeline layout.
 class PipelineLayout {
@@ -530,6 +549,17 @@ class VulkanApplication {
                                                 uint32_t subpass_) {
     return VulkanGraphicsPipeline(allocator_, layout, this, render_pass,
                                   subpass_);
+  }
+
+  // Creates and returns a compute pipeline a shader module created from the
+  // given shader module create info and shader stage created with the shader
+  // model and the given shader entry point.
+  VulkanComputePipeline CreateComputePipeline(
+      PipelineLayout* layout,
+      const VkShaderModuleCreateInfo& shader_module_create_info,
+      const char* shader_entry) {
+    return VulkanComputePipeline(allocator_, layout, this,
+                                 shader_module_create_info, shader_entry);
   }
 
   static const VkAccessFlags kAllReadBits =

@@ -1041,6 +1041,49 @@ void VulkanGraphicsPipeline::Commit() {
   pipeline_.initialize(pipeline);
 }
 
+VulkanComputePipeline::VulkanComputePipeline(
+    containers::Allocator* allocator, PipelineLayout* layout,
+    VulkanApplication* application,
+    const VkShaderModuleCreateInfo& shader_module_create_info,
+    const char* shader_entry)
+    : application_(application),
+      pipeline_(VK_NULL_HANDLE, nullptr, &application->device()),
+      shader_module_(VK_NULL_HANDLE, nullptr, &application->device()),
+      layout_(*layout) {
+  ::VkShaderModule raw_module;
+  LOG_ASSERT(==, application_->GetLogger(), VK_SUCCESS,
+             application_->device()->vkCreateShaderModule(
+                 application_->device(), &shader_module_create_info, nullptr,
+                 &raw_module));
+  shader_module_.initialize(raw_module);
+  VkPipelineShaderStageCreateInfo shader_stage_create_info{
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,  // sType
+      nullptr,                                              // pNext
+      0,                                                    // flags
+      VK_SHADER_STAGE_COMPUTE_BIT,                          // stage
+      shader_module_,                                       // module
+      shader_entry,                                         // name
+      nullptr  // pSpecializationInfo
+  };
+
+  VkComputePipelineCreateInfo pipeline_create_info{
+      VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,  // sType
+      nullptr,                                         // pNext
+      0,                                               // flags
+      shader_stage_create_info,                        // stage
+      layout_,                                         // layout
+      VK_NULL_HANDLE,                                  // basePipelineHandle
+      0,                                               // basePipelineIndex
+  };
+
+  ::VkPipeline pipeline;
+  LOG_ASSERT(==, application_->GetLogger(), VK_SUCCESS,
+             application_->device()->vkCreateComputePipelines(
+                 application_->device(), application_->pipeline_cache(), 1,
+                 &pipeline_create_info, nullptr, &pipeline));
+  pipeline_.initialize(pipeline);
+}
+
 ::VkDeviceSize VulkanApplication::Image::size() const {
   return token_ ? token_->allocationSize : 0u;
 }
