@@ -109,6 +109,10 @@ class Sample {
     LOG_ASSERT(==, app()->GetLogger(), false,
                application_.HasSeparatePresentQueue());
 
+    if (data_->options.fixed_timestep) {
+      app()->GetLogger()->LogInfo("Running with a fixed timestep of 0.1s");
+    }
+
     frame_data_.reserve(swapchain_images_.size());
     render_target_format_ = options.enable_multisampling
                                 ? kMultisampledFormat
@@ -188,7 +192,7 @@ class Sample {
     auto current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> elapsed_time = current_time - last_frame_time_;
     last_frame_time_ = current_time;
-    Update(elapsed_time.count());
+    Update(data_->options.fixed_timestep ? 0.1f : elapsed_time.count());
 
     uint32_t image_idx;
 
@@ -588,6 +592,6 @@ class Sample {
   vulkan::VkFence readyFence_;  // TODO switch this out later, this is
                                 //   not actually a good thing to do
 };
-}
+}  // namespace sample_application
 
 #endif  // SAMPLE_APPLICATION_FRAMEWORK_SAMPLE_APPLICATION_H_

@@ -21,6 +21,7 @@
 #include <cstring>
 #include <mutex>
 #include <thread>
+#include "entry_config.h"
 
 #include "support/log/log.h"
 
@@ -106,14 +107,6 @@ void android_main(android_app* app) {
 }
 #elif defined __linux__
 
-#ifndef DEFAULT_WINDOW_WIDTH
-#define DEFAULT_WINDOW_WIDTH 100
-#endif
-
-#ifndef DEFAULT_WINDOW_HEIGHT
-#define DEFAULT_WINDOW_HEIGHT 100
-#endif
-
 // This creates an XCB connection and window for the application.
 // It maps it onto the screen and passes it on to the main_entry function.
 // -w=X will set the window width to X
@@ -121,6 +114,7 @@ void android_main(android_app* app) {
 int main(int argc, char** argv) {
   uint32_t window_width = DEFAULT_WINDOW_WIDTH;
   uint32_t window_height = DEFAULT_WINDOW_HEIGHT;
+  bool fixed_timestep = false;
 
   for (size_t i = 0; i < argc; ++i) {
     if (strncmp(argv[i], "-w=", 3) == 0) {
@@ -128,6 +122,9 @@ int main(int argc, char** argv) {
     }
     if (strncmp(argv[i], "-h=", 3) == 0) {
       window_height = atoi(argv[i] + 3);
+    }
+    if (strncmp(argv[i], "-fixed", 6) == 0) {
+      fixed_timestep = true;
     }
   }
 
@@ -149,9 +146,11 @@ int main(int argc, char** argv) {
   int return_value = 0;
 
   std::thread main_thread([&]() {
-    entry::entry_data data{window, connection,
+    entry::entry_data data{window,
+                           connection,
                            logging::GetLogger(&root_allocator),
-                           &root_allocator};
+                           &root_allocator,
+                           {FIXED_TIMESTEP || fixed_timestep}};
     return_value = main_entry(&data);
   });
   main_thread.join();

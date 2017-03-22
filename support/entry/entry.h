@@ -53,6 +53,10 @@ typedef void* HANDLE;
 #error "Unsupported platform"
 #endif
 
+struct application_options {
+  bool fixed_timestep;
+};
+
 struct entry_data {
 #if defined __ANDROID__
   ANativeWindow* native_window_handle;
@@ -66,6 +70,7 @@ struct entry_data {
   // This is never null.
   containers::unique_ptr<logging::Logger> log;
   containers::Allocator* root_allocator;
+  application_options options;
 };
 }  // namespace entry
 

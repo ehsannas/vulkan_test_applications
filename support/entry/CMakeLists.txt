@@ -33,16 +33,19 @@ SET(DEFAULT_WINDOW_WIDTH ${DEFAULT_WINDOW_WIDTH} CACHE INT
 SET(DEFAULT_WINDOW_HEIGHT ${DEFAULT_WINDOW_HEIGHT} CACHE INT
     "Default window height for platforms that have resizable windows")
 
+option(FIXED_TIMESTEP
+    "Should the application run with a fixed timestep (0.1s)" ${FIXED_TIMESTEP})
+
+configure_file(entry_config.h.in entry_config.h)
+
 add_vulkan_static_library(entry
     SOURCES
         entry.cpp
+        entry.h
+        entry_config.h.in
     LIBS
         ${ADDITIONAL_LIBS}
         logger
         containers)
 
-if (NOT BUILD_APKS)
-    target_compile_options(entry PRIVATE
-        -DDEFAULT_WINDOW_WIDTH=${DEFAULT_WINDOW_WIDTH}
-        -DDEFAULT_WINDOW_HEIGHT=${DEFAULT_WINDOW_HEIGHT})
-endif()
+target_include_directories(entry PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
