@@ -55,6 +55,16 @@ const VkCommandBufferBeginInfo kBeginCommandBuffer = {
     nullptr                                       // pInheritanceInfo
 };
 
+const VkCommandBufferInheritanceInfo kInheritanceCommandBuffer = {
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,  // sType
+    nullptr,                                            // pNext
+    ::VkRenderPass(VK_NULL_HANDLE),                     // renderPass
+    0,                                                  // subPass
+    ::VkFramebuffer(VK_NULL_HANDLE),                    // framebuffer
+    VK_FALSE,                                           // occlusionQueryEnable
+    0,                                                  // queryFlags
+};
+
 const VkSubmitInfo kEmptySubmitInfo{
     VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
     nullptr,                        // pNext

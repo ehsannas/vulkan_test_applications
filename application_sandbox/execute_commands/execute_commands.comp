@@ -1,0 +1,13 @@
+#version 430
+
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout (binding = 0, set = 0) buffer a2{
+  float data[1];
+};
+
+void main() {
+  uint tmp = uint(data[0]) % 128;
+  tmp = tmp > 64 ? 128 - tmp : tmp;
+  data[0] = tmp / 64.0;
+}
