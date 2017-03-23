@@ -48,4 +48,6 @@ add_vulkan_static_library(entry
         logger
         containers)
 
-target_include_directories(entry PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+if (NOT BUILD_APKS)
+    target_include_directories(entry PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+endif()
