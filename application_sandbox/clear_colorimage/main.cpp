@@ -14,8 +14,8 @@
 
 #include "application_sandbox/sample_application_framework/sample_application.h"
 #include "support/entry/entry.h"
-#include "vulkan_helpers/helper_functions.h"
 #include "vulkan_helpers/buffer_frame_data.h"
+#include "vulkan_helpers/helper_functions.h"
 #include "vulkan_helpers/vulkan_application.h"
 #include "vulkan_helpers/vulkan_model.h"
 
@@ -45,15 +45,14 @@ struct CubeFrameData {
   containers::unique_ptr<vulkan::DescriptorSet> cube_descriptor_set_;
 };
 
-// This creates an application wiht 16MB of image memory, and defaults
+// This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class CubeSample : public sample_application::Sample<CubeFrameData> {
+class ClearColorImageSample : public sample_application::Sample<CubeFrameData> {
  public:
-  CubeSample(const entry::entry_data* data)
+  ClearColorImageSample(const entry::entry_data* data)
       : data_(data),
-        Sample<CubeFrameData>(
-            data->root_allocator, data, 1, 512, 1,
-            sample_application::SampleOptions()),
+        Sample<CubeFrameData>(data->root_allocator, data, 1, 512, 1,
+                              sample_application::SampleOptions()),
         cube_(data->root_allocator, data->log.get(), cube_data) {}
   virtual void InitializeApplicationData(
       vulkan::VkCommandBuffer* initialization_buffer,
@@ -90,7 +89,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
                 0,                                         // flags
                 render_format(),                           // format
                 num_samples(),                             // samples
-                VK_ATTACHMENT_LOAD_OP_DONT_CARE,               // loadOp
+                VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // loadOp
                 VK_ATTACHMENT_STORE_OP_STORE,              // storeOp
                 VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // stenilLoadOp
                 VK_ATTACHMENT_STORE_OP_DONT_CARE,          // stenilStoreOp
@@ -128,9 +127,10 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     cube_pipeline_->AddAttachment();
     cube_pipeline_->Commit();
 
-    camera_data = containers::make_unique<vulkan::BufferFrameData<camera_data_>>(
-        data_->root_allocator, app(), num_swapchain_images,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    camera_data =
+        containers::make_unique<vulkan::BufferFrameData<camera_data_>>(
+            data_->root_allocator, app(), num_swapchain_images,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     model_data = containers::make_unique<vulkan::BufferFrameData<model_data_>>(
         data_->root_allocator, app(), num_swapchain_images,
@@ -230,18 +230,18 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     };
 
     // Call vkCmdClearColorImage the make a light blue background.
-    vulkan::SetImageLayout(swapchain_image(frame_data),
-        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+    vulkan::SetImageLayout(
+        swapchain_image(frame_data), {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT,
         &cmdBuffer, nullptr, {}, {}, VkFence(0), data_->root_allocator);
     VkClearColorValue clear_color{0.8, 0.8, 1.0, 0.2};
     VkImageSubresourceRange clear_range{
-      VK_IMAGE_ASPECT_COLOR_BIT, // aspectMask
-      0, // baseMipLevel
-      1, // levelCount
-      0, // baseArrayLayer
-      1, // layerCount
+        VK_IMAGE_ASPECT_COLOR_BIT,  // aspectMask
+        0,                          // baseMipLevel
+        1,                          // levelCount
+        0,                          // baseArrayLayer
+        1,                          // layerCount
     };
     cmdBuffer->vkCmdClearColorImage(cmdBuffer, swapchain_image(frame_data),
                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -324,7 +324,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
-  CubeSample sample(data);
+  ClearColorImageSample sample(data);
   sample.Initialize();
 
   while (true) {

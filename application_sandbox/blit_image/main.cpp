@@ -47,11 +47,11 @@ struct CubeFrameData {
   containers::unique_ptr<vulkan::VkImageView> blit_src_view_;
 };
 
-// This creates an application wiht 16MB of image memory, and defaults
+// This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class CubeSample : public sample_application::Sample<CubeFrameData> {
+class BlitImageSample : public sample_application::Sample<CubeFrameData> {
  public:
-  CubeSample(const entry::entry_data* data)
+  BlitImageSample(const entry::entry_data* data)
       : data_(data),
         Sample<CubeFrameData>(data->root_allocator, data, 1, 512, 1,
                               sample_application::SampleOptions()),
@@ -448,7 +448,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
-  CubeSample sample(data);
+  BlitImageSample sample(data);
   sample.Initialize();
 
   while (true) {

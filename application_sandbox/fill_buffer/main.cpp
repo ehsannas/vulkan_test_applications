@@ -47,7 +47,7 @@ struct FillFrameData {
   containers::unique_ptr<vulkan::VulkanApplication::Buffer> uniform_buffer_;
 };
 
-// This creates an application wiht 16MB of image memory, and defaults
+// This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
 class FillSample : public sample_application::Sample<FillFrameData> {
  public:

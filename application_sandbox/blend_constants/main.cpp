@@ -45,7 +45,7 @@ struct BlendFrameData {
   containers::unique_ptr<vulkan::DescriptorSet> icos_descriptor_set_;
 };
 
-// This creates an application wiht 16MB of image memory, and defaults
+// This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
 class blendSample : public sample_application::Sample<BlendFrameData> {
  public:

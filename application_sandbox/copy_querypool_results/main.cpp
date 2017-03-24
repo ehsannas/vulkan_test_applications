@@ -47,11 +47,11 @@ struct WireframeFrameData {
 };
 
 
-// This creates an application wiht 16MB of image memory, and defaults
+// This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class WireframeSample : public sample_application::Sample<WireframeFrameData> {
+class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFrameData> {
  public:
-  WireframeSample(const entry::entry_data* data)
+  CopyQueryPoolResultSample(const entry::entry_data* data)
       : data_(data),
         Sample<WireframeFrameData>(data->root_allocator, data, 1, 512, 1,
                                    sample_application::SampleOptions()
@@ -478,7 +478,7 @@ class WireframeSample : public sample_application::Sample<WireframeFrameData> {
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
-  WireframeSample sample(data);
+  CopyQueryPoolResultSample sample(data);
   sample.Initialize();
 
   while (true) {

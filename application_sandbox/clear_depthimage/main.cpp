@@ -62,11 +62,11 @@ struct CubeDepthFrameData {
   containers::unique_ptr<vulkan::VkImageView> cube_render_color_image_view_;
 };
 
-// This creates an application wiht 16MB of image memory, and defaults
+// This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class CubeSample : public sample_application::Sample<CubeDepthFrameData> {
+class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameData> {
  public:
-  CubeSample(const entry::entry_data* data)
+  ClearDepthImageSample(const entry::entry_data* data)
       : data_(data),
         Sample<CubeDepthFrameData>(
             data->root_allocator, data, 1, 512, 1,
@@ -558,7 +558,7 @@ class CubeSample : public sample_application::Sample<CubeDepthFrameData> {
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
-  CubeSample sample(data);
+  ClearDepthImageSample sample(data);
   sample.Initialize();
 
   while (true) {

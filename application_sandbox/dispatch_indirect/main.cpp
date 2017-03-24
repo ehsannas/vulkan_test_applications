@@ -51,11 +51,12 @@ struct CubeFrameData {
   containers::unique_ptr<vulkan::VkBufferView> dispatch_data_buffer_view_;
 };
 
-// This creates an application wiht 16MB of image memory, and defaults
+// This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class CubeSample : public sample_application::Sample<CubeFrameData> {
+class DispatchIndirectSample
+    : public sample_application::Sample<CubeFrameData> {
  public:
-  CubeSample(const entry::entry_data* data)
+  DispatchIndirectSample(const entry::entry_data* data)
       : data_(data),
         Sample<CubeFrameData>(data->root_allocator, data, 1, 512, 2,
                               sample_application::SampleOptions()),
@@ -142,10 +143,9 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
     render_pipeline_->AddAttachment();
     render_pipeline_->Commit();
 
-    camera_data_ =
-        containers::make_unique<vulkan::BufferFrameData<CameraData>>(
-            data_->root_allocator, app(), num_swapchain_images,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    camera_data_ = containers::make_unique<vulkan::BufferFrameData<CameraData>>(
+        data_->root_allocator, app(), num_swapchain_images,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     model_data_ = containers::make_unique<vulkan::BufferFrameData<ModelData>>(
         data_->root_allocator, app(), num_swapchain_images,
@@ -199,7 +199,6 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
   virtual void InitializeFrameData(
       CubeFrameData* frame_data, vulkan::VkCommandBuffer* initialization_buffer,
       size_t frame_index) override {
-
     frame_data->command_buffer_ =
         containers::make_unique<vulkan::VkCommandBuffer>(
             data_->root_allocator, app()->GetCommandBuffer());
@@ -397,8 +396,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
         indirect_command_data_->get_offset_for_frame(frame_index));
     cmdBuffer->vkCmdPipelineBarrier(cmdBuffer,
                                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                    0, 0,
+                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0,
                                     nullptr, 1, &to_use_in_frag, 0, nullptr);
 
     // Start the render pass
@@ -425,7 +423,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
             Mat44::RotationX(3.14 * time_since_last_render) *
             Mat44::RotationY(3.14 * time_since_last_render * 0.5));
     indirect_command_data_->data().group_count_x =
-      (indirect_command_data_->data().group_count_x + 1u) % 256 + 1;
+        (indirect_command_data_->data().group_count_x + 1u) % 256 + 1;
   }
 
   virtual void Render(vulkan::VkQueue* queue, size_t frame_index,
@@ -492,7 +490,7 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
 
 int main_entry(const entry::entry_data* data) {
   data->log->LogInfo("Application Startup");
-  CubeSample sample(data);
+  DispatchIndirectSample sample(data);
   sample.Initialize();
 
   while (true) {
