@@ -114,7 +114,8 @@ class Sample {
         frame_data_(allocator),
         swapchain_images_(application_.swapchain_images()),
         readyFence_(vulkan::CreateFence(&application_.device())),
-        last_frame_time_(std::chrono::high_resolution_clock::now()) {
+        last_frame_time_(std::chrono::high_resolution_clock::now()),
+        average_frame_time_(0) {
     // TODO(awoloszyn): Fix this
     LOG_ASSERT(==, app()->GetLogger(), false,
                application_.HasSeparatePresentQueue());
@@ -204,6 +205,10 @@ class Sample {
     last_frame_time_ = current_time;
     Update(data_->options.fixed_timestep ? 0.1f : elapsed_time.count());
 
+    // Smooth this out, so that it is more sensible.
+    average_frame_time_ =
+        elapsed_time.count() * 0.05f + average_frame_time_ * 0.95f;
+
     uint32_t image_idx;
 
     LOG_ASSERT(==, app()->GetLogger(), VK_SUCCESS,
@@ -222,7 +227,8 @@ class Sample {
                                               &readyFence_.get_raw_object()));
     if (options_.verbose_output) {
       app()->GetLogger()->LogInfo("Rendering frame <", elapsed_time.count(),
-                                  ">: <", image_idx, ">");
+                                  ">: <", image_idx, ">", " Average: <",
+                                  average_frame_time_, ">");
     }
 
     VkSubmitInfo init_submit_info{
@@ -595,7 +601,8 @@ class Sample {
   // The last time ProcessFrame was called. This is used to calculate the delta
   //  to be passed to Update.
   std::chrono::time_point<std::chrono::high_resolution_clock> last_frame_time_;
-
+  // The exponentially smoothed average frame time.
+  float average_frame_time_;
   // Do not move these above application_, they rely on the fact that
   // application_ will be initialized first.
   const containers::vector<::VkImage>& swapchain_images_;
