@@ -465,9 +465,10 @@ VkCommandBuffer CreateCommandBuffer(VkCommandPool* pool,
       /* commandBufferCount = */ 1,
   };
   ::VkCommandBuffer raw_command_buffer;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateCommandBuffers(
-                                          *device, &info, &raw_command_buffer),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkAllocateCommandBuffers(*device, &info, &raw_command_buffer),
+      VK_SUCCESS);
   return vulkan::VkCommandBuffer(raw_command_buffer, pool, device);
 }
 
@@ -574,7 +575,8 @@ VkImage CreateDefault2DColorImage(VkDevice* device, uint32_t width,
       /* flags = */ 0,
       /* imageType = */ VK_IMAGE_TYPE_2D,
       /* format = */ VK_FORMAT_R8G8B8A8_UNORM,
-      /* extent = */ {
+      /* extent = */
+      {
           /* width = */ width,
           /* height = */ height,
           /* depth = */ 1,
@@ -718,9 +720,10 @@ VkDescriptorPool CreateDescriptorPool(VkDevice* device, uint32_t num_pool_size,
       /* pPoolSizes = */ pool_sizes};
 
   ::VkDescriptorPool raw_pool;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorPool(
-                                          *device, &info, nullptr, &raw_pool),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkCreateDescriptorPool(*device, &info, nullptr, &raw_pool),
+      VK_SUCCESS);
   return vulkan::VkDescriptorPool(raw_pool, nullptr, device);
 }
 
@@ -743,8 +746,9 @@ VkDescriptorSetLayout CreateDescriptorSetLayout(VkDevice* device,
   };
 
   ::VkDescriptorSetLayout raw_layout;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkCreateDescriptorSetLayout(
-                                          *device, &info, nullptr, &raw_layout),
+  LOG_ASSERT(==, device->GetLogger(),
+             (*device)->vkCreateDescriptorSetLayout(*device, &info, nullptr,
+                                                    &raw_layout),
              VK_SUCCESS);
   return vulkan::VkDescriptorSetLayout(raw_layout, nullptr, device);
 }
@@ -759,9 +763,10 @@ VkDescriptorSet AllocateDescriptorSet(VkDevice* device, ::VkDescriptorPool pool,
       /* pSetLayouts = */ &layout,
   };
   ::VkDescriptorSet raw_set;
-  LOG_ASSERT(==, device->GetLogger(), (*device)->vkAllocateDescriptorSets(
-                                          *device, &alloc_info, &raw_set),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, device->GetLogger(),
+      (*device)->vkAllocateDescriptorSets(*device, &alloc_info, &raw_set),
+      VK_SUCCESS);
   return vulkan::VkDescriptorSet(raw_set, pool, device);
 }
 
@@ -866,7 +871,7 @@ uint32_t RoundUpTo(uint32_t dividend, uint32_t divisor) {
   if (divisor == 0) return 0;
   return (dividend + divisor - 1) / divisor;
 }
-}
+}  // namespace
 
 std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
     VkFormat format) {
@@ -911,4 +916,4 @@ size_t GetImageExtentSizeInBytes(const VkExtent3D& extent, VkFormat format) {
   size_t h = size_t(RoundUpTo(extent.height, tb_height_size));
   return w * h * element_size;
 }
-}
+}  // namespace vulkan

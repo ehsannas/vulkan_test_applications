@@ -250,17 +250,30 @@ void SetImageLayout(::VkImage image,
 std::tuple<uint32_t, uint32_t, uint32_t> GetElementAndTexelBlockSize(
     VkFormat format);
 
-inline VkFence CreateFence(VkDevice* device) {
+inline VkFence CreateFence(VkDevice* device, bool signaled = false) {
   ::VkFence raw_fence_ = VK_NULL_HANDLE;
   VkFenceCreateInfo create_info = {
-      VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,  // sType
-      nullptr,                              // pNext
-      0,                                    // flags
+      VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,                             // sType
+      nullptr,                                                         // pNext
+      signaled ? VkFenceCreateFlags(VK_FENCE_CREATE_SIGNALED_BIT) : 0  // flags
   };
   LOG_ASSERT(
       ==, device->GetLogger(), VK_SUCCESS,
       (*device)->vkCreateFence(*device, &create_info, nullptr, &raw_fence_));
   return VkFence(raw_fence_, nullptr, device);
+}
+
+inline VkSemaphore CreateSemaphore(VkDevice* device) {
+  ::VkSemaphore raw_semaphore_ = VK_NULL_HANDLE;
+  VkSemaphoreCreateInfo create_info = {
+      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,  // sType
+      nullptr,                                  // pNext
+      0,                                        // flags
+  };
+  LOG_ASSERT(==, device->GetLogger(), VK_SUCCESS,
+             (*device)->vkCreateSemaphore(*device, &create_info, nullptr,
+                                          &raw_semaphore_));
+  return VkSemaphore(raw_semaphore_, nullptr, device);
 }
 
 // Returns the size of the given image extent specified through width, height,

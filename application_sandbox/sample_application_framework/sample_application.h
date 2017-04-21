@@ -96,7 +96,11 @@ class Sample {
     vulkan::ImagePointer depth_stencil_;
     // The multisampled render target if it exists.
     vulkan::ImagePointer multisampled_target_;
-    // The application-specific data for this frame
+    // The semaphore controlling access to the swapchain.
+    containers::unique_ptr<vulkan::VkSemaphore> ready_semaphore_;
+    // The fence that signals that the resources for this frame are free.
+    containers::unique_ptr<vulkan::VkFence> ready_fence_;
+    // The application-specific data for this frame.
     FrameData child_data_;
   };
 
@@ -113,8 +117,8 @@ class Sample {
                      device_buffer_size_in_MB * 1024 * 1024),
         frame_data_(allocator),
         swapchain_images_(application_.swapchain_images()),
-        readyFence_(vulkan::CreateFence(&application_.device())),
         last_frame_time_(std::chrono::high_resolution_clock::now()),
+        initialization_command_buffer_(application_.GetCommandBuffer()),
         average_frame_time_(0) {
     // TODO(awoloszyn): Fix this
     LOG_ASSERT(==, app()->GetLogger(), false,
@@ -147,36 +151,34 @@ class Sample {
   // on the subclass, as well as InitializeLocalFrameData for every
   // image in the swapchain.
   void Initialize() {
-    vulkan::VkFence initialization_fence =
-        vulkan::CreateFence(&application_.device());
+    initialization_command_buffer_->vkBeginCommandBuffer(
+        initialization_command_buffer_, &kBeginCommandBuffer);
 
-    vulkan::VkCommandBuffer initialization_command_buffer =
-        application_.GetCommandBuffer();
-    initialization_command_buffer->vkBeginCommandBuffer(
-        initialization_command_buffer, &kBeginCommandBuffer);
-
-    InitializeApplicationData(&initialization_command_buffer,
+    InitializeApplicationData(&initialization_command_buffer_,
                               swapchain_images_.size());
 
     for (size_t i = 0; i < swapchain_images_.size(); ++i) {
       frame_data_.push_back(SampleFrameData());
       InitializeLocalFrameData(&frame_data_.back(),
-                               &initialization_command_buffer, i);
+                               &initialization_command_buffer_, i);
     }
 
-    initialization_command_buffer->vkEndCommandBuffer(
-        initialization_command_buffer);
+    initialization_command_buffer_->vkEndCommandBuffer(
+        initialization_command_buffer_);
 
     VkSubmitInfo submit_info = kEmptySubmitInfo;
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers =
-        &(initialization_command_buffer.get_command_buffer());
-    application_.render_queue()->vkQueueSubmit(
-        application_.render_queue(), 1, &submit_info, initialization_fence);
+        &(initialization_command_buffer_.get_command_buffer());
+    application_.render_queue()->vkQueueSubmit(application_.render_queue(), 1,
+                                               &submit_info,
+                                               ::VkFence(VK_NULL_HANDLE));
+    // Bit gross but submit all of the fences here
+    for (auto& frame_data : frame_data_) {
+      application_.render_queue()->vkQueueSubmit(
+          application_.render_queue(), 0, nullptr, *frame_data.ready_fence_);
+    }
 
-    application_.device()->vkWaitForFences(
-        application_.device(), 1, &initialization_fence.get_raw_object(),
-        VK_TRUE, 0xFFFFFFFFFFFFFFFF);
     InitializationComplete();
   }
 
@@ -211,32 +213,35 @@ class Sample {
 
     uint32_t image_idx;
 
+    ::VkSemaphore ready_semaphore = *frame_data_[image_idx].ready_semaphore_;
+    ::VkFence ready_fence = *frame_data_[image_idx].ready_fence_;
+
     LOG_ASSERT(==, app()->GetLogger(), VK_SUCCESS,
                app()->device()->vkAcquireNextImageKHR(
                    app()->device(), app()->swapchain(), 0xFFFFFFFFFFFFFFFF,
-                   static_cast<::VkSemaphore>(VK_NULL_HANDLE), readyFence_,
+                   ready_semaphore, static_cast<::VkFence>(VK_NULL_HANDLE),
                    &image_idx));
-    // TODO(awoloszyn): Swap out this logic for semaphores, we don't want to
-    // stall the cpu to wait for the drawing to be done
-    LOG_ASSERT(==, app()->GetLogger(), VK_SUCCESS,
-               app()->device()->vkWaitForFences(app()->device(), 1,
-                                                &readyFence_.get_raw_object(),
-                                                VK_FALSE, 0xFFFFFFFFFFFFFFFF));
-    LOG_ASSERT(==, app()->GetLogger(), VK_SUCCESS,
-               app()->device()->vkResetFences(app()->device(), 1,
-                                              &readyFence_.get_raw_object()));
+    LOG_ASSERT(
+        ==, app()->GetLogger(), VK_SUCCESS,
+        app()->device()->vkWaitForFences(app()->device(), 1, &ready_fence,
+                                         VK_FALSE, 0xFFFFFFFFFFFFFFFF));
+    LOG_ASSERT(
+        ==, app()->GetLogger(), VK_SUCCESS,
+        app()->device()->vkResetFences(app()->device(), 1, &ready_fence));
     if (options_.verbose_output) {
       app()->GetLogger()->LogInfo("Rendering frame <", elapsed_time.count(),
                                   ">: <", image_idx, ">", " Average: <",
                                   average_frame_time_, ">");
     }
 
+    VkPipelineStageFlags flags =
+        VkPipelineStageFlags(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     VkSubmitInfo init_submit_info{
         VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
         nullptr,                        // pNext
-        0,                              // waitSemaphoreCount
-        nullptr,                        // pWaitSemaphores
-        nullptr,                        // pWaitDstStageMask,
+        1,                              // waitSemaphoreCount
+        &ready_semaphore,               // pWaitSemaphores
+        &flags,                         // pWaitDstStageMask,
         1,                              // commandBufferCount
         &(frame_data_[image_idx].setup_command_buffer_->get_command_buffer()),
         0,       // signalSemaphoreCount
@@ -254,22 +259,20 @@ class Sample {
     init_submit_info.pCommandBuffers =
         &(frame_data_[image_idx].resolve_command_buffer_->get_command_buffer());
 
-    app()->render_queue()->vkQueueSubmit(app()->render_queue(), 1,
-                                         &init_submit_info,
-                                         readyFence_.get_raw_object());
+    init_submit_info.waitSemaphoreCount = 0;
+    init_submit_info.pWaitSemaphores = nullptr;
+    init_submit_info.pWaitDstStageMask = nullptr;
+    init_submit_info.signalSemaphoreCount = 1;
+    init_submit_info.pSignalSemaphores = &ready_semaphore;
 
-    app()->device()->vkWaitForFences(app()->device(), 1,
-                                     &readyFence_.get_raw_object(), VK_FALSE,
-                                     0xFFFFFFFFFFFFFFFF);
-    LOG_ASSERT(==, app()->GetLogger(), VK_SUCCESS,
-               app()->device()->vkResetFences(app()->device(), 1,
-                                              &readyFence_.get_raw_object()));
+    app()->render_queue()->vkQueueSubmit(
+        app()->render_queue(), 1, &init_submit_info, ::VkFence(ready_fence));
 
     VkPresentInfoKHR present_info{
         VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,    // sType
         nullptr,                               // pNext
-        0,                                     // waitSemaphoreCount
-        nullptr,                               // pWaitSemaphores
+        1,                                     // waitSemaphoreCount
+        &ready_semaphore,                      // pWaitSemaphores
         1,                                     // swapchainCount
         &app()->swapchain().get_raw_object(),  // pSwapchains
         &image_idx,                            // pImageIndices
@@ -345,6 +348,12 @@ class Sample {
                                 vulkan::VkCommandBuffer* initialization_buffer,
                                 size_t frame_index) {
     data->swapchain_image_ = swapchain_images_[frame_index];
+
+    data->ready_semaphore_ = containers::make_unique<vulkan::VkSemaphore>(
+        allocator_, vulkan::CreateSemaphore(&application_.device()));
+
+    data->ready_fence_ = containers::make_unique<vulkan::VkFence>(
+        allocator_, vulkan::CreateFence(&application_.device()));
 
     VkImageCreateInfo image_create_info{
         /* sType = */
@@ -601,13 +610,13 @@ class Sample {
   // The last time ProcessFrame was called. This is used to calculate the delta
   //  to be passed to Update.
   std::chrono::time_point<std::chrono::high_resolution_clock> last_frame_time_;
-  // The exponentially smoothed average frame time.
-  float average_frame_time_;
   // Do not move these above application_, they rely on the fact that
   // application_ will be initialized first.
   const containers::vector<::VkImage>& swapchain_images_;
-  vulkan::VkFence readyFence_;  // TODO switch this out later, this is
-                                //   not actually a good thing to do
+  // The command buffer used to intialize all of the data.
+  vulkan::VkCommandBuffer initialization_command_buffer_;
+  // The exponentially smoothed average frame time.
+  float average_frame_time_;
 };
 }  // namespace sample_application
 

@@ -342,7 +342,7 @@ using VkBufferView = VkSubObject<BufferViewTraits, DeviceTraits>;
 struct QueryPoolTraits {
   using type = ::VkQueryPool;
   using destruction_function_pointer_type =
-    LazyDeviceFunction<PFN_vkDestroyQueryPool>*;
+      LazyDeviceFunction<PFN_vkDestroyQueryPool>*;
   static destruction_function_pointer_type get_destruction_function(
       DeviceFunctions* functions) {
     return &functions->vkDestroyQueryPool;
