@@ -73,8 +73,10 @@ void android_main(android_app* app) {
     data.start_mutex.lock();
     containers::Allocator root_allocator;
     {
-      entry::entry_data data{app->window, logging::GetLogger(&root_allocator),
-                             &root_allocator};
+      entry::entry_data data{app->window,
+                             logging::GetLogger(&root_allocator),
+                             &root_allocator,
+                             {FIXED_TIMESTEP, PREFER_SEPARATE_PRESENT}};
       int return_value = main_entry(&data);
       // Do not modify this line, scripts may look for it in the output.
       data.log->LogInfo("RETURN: ", return_value);
@@ -114,7 +116,8 @@ void android_main(android_app* app) {
 int main(int argc, char** argv) {
   uint32_t window_width = DEFAULT_WINDOW_WIDTH;
   uint32_t window_height = DEFAULT_WINDOW_HEIGHT;
-  bool fixed_timestep = false;
+  bool fixed_timestep = FIXED_TIMESTEP;
+  bool prefer_separate_present = PREFER_SEPARATE_PRESENT;
 
   for (size_t i = 0; i < argc; ++i) {
     if (strncmp(argv[i], "-w=", 3) == 0) {
@@ -125,6 +128,9 @@ int main(int argc, char** argv) {
     }
     if (strncmp(argv[i], "-fixed", 6) == 0) {
       fixed_timestep = true;
+    }
+    if (strncmp(argv[i], "-separate-present", 17) == 0) {
+      prefer_separate_present = true;
     }
   }
 
@@ -150,7 +156,7 @@ int main(int argc, char** argv) {
                            connection,
                            logging::GetLogger(&root_allocator),
                            &root_allocator,
-                           {FIXED_TIMESTEP || fixed_timestep}};
+                           {fixed_timestep, prefer_separate_present}};
     return_value = main_entry(&data);
   });
   main_thread.join();

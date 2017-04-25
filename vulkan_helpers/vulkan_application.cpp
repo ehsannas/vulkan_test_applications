@@ -56,7 +56,8 @@ VulkanApplication::VulkanApplication(
     const entry::entry_data* entry_data,
     const std::initializer_list<const char*> extensions,
     const VkPhysicalDeviceFeatures& features, uint32_t host_buffer_size,
-    uint32_t device_image_size, uint32_t device_buffer_size)
+    uint32_t device_image_size, uint32_t device_buffer_size,
+    bool use_async_compute_queue)
     : allocator_(allocator),
       log_(log),
       entry_data_(entry_data),
@@ -68,7 +69,7 @@ VulkanApplication::VulkanApplication(
       library_wrapper_(allocator_, log_),
       instance_(CreateDefaultInstance(allocator_, &library_wrapper_)),
       surface_(CreateDefaultSurface(&instance_, entry_data_)),
-      device_(CreateDevice(extensions, features)),
+      device_(CreateDevice(extensions, features, use_async_compute_queue)),
       swapchain_(CreateDefaultSwapchain(&instance_, &device_, &surface_,
                                         allocator_, render_queue_index_,
                                         present_queue_index_)),
@@ -192,7 +193,7 @@ VulkanApplication::VulkanApplication(
 
 VkDevice VulkanApplication::CreateDevice(
     const std::initializer_list<const char*> extensions,
-    const VkPhysicalDeviceFeatures& features) {
+    const VkPhysicalDeviceFeatures& features, bool create_async_compute_queue) {
   // Since this is called by the constructor be careful not to
   // use any data other than what has already been initialized.
   // allocator_, log_, entry_data_, library_wrapper_, instance_,
@@ -200,7 +201,9 @@ VkDevice VulkanApplication::CreateDevice(
 
   vulkan::VkDevice device(vulkan::CreateDeviceForSwapchain(
       allocator_, &instance_, &surface_, &render_queue_index_,
-      &present_queue_index_, extensions, features));
+      &present_queue_index_, extensions, features,
+      entry_data_->options.prefer_separate_present,
+      create_async_compute_queue ? &compute_queue_index_ : nullptr));
   if (device.is_valid()) {
     if (render_queue_index_ == present_queue_index_) {
       render_queue_concrete_ = containers::make_unique<VkQueue>(
@@ -214,6 +217,10 @@ VkDevice VulkanApplication::CreateDevice(
           allocator_, GetQueue(&device, present_queue_index_));
       render_queue_ = render_queue_concrete_.get();
       present_queue_ = present_queue_concrete_.get();
+    }
+    if (create_async_compute_queue && compute_queue_index_ != 0xFFFFFFFF) {
+      async_compute_queue_concrete_ = containers::make_unique<VkQueue>(
+          allocator_, GetQueue(&device, compute_queue_index_));
     }
   }
   return std::move(device);

@@ -34,15 +34,19 @@ struct QueueTraits {
 
 class VkQueue : public VkSubObject<QueueTraits, DeviceTraits> {
  public:
-  VkQueue(::VkQueue queue, VkDevice* device)
+  VkQueue(::VkQueue queue, VkDevice* device, uint32_t index)
       : VkSubObject<QueueTraits, DeviceTraits>(queue, nullptr, device),
-        functions_((*device)->queue_functions()) {}
+        functions_((*device)->queue_functions()),
+        queue_family_index_(index) {}
 
   QueueFunctions* operator->() { return functions_; }
   QueueFunctions& operator*() { return *functions_; }
 
+  uint32_t index() const { return queue_family_index_; }
+
  private:
   QueueFunctions* functions_;
+  uint32_t queue_family_index_;
 };
-}
+}  // namespace vulkan
 #endif  // VULKAN_WRAPPER_QUEUE_WRAPPER_H

@@ -178,21 +178,21 @@ class VulkanGraphicsPipeline {
 
 // Customizable Compute pipeline state.
 class VulkanComputePipeline {
-  public:
-   VulkanComputePipeline(containers::Allocator* allocator,
-                         PipelineLayout* layout,
-                         VulkanApplication* application,
-                         const VkShaderModuleCreateInfo& shader_module_create_info,
-                         const char* shader_entry);
-   VulkanComputePipeline(VulkanComputePipeline&& other) = default;
+ public:
+  VulkanComputePipeline(
+      containers::Allocator* allocator, PipelineLayout* layout,
+      VulkanApplication* application,
+      const VkShaderModuleCreateInfo& shader_module_create_info,
+      const char* shader_entry);
+  VulkanComputePipeline(VulkanComputePipeline&& other) = default;
 
-   operator ::VkPipeline() const { return pipeline_; }
+  operator ::VkPipeline() const { return pipeline_; }
 
-  private:
-   VulkanApplication* application_;
-   VkPipeline pipeline_;
-   VkShaderModule shader_module_;
-   ::VkPipelineLayout layout_;
+ private:
+  VulkanApplication* application_;
+  VkPipeline pipeline_;
+  VkShaderModule shader_module_;
+  ::VkPipelineLayout layout_;
 };
 
 // PipelineLayout holds a VkPipelineLayout object as well as as set of
@@ -389,7 +389,8 @@ class VulkanApplication {
                     const VkPhysicalDeviceFeatures& features = {0},
                     uint32_t host_buffer_size = 1024 * 128,
                     uint32_t device_image_size = 1024 * 128,
-                    uint32_t device_buffer_size = 1024 * 128);
+                    uint32_t device_buffer_size = 1024 * 128,
+                    bool use_async_compute_queue = false);
 
   // Creates an image from the given create_info, and binds memory from the
   // device-only image Arena.
@@ -462,6 +463,11 @@ class VulkanApplication {
   // Returns the Present queue for this application. Note: It may be the same
   // as the render queue.
   VkQueue& present_queue() { return *present_queue_; }
+
+  // Returns the async compute queue for this application.
+  // If this application was not configured with an async compute queue,
+  // or the async compute queue could not be created, returns nullptr.
+  VkQueue* async_compute_queue() { return async_compute_queue_concrete_.get(); }
 
   // Returns the device that was created for this application.
   VkDevice& device() { return device_; }
@@ -586,7 +592,8 @@ class VulkanApplication {
   // Intended to be called by the constructor to create the device, since
   // VkDevice does not have a default constructor.
   VkDevice CreateDevice(const std::initializer_list<const char*> extensions,
-                        const VkPhysicalDeviceFeatures& features);
+                        const VkPhysicalDeviceFeatures& features,
+                        bool create_async_compute_queue);
 
   containers::Allocator* allocator_;
   logging::Logger* log_;
@@ -594,10 +601,12 @@ class VulkanApplication {
   containers::vector<::VkImage> swapchain_images_;
   containers::unique_ptr<VkQueue> render_queue_concrete_;
   containers::unique_ptr<VkQueue> present_queue_concrete_;
+  containers::unique_ptr<VkQueue> async_compute_queue_concrete_;
   VkQueue* render_queue_;
   VkQueue* present_queue_;
   uint32_t render_queue_index_;
   uint32_t present_queue_index_;
+  uint32_t compute_queue_index_;
 
   LibraryWrapper library_wrapper_;
   VkInstance instance_;

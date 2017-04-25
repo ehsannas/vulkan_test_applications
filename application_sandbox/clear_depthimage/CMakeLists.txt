@@ -22,8 +22,7 @@ add_shader_library(clear_depthimage_shaders
     shader_library
 )
 
-add_vulkan_executable(clear_depthimage
-  NON_DEFAULT
+add_vulkan_sample_application(clear_depthimage
   SOURCES main.cpp
   LIBS
     vulkan_helpers

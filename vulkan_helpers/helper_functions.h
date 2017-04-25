@@ -90,13 +90,23 @@ VkSurfaceKHR CreateDefaultSurface(VkInstance* instance,
 // The device is created with the given extensions.
 // If the given extensions do not exist, an invalid device is returned.
 // Returns the queue indices for the present and graphics queues.
+// If try_to_find_separate_present_queue is true, then the engine will
+// try to allocate a distinct queue for presentation. It will try to do
+// so as a separate queue family.
+// If async_compute_queue_index is not nullptr, then the device will be
+// created with an async compute queue if valid. This will fill in the
+// async_compute_queue_index with the queue family of the compute queue.
+// If no async compute queue could be created, *async_compute_queue_index
+// will be 0xFFFFFFFF
 // Note: They may be the same or different.
 VkDevice CreateDeviceForSwapchain(
     containers::Allocator* allocator, VkInstance* instance,
     VkSurfaceKHR* surface, uint32_t* present_queue_index,
     uint32_t* graphics_queue_index,
     const std::initializer_list<const char*> extensions = {},
-    const VkPhysicalDeviceFeatures& features = {0});
+    const VkPhysicalDeviceFeatures& features = {0},
+    bool try_to_find_separate_present_queue = false,
+    uint32_t* aync_compute_queue_index = nullptr);
 
 // Creates a primary level default command buffer from the given command pool
 // and the device.
@@ -190,7 +200,7 @@ VkShaderModule CreateShaderModule(VkDevice* device,
 VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
   ::VkQueue queue;
   (*device)->vkGetDeviceQueue(*device, queue_family_index, 0, &queue);
-  return VkQueue(queue, device);
+  return VkQueue(queue, device, queue_family_index);
 }
 
 // Creates a default pipeline cache, it does not load anything from disk.

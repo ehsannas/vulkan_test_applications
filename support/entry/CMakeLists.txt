@@ -35,6 +35,8 @@ SET(DEFAULT_WINDOW_HEIGHT ${DEFAULT_WINDOW_HEIGHT} CACHE INT
 
 option(FIXED_TIMESTEP
     "Should the application run with a fixed timestep (0.1s)" ${FIXED_TIMESTEP})
+option(PREFER_SEPARATE_PRESENT
+    "Should the application prefer a separate present queue" ${PREFER_SEPARATE_PRESENT})
 
 configure_file(entry_config.h.in entry_config.h)
 

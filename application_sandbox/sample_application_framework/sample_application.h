@@ -87,11 +87,22 @@ class Sample {
     containers::unique_ptr<vulkan::VkImageView> image_view;
     // The view for the depth that is to be rendered to on this frame
     containers::unique_ptr<vulkan::VkImageView> depth_view_;
+    // A commandbuffer to transfer the swapchain from the present queue to
+    // the main queue.
+    containers::unique_ptr<vulkan::VkCommandBuffer>
+        transfer_from_present_command_buffer_;
     // A commandbuffer to setup the rendering for this frame
     containers::unique_ptr<vulkan::VkCommandBuffer> setup_command_buffer_;
     // The commandbuffer that resolves the images and gets them ready for
     // present
     containers::unique_ptr<vulkan::VkCommandBuffer> resolve_command_buffer_;
+    // The commandbuffer that transfers the images from the graphics
+    // queue to the present queue.
+    containers::unique_ptr<vulkan::VkCommandBuffer>
+        transfer_from_graphics_command_buffer_;
+    // The semaphore that handles transfering the swapchain image
+    // between the present and render queues.
+    containers::unique_ptr<vulkan::VkSemaphore> transfer_semaphore_;
     // The depth_stencil image, if it exists.
     vulkan::ImagePointer depth_stencil_;
     // The multisampled render target if it exists.
@@ -120,10 +131,6 @@ class Sample {
         last_frame_time_(std::chrono::high_resolution_clock::now()),
         initialization_command_buffer_(application_.GetCommandBuffer()),
         average_frame_time_(0) {
-    // TODO(awoloszyn): Fix this
-    LOG_ASSERT(==, app()->GetLogger(), false,
-               application_.HasSeparatePresentQueue());
-
     if (data_->options.fixed_timestep) {
       app()->GetLogger()->LogInfo("Running with a fixed timestep of 0.1s");
     }
@@ -234,13 +241,36 @@ class Sample {
                                   average_frame_time_, ">");
     }
 
+    ::VkSemaphore render_wait_semaphore = ready_semaphore;
+
     VkPipelineStageFlags flags =
         VkPipelineStageFlags(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+    if (application_.HasSeparatePresentQueue()) {
+      render_wait_semaphore = *frame_data_[image_idx].transfer_semaphore_;
+      VkSubmitInfo transfer_submit_info{
+          VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
+          nullptr,                        // pNext
+          1,                              // waitSemaphoreCount
+          &ready_semaphore,               // pWaitSemaphores
+          &flags,                         // pWaitDstStageMask,
+          1,                              // commandBufferCount
+          &(frame_data_[image_idx]
+                .transfer_from_present_command_buffer_->get_command_buffer()),
+          1,                      // signalSemaphoreCount
+          &render_wait_semaphore  // pSignalSemaphores
+      };
+
+      app()->present_queue()->vkQueueSubmit(
+          app()->present_queue(), 1, &transfer_submit_info,
+          static_cast<::VkFence>(VK_NULL_HANDLE));
+    }
+
     VkSubmitInfo init_submit_info{
         VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
         nullptr,                        // pNext
         1,                              // waitSemaphoreCount
-        &ready_semaphore,               // pWaitSemaphores
+        &render_wait_semaphore,         // pWaitSemaphores
         &flags,                         // pWaitDstStageMask,
         1,                              // commandBufferCount
         &(frame_data_[image_idx].setup_command_buffer_->get_command_buffer()),
@@ -248,6 +278,10 @@ class Sample {
         nullptr  // pSignalSemaphores
     };
 
+    ::VkSemaphore present_ready_semaphore = render_wait_semaphore;
+    if (application_.HasSeparatePresentQueue()) {
+      present_ready_semaphore = *frame_data_[image_idx].transfer_semaphore_;
+    }
     // TODO(awoloszyn): Swap out this logic for semaphores, we don't want to
     // stall the cpu to wait for the drawing to be done
     app()->render_queue()->vkQueueSubmit(
@@ -263,16 +297,38 @@ class Sample {
     init_submit_info.pWaitSemaphores = nullptr;
     init_submit_info.pWaitDstStageMask = nullptr;
     init_submit_info.signalSemaphoreCount = 1;
-    init_submit_info.pSignalSemaphores = &ready_semaphore;
+    init_submit_info.pSignalSemaphores = &present_ready_semaphore;
 
     app()->render_queue()->vkQueueSubmit(
         app()->render_queue(), 1, &init_submit_info, ::VkFence(ready_fence));
+
+    if (application_.HasSeparatePresentQueue()) {
+      ::VkSemaphore transfer_semaphore =
+          *frame_data_[image_idx].transfer_semaphore_;
+      present_ready_semaphore = render_wait_semaphore;
+      VkSubmitInfo transfer_submit_info{
+          VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
+          nullptr,                        // pNext
+          1,                              // waitSemaphoreCount
+          &transfer_semaphore,            // pWaitSemaphores
+          &flags,                         // pWaitDstStageMask,
+          1,                              // commandBufferCount
+          &(frame_data_[image_idx]
+                .transfer_from_graphics_command_buffer_->get_command_buffer()),
+          1,                        // signalSemaphoreCount
+          &present_ready_semaphore  // pSignalSemaphores
+      };
+
+      app()->present_queue()->vkQueueSubmit(
+          app()->present_queue(), 1, &transfer_submit_info,
+          static_cast<::VkFence>(VK_NULL_HANDLE));
+    }
 
     VkPresentInfoKHR present_info{
         VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,    // sType
         nullptr,                               // pNext
         1,                                     // waitSemaphoreCount
-        &ready_semaphore,                      // pWaitSemaphores
+        &present_ready_semaphore,              // pWaitSemaphores
         1,                                     // swapchainCount
         &app()->swapchain().get_raw_object(),  // pSwapchains
         &image_idx,                            // pImageIndices
@@ -322,13 +378,15 @@ class Sample {
       FrameData* data, vulkan::VkCommandBuffer* initialization_buffer,
       size_t frame_index) = 0;
   // This will be called during Initialize(). The application is expected
-  // to intialize any non frame-specific data here, such as images and buffers.
+  // to intialize any non frame-specific data here, such as images and
+  // buffers.
   virtual void InitializeApplicationData(
       vulkan::VkCommandBuffer* initialization_buffer,
       size_t num_swapchain_images) = 0;
 
   // This will be called during Initialize(). The application is expected
-  // to intialize any non frame-specific data here, such as images and buffers.
+  // to intialize any non frame-specific data here, such as images and
+  // buffers.
   virtual void InitializationComplete() {}
 
   // Will be called to instruct the application to update it's non
@@ -466,6 +524,63 @@ class Sample {
             options_.enable_depth_buffer ? 2 : 1,
             &barriers[options_.enable_depth_buffer ? 0 : 1]);
 
+    uint32_t srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    uint32_t dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    if (application_.HasSeparatePresentQueue()) {
+      data->transfer_semaphore_ = containers::make_unique<vulkan::VkSemaphore>(
+          allocator_, vulkan::CreateSemaphore(&application_.device()));
+      srcQueueFamilyIndex = application_.present_queue().index();
+      dstQueueFamilyIndex = application_.render_queue().index();
+      VkImageMemoryBarrier barrier = {
+          VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // sType
+          nullptr,                                 // pNext
+          0,                                       // srcAccessMask
+          VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,    // dstAccessMask
+          VK_IMAGE_LAYOUT_UNDEFINED,               // oldLayout
+          VK_IMAGE_LAYOUT_UNDEFINED,               // newLayout
+          srcQueueFamilyIndex,                     // srcQueueFamilyIndex
+          dstQueueFamilyIndex,                     // dstQueueFamilyIndex
+          data->swapchain_image_,                  // image
+          {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
+
+      data->transfer_from_present_command_buffer_ =
+          containers::make_unique<vulkan::VkCommandBuffer>(
+              allocator_, app()->GetCommandBuffer());
+
+      (*data->transfer_from_present_command_buffer_)
+          ->vkBeginCommandBuffer((*data->transfer_from_present_command_buffer_),
+                                 &kBeginCommandBuffer);
+
+      (*data->transfer_from_present_command_buffer_)
+          ->vkCmdPipelineBarrier((*data->transfer_from_present_command_buffer_),
+                                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                 0, 0, nullptr, 0, nullptr, 1, &barrier);
+      (*data->transfer_from_present_command_buffer_)
+          ->vkEndCommandBuffer(*data->transfer_from_present_command_buffer_);
+
+      barrier.srcQueueFamilyIndex = dstQueueFamilyIndex;
+      barrier.dstQueueFamilyIndex = srcQueueFamilyIndex;
+      barrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+      barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+      data->transfer_from_graphics_command_buffer_ =
+          containers::make_unique<vulkan::VkCommandBuffer>(
+              allocator_, app()->GetCommandBuffer());
+
+      (*data->transfer_from_graphics_command_buffer_)
+          ->vkBeginCommandBuffer((*data->setup_command_buffer_),
+                                 &kBeginCommandBuffer);
+
+      (*data->transfer_from_graphics_command_buffer_)
+          ->vkCmdPipelineBarrier((*data->setup_command_buffer_),
+                                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                 0, 0, nullptr, 0, nullptr, 1, &barrier);
+      (*data->transfer_from_graphics_command_buffer_)
+          ->vkEndCommandBuffer(*data->setup_command_buffer_);
+    }
+
     VkImageMemoryBarrier barrier = {
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,    // sType
         nullptr,                                   // pNext
@@ -473,8 +588,8 @@ class Sample {
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,      // dstAccessMask
         VK_IMAGE_LAYOUT_UNDEFINED,                 // oldLayout
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // newLayout
-        VK_QUEUE_FAMILY_IGNORED,                   // srcQueueFamilyIndex
-        VK_QUEUE_FAMILY_IGNORED,                   // dstQueueFamilyIndex
+        srcQueueFamilyIndex,                       // srcQueueFamilyIndex
+        dstQueueFamilyIndex,                       // dstQueueFamilyIndex
         options_.enable_multisampling ? *data->multisampled_target_
                                       : data->swapchain_image_,  // image
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
@@ -576,8 +691,8 @@ class Sample {
         VK_ACCESS_MEMORY_READ_BIT,               // dstAccessMask
         old_layout,                              // oldLayout
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,         // newLayout
-        VK_QUEUE_FAMILY_IGNORED,                 // srcQueueFamilyIndex
-        VK_QUEUE_FAMILY_IGNORED,                 // dstQueueFamilyIndex
+        dstQueueFamilyIndex,                     // srcQueueFamilyIndex
+        srcQueueFamilyIndex,                     // dstQueueFamilyIndex
         data->swapchain_image_,                  // image
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
     (*data->resolve_command_buffer_)
@@ -607,7 +722,8 @@ class Sample {
   VkViewport default_viewport_;
   // The scissor we use to render
   VkRect2D default_scissor_;
-  // The last time ProcessFrame was called. This is used to calculate the delta
+  // The last time ProcessFrame was called. This is used to calculate the
+  // delta
   //  to be passed to Update.
   std::chrono::time_point<std::chrono::high_resolution_clock> last_frame_time_;
   // Do not move these above application_, they rely on the fact that

@@ -12,6 +12,8 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++11"
+                arguments "-DFIXED_TIMESTEP=@FIXED_TIMESTEP@",
+                      "-DPREFER_SEPARATE_PRESENT=@PREFER_SEPARATE_PRESENT@"
             }
         }
     }

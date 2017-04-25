@@ -144,6 +144,33 @@ uint32_t GetGraphicsAndComputeQueueFamily(containers::Allocator* allocator,
   return ~0u;
 }
 
+// Any queue family that supports only compute, or any queue that supports
+// both compute and graphics that is not the "first" one can be used
+// for async compute.
+uint32_t GetAsyncComputeQueueFamilyIndex(containers::Allocator* allocator,
+                                         VkInstance& instance,
+                                         ::VkPhysicalDevice device) {
+  auto properties = GetQueueFamilyProperties(allocator, instance, device);
+  int32_t graphics_queue = -1;
+  int32_t num_graphics_queues = -1;
+  for (uint32_t i = 0; i < properties.size(); ++i) {
+    auto property = properties[i];
+    if (property.queueCount > 0 &&
+        (property.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+      if (graphics_queue == -1 && HasGraphicsAndComputeQueue(properties[i])) {
+        graphics_queue = static_cast<int32_t>(i);
+        num_graphics_queues = property.queueCount;
+      } else {
+        return i;
+      }
+    }
+  }
+  if (graphics_queue != 0 && num_graphics_queues > 1) {
+    return graphics_queue;
+  }
+  return ~0u;
+}
+
 VkDevice CreateDefaultDevice(containers::Allocator* allocator,
                              VkInstance& instance,
                              bool require_graphics_compute_queue) {
@@ -274,7 +301,9 @@ VkDevice CreateDeviceForSwapchain(
     VkSurfaceKHR* surface, uint32_t* present_queue_index,
     uint32_t* graphics_queue_index,
     const std::initializer_list<const char*> extensions,
-    const VkPhysicalDeviceFeatures& features) {
+    const VkPhysicalDeviceFeatures& features,
+    bool try_to_find_separate_present_queue,
+    uint32_t* async_compute_queue_index) {
   containers::vector<VkPhysicalDevice> physical_devices =
       GetPhysicalDevices(allocator, *instance);
   float priority = 1.f;
@@ -318,6 +347,7 @@ VkDevice CreateDeviceForSwapchain(
     const uint32_t graphics_queue_family_index =
         GetGraphicsAndComputeQueueFamily(allocator, *instance, physical_device);
     uint32_t present_queue_family_index = 0;
+    uint32_t backup_present_queue_family_index = 0xFFFFFFFF;
     for (; present_queue_family_index < properties.size();
          ++present_queue_family_index) {
       VkBool32 supports_swapchain = false;
@@ -327,28 +357,61 @@ VkDevice CreateDeviceForSwapchain(
                      &supports_swapchain),
                  VK_SUCCESS);
       if (supports_swapchain) {
-        break;
+        if (!try_to_find_separate_present_queue) {
+          break;
+        }
+        if (backup_present_queue_family_index != 0xFFFFFFFF) {
+          break;
+        }
+        if (present_queue_family_index != graphics_queue_family_index) {
+          break;
+        }
+        backup_present_queue_family_index = present_queue_family_index;
       }
     }
 
-    if (present_queue_family_index == properties.size()) {
+    if (present_queue_family_index == properties.size() &&
+        backup_present_queue_family_index == 0xFFFFFFFF) {
       continue;
     }
+    if (present_queue_family_index == properties.size()) {
+      present_queue_family_index = backup_present_queue_family_index;
+    }
 
-    VkDeviceQueueCreateInfo queue_infos[] = {
-        {/* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-         /* pNext = */ nullptr,
-         /* flags = */ 0,
-         /* queueFamilyIndex = */ graphics_queue_family_index,
-         /* queueCount */ 1,
-         /* pQueuePriorities = */ &priority},
-        {/* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-         /* pNext = */ nullptr,
-         /* flags = */ 0,
-         /* queueFamilyIndex = */ present_queue_family_index,
-         /* queueCount */ 1,
-         /* pQueuePriorities = */ &priority},
-    };
+    uint32_t num_queue_infos = 1;
+    VkDeviceQueueCreateInfo queue_infos[3];
+    queue_infos[0] = {/* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                      /* pNext = */ nullptr,
+                      /* flags = */ 0,
+                      /* queueFamilyIndex = */ graphics_queue_family_index,
+                      /* queueCount */ 1,
+                      /* pQueuePriorities = */ &priority};
+    if (graphics_queue_family_index != present_queue_family_index) {
+      queue_infos[num_queue_infos++] = {
+          /* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+          /* pNext = */ nullptr,
+          /* flags = */ 0,
+          /* queueFamilyIndex = */ present_queue_family_index,
+          /* queueCount */ 1,
+          /* pQueuePriorities = */ &priority};
+    }
+    if (async_compute_queue_index != nullptr) {
+      *async_compute_queue_index =
+          GetAsyncComputeQueueFamilyIndex(allocator, *instance, device);
+      if (*async_compute_queue_index != 0xFFFFFFFF) {
+        if (*async_compute_queue_index != graphics_queue_family_index) {
+          queue_infos[num_queue_infos++] = {
+              /* sType = */ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+              /* pNext = */ nullptr,
+              /* flags = */ 0,
+              /* queueFamilyIndex = */ *async_compute_queue_index,
+              /* queueCount */ 1,
+              /* pQueuePriorities = */ &priority};
+        } else {
+          queue_infos[0].queueCount += 1;
+        }
+      }
+    }
 
     const char* forced_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     containers::vector<const char*> enabled_extensions(allocator);

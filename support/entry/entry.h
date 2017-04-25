@@ -55,6 +55,7 @@ typedef void* HANDLE;
 
 struct application_options {
   bool fixed_timestep;
+  bool prefer_separate_present;
 };
 
 struct entry_data {
