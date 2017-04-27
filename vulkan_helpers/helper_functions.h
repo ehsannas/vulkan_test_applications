@@ -196,10 +196,11 @@ VkShaderModule CreateShaderModule(VkDevice* device,
   return VkShaderModule(raw_shader_module, nullptr, device);
 }
 
-// Returns the first queue from the given family.
-VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index) {
+// Returns the "index" queue from the given queue_family.
+VkQueue inline GetQueue(VkDevice* device, uint32_t queue_family_index,
+                        uint32_t index = 0) {
   ::VkQueue queue;
-  (*device)->vkGetDeviceQueue(*device, queue_family_index, 0, &queue);
+  (*device)->vkGetDeviceQueue(*device, queue_family_index, index, &queue);
   return VkQueue(queue, device, queue_family_index);
 }
 

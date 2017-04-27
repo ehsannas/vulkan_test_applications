@@ -12,9 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_texture_library(standard_images
+add_shader_library(async_compute_shaders
   SOURCES
-    particle.png
-    r8.png
-    rgb8.png
+    particle_update.comp
+    particle_velocity_update.comp
+    particle.vert
+    particle.frag
+    particle_data_shared.h
+  SHADER_DEPS
+    shader_library
+    math_common_glsl
+)
+
+add_vulkan_sample_application(async_compute
+  SOURCES main.cpp
+  particle_data_shared.h
+  LIBS
+    vulkan_helpers
+    math_common
+  MODELS
+    standard_models
+  SHADERS
+    async_compute_shaders
+  TEXTURES
+    standard_images
 )

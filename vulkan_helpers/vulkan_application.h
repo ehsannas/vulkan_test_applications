@@ -426,8 +426,6 @@ class VulkanApplication {
   // command_buffer, so it is
   // expected that this be used for buffers that are usually < 65536 bytes.
   // buffer must have been created with the VK_BUFFER_USAGE_TRANSFER_DST_BIT.
-  // Synchronization must be used to ensure that data remains valid until
-  // the command buffer is done with it.
   void FillSmallBuffer(Buffer* buffer, const void* data, size_t data_size,
                        size_t buffer_offset, VkCommandBuffer* command_buffer,
                        VkAccessFlags target_usage);

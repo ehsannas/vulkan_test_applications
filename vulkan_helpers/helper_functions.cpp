@@ -165,7 +165,10 @@ uint32_t GetAsyncComputeQueueFamilyIndex(containers::Allocator* allocator,
       }
     }
   }
-  if (graphics_queue != 0 && num_graphics_queues > 1) {
+
+  // If we could not find a secondary queue family that supports compute,
+  // then return a queue from the primary graphics family.
+  if (graphics_queue > -1 && num_graphics_queues > 1) {
     return graphics_queue;
   }
   return ~0u;
@@ -307,6 +310,8 @@ VkDevice CreateDeviceForSwapchain(
   containers::vector<VkPhysicalDevice> physical_devices =
       GetPhysicalDevices(allocator, *instance);
   float priority = 1.f;
+  containers::vector<float> additional_priorities(allocator);
+  additional_priorities.push_back(1.0f);
 
   for (auto device : physical_devices) {
     VkPhysicalDevice physical_device = device;
@@ -409,6 +414,8 @@ VkDevice CreateDeviceForSwapchain(
               /* pQueuePriorities = */ &priority};
         } else {
           queue_infos[0].queueCount += 1;
+          additional_priorities.push_back(0.5f);
+          queue_infos[0].pQueuePriorities = additional_priorities.data();
         }
       }
     }
@@ -426,13 +433,10 @@ VkDevice CreateDeviceForSwapchain(
         VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // stype
         nullptr,                               // pNext
         0,                                     // flags
-        (present_queue_family_index !=
-         ((unsigned int)graphics_queue_family_index))
-            ? 2u
-            : 1u,     // queueCreateInfoCount
-        queue_infos,  // pQueueCreateInfos
-        0,            // enabledLayerCount
-        nullptr,      // ppEnabledLayerNames
+        num_queue_infos,                       // queueCreateInfoCount
+        queue_infos,                           // pQueueCreateInfos
+        0,                                     // enabledLayerCount
+        nullptr,                               // ppEnabledLayerNames
         static_cast<uint32_t>(
             enabled_extensions.size()),  // enabledExtensionCount
         enabled_extensions.data(),       // ppEnabledExtensionNames
@@ -703,7 +707,7 @@ VkSampler CreateSampler(VkDevice* device, VkFilter minFilter,
       /* addressModeW = */ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
       /* mipLodBias = */ 0.f,
       /* anisotropyEnable = */ false,
-      /* maxAnisotropy = */ 0.f,
+      /* maxAnisotropy = */ 1.f,
       /* compareEnable = */ false,
       /* compareOp = */ VK_COMPARE_OP_NEVER,
       /* minLod = */ 0.f,

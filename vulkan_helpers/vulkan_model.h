@@ -173,6 +173,21 @@ struct VulkanModel {
     (*cmdBuffer)->vkCmdDrawIndexed(*cmdBuffer, num_indices_, 1, 0, 0, 0);
   }
 
+  // Draws an instanced version of this model.
+  void DrawInstanced(vulkan::VkCommandBuffer* cmdBuffer,
+                     uint32_t instance_count) {
+    ::VkBuffer buffers[3] = {*vertexBuffer_, *vertexBuffer_, *vertexBuffer_};
+    ::VkDeviceSize offsets[3] = {
+        0, num_vertices_ * POSITION_SIZE,
+        num_vertices_ * (POSITION_SIZE + TEXCOORD_SIZE)};
+    (*cmdBuffer)->vkCmdBindVertexBuffers(*cmdBuffer, 0, 3, buffers, offsets);
+    (*cmdBuffer)
+        ->vkCmdBindIndexBuffer(*cmdBuffer, *indexBuffer_, 0,
+                               VK_INDEX_TYPE_UINT32);
+    (*cmdBuffer)
+        ->vkCmdDrawIndexed(*cmdBuffer, num_indices_, instance_count, 0, 0, 0);
+  }
+
  private:
   const float* positions_;
   const float* texture_coords_;

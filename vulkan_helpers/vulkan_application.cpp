@@ -220,7 +220,9 @@ VkDevice VulkanApplication::CreateDevice(
     }
     if (create_async_compute_queue && compute_queue_index_ != 0xFFFFFFFF) {
       async_compute_queue_concrete_ = containers::make_unique<VkQueue>(
-          allocator_, GetQueue(&device, compute_queue_index_));
+          allocator_,
+          GetQueue(&device, compute_queue_index_,
+                   compute_queue_index_ == render_queue_index_ ? 1 : 0));
     }
   }
   return std::move(device);

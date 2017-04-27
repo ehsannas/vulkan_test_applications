@@ -270,8 +270,6 @@ class CubeSample : public sample_application::Sample<CubeFrameData> {
         nullptr  // pSignalSemaphores
     };
 
-    // TODO(awoloszyn): Swap out this logic for semaphores, we don't want to
-    // stall the cpu to wait for the drawing to be done
     app()->render_queue()->vkQueueSubmit(app()->render_queue(), 1,
                                          &init_submit_info,
                                          static_cast<VkFence>(VK_NULL_HANDLE));

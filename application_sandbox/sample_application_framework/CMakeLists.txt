@@ -13,7 +13,9 @@
 # limitations under the License.
 
 add_vulkan_static_library(sample_application
-  SOURCES sample_application.cpp
+  SOURCES
+  sample_application.cpp
+  sample_application.h
   LIBS
     vulkan_helpers
 )

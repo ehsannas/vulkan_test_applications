@@ -33,6 +33,7 @@ struct SampleOptions {
   bool enable_multisampling = false;
   bool enable_depth_buffer = false;
   bool verbose_output = false;
+  bool async_compute = false;
 
   SampleOptions& EnableMultisampling() {
     enable_multisampling = true;
@@ -44,6 +45,10 @@ struct SampleOptions {
   }
   SampleOptions& EnableVerbose() {
     verbose_output = true;
+    return *this;
+  }
+  SampleOptions& EnableAsyncCompute() {
+    async_compute = true;
     return *this;
   }
 };
@@ -125,12 +130,14 @@ class Sample {
         application_(allocator, entry_data->log.get(), entry_data, {}, {0},
                      host_buffer_size_in_MB * 1024 * 1024,
                      image_memory_size_in_MB * 1024 * 1024,
-                     device_buffer_size_in_MB * 1024 * 1024),
+                     device_buffer_size_in_MB * 1024 * 1024,
+                     options.async_compute),
         frame_data_(allocator),
         swapchain_images_(application_.swapchain_images()),
         last_frame_time_(std::chrono::high_resolution_clock::now()),
         initialization_command_buffer_(application_.GetCommandBuffer()),
-        average_frame_time_(0) {
+        average_frame_time_(0),
+        is_valid_(true) {
     if (data_->options.fixed_timestep) {
       app()->GetLogger()->LogInfo("Running with a fixed timestep of 0.1s");
     }
@@ -177,9 +184,15 @@ class Sample {
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers =
         &(initialization_command_buffer_.get_command_buffer());
+
+    vulkan::VkFence init_fence = vulkan::CreateFence(&application_.device());
+
     application_.render_queue()->vkQueueSubmit(application_.render_queue(), 1,
                                                &submit_info,
-                                               ::VkFence(VK_NULL_HANDLE));
+                                               init_fence.get_raw_object());
+    application_.device()->vkWaitForFences(application_.device(), 1,
+                                           &init_fence.get_raw_object(), false,
+                                           0xFFFFFFFFFFFFFFFF);
     // Bit gross but submit all of the fences here
     for (auto& frame_data : frame_data_) {
       application_.render_queue()->vkQueueSubmit(
@@ -220,14 +233,20 @@ class Sample {
 
     uint32_t image_idx;
 
-    ::VkSemaphore ready_semaphore = *frame_data_[image_idx].ready_semaphore_;
-    ::VkFence ready_fence = *frame_data_[image_idx].ready_fence_;
+    // This is a bit weird as we have to make new semaphores every frame, but
+    // for now this will do. It will get cleaned up the next time
+    // this image is used.
+    vulkan::VkSemaphore temp_semaphore =
+        vulkan::CreateSemaphore(&app()->device());
 
     LOG_ASSERT(==, app()->GetLogger(), VK_SUCCESS,
                app()->device()->vkAcquireNextImageKHR(
                    app()->device(), app()->swapchain(), 0xFFFFFFFFFFFFFFFF,
-                   ready_semaphore, static_cast<::VkFence>(VK_NULL_HANDLE),
-                   &image_idx));
+                   temp_semaphore.get_raw_object(),
+                   static_cast<::VkFence>(VK_NULL_HANDLE), &image_idx));
+
+    ::VkFence ready_fence = *frame_data_[image_idx].ready_fence_;
+
     LOG_ASSERT(
         ==, app()->GetLogger(), VK_SUCCESS,
         app()->device()->vkWaitForFences(app()->device(), 1, &ready_fence,
@@ -240,6 +259,11 @@ class Sample {
                                   ">: <", image_idx, ">", " Average: <",
                                   average_frame_time_, ">");
     }
+
+    frame_data_[image_idx].ready_semaphore_ =
+        containers::make_unique<vulkan::VkSemaphore>(allocator_,
+                                                     std::move(temp_semaphore));
+    ::VkSemaphore ready_semaphore = *frame_data_[image_idx].ready_semaphore_;
 
     ::VkSemaphore render_wait_semaphore = ready_semaphore;
 
@@ -282,8 +306,7 @@ class Sample {
     if (application_.HasSeparatePresentQueue()) {
       present_ready_semaphore = *frame_data_[image_idx].transfer_semaphore_;
     }
-    // TODO(awoloszyn): Swap out this logic for semaphores, we don't want to
-    // stall the cpu to wait for the drawing to be done
+
     app()->render_queue()->vkQueueSubmit(
         app()->render_queue(), 1, &init_submit_info,
         static_cast<::VkFence>(VK_NULL_HANDLE));
@@ -339,6 +362,9 @@ class Sample {
                                                          &present_info),
                VK_SUCCESS);
   }
+
+  void set_invalid(bool invaid) { is_valid_ = false; }
+  const bool is_valid() { return is_valid_; }
 
  private:
   const size_t sample_frame_data_offset =
@@ -733,7 +759,9 @@ class Sample {
   vulkan::VkCommandBuffer initialization_command_buffer_;
   // The exponentially smoothed average frame time.
   float average_frame_time_;
-};
+  // If this is set to false, the application cannot be safely run.
+  bool is_valid_;
+};  // namespace sample_application
 }  // namespace sample_application
 
 #endif  // SAMPLE_APPLICATION_FRAMEWORK_SAMPLE_APPLICATION_H_

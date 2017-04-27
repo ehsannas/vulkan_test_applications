@@ -23,6 +23,7 @@ function(add_vulkan_sample_application name)
     add_dependencies(ALL_SAMPLES ${name})
 endfunction()
 
+add_subdirectory(async_compute)
 add_subdirectory(blend_constants)
 add_subdirectory(blit_image)
 add_subdirectory(bufferview)

@@ -17,6 +17,10 @@ project(VulkanTestApplications)
 
 cmake_minimum_required(VERSION 3.1)
 
+set(mathfu_build_benchmarks OFF CACHE BOOL "")
+set(mathfu_build_tests OFF CACHE BOOL "")
+add_subdirectory(third_party/mathfu)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/setup.cmake)
@@ -24,10 +28,6 @@ include(cmake/setup.cmake)
 add_subdirectory(support)
 add_subdirectory(vulkan_wrapper)
 add_subdirectory(vulkan_helpers)
-
-set(mathfu_build_benchmarks OFF CACHE BOOL "")
-set(mathfu_build_tests OFF CACHE BOOL "")
-add_subdirectory(third_party/mathfu)
 
 # Support shaders
 add_subdirectory(shader_library)
