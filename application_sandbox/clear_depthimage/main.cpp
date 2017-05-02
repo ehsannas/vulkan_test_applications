@@ -79,14 +79,14 @@ class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameDa
     cube_.InitializeData(app(), initialization_buffer);
     plane_.InitializeData(app(), initialization_buffer);
 
-    cube_render_descritor_set_layout_bindings_[0] = {
+    cube_render_descriptor_set_layout_bindings_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    cube_render_descritor_set_layout_bindings_[1] = {
+    cube_render_descriptor_set_layout_bindings_[1] = {
         1,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
@@ -105,8 +105,8 @@ class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameDa
         containers::make_unique<vulkan::PipelineLayout>(
             data_->root_allocator,
             app()->CreatePipelineLayout(
-                {{cube_render_descritor_set_layout_bindings_[0],
-                  cube_render_descritor_set_layout_bindings_[1]}}));
+                {{cube_render_descriptor_set_layout_bindings_[0],
+                  cube_render_descriptor_set_layout_bindings_[1]}}));
     depth_render_pipeline_layout_ =
         containers::make_unique<vulkan::PipelineLayout>(
             data_->root_allocator,
@@ -318,8 +318,8 @@ class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameDa
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
             app()->AllocateDescriptorSet(
-                {cube_render_descritor_set_layout_bindings_[0],
-                 cube_render_descritor_set_layout_bindings_[1]}));
+                {cube_render_descriptor_set_layout_bindings_[0],
+                 cube_render_descriptor_set_layout_bindings_[1]}));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -547,7 +547,7 @@ class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameDa
   containers::unique_ptr<vulkan::VulkanGraphicsPipeline> depth_render_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> cube_render_pass_;
   containers::unique_ptr<vulkan::VkRenderPass> depth_render_pass_;
-  VkDescriptorSetLayoutBinding cube_render_descritor_set_layout_bindings_[2];
+  VkDescriptorSetLayoutBinding cube_render_descriptor_set_layout_bindings_[2];
   VkDescriptorSetLayoutBinding depth_render_descriptor_set_layout_binding_;
   vulkan::VulkanModel cube_;
   vulkan::VulkanModel plane_;

@@ -65,14 +65,14 @@ class blendSample : public sample_application::Sample<BlendFrameData> {
 
     icos_.InitializeData(app(), initialization_buffer);
 
-    icos_descritor_set_layouts_[0] = {
+    icos_descriptor_set_layouts_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    icos_descritor_set_layouts_[1] = {
+    icos_descriptor_set_layouts_[1] = {
         1,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
@@ -82,8 +82,8 @@ class blendSample : public sample_application::Sample<BlendFrameData> {
 
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
-        app()->CreatePipelineLayout({{icos_descritor_set_layouts_[0],
-                                      icos_descritor_set_layouts_[1]}}));
+        app()->CreatePipelineLayout({{icos_descriptor_set_layouts_[0],
+                                      icos_descriptor_set_layouts_[1]}}));
 
     VkAttachmentReference depth_attachment = {
         0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
@@ -182,8 +182,8 @@ class blendSample : public sample_application::Sample<BlendFrameData> {
     frame_data->icos_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
-            app()->AllocateDescriptorSet({icos_descritor_set_layouts_[0],
-                                          icos_descritor_set_layouts_[1]}));
+            app()->AllocateDescriptorSet({icos_descriptor_set_layouts_[0],
+                                          icos_descriptor_set_layouts_[1]}));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -321,7 +321,7 @@ class blendSample : public sample_application::Sample<BlendFrameData> {
   containers::unique_ptr<vulkan::PipelineLayout> pipeline_layout_;
   containers::unique_ptr<vulkan::VulkanGraphicsPipeline> icos_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> render_pass_;
-  VkDescriptorSetLayoutBinding icos_descritor_set_layouts_[2];
+  VkDescriptorSetLayoutBinding icos_descriptor_set_layouts_[2];
   vulkan::VulkanModel icos_;
 
   containers::unique_ptr<vulkan::BufferFrameData<CameraData>> camera_data_;

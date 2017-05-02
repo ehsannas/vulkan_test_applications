@@ -61,14 +61,14 @@ class WireframeSample : public sample_application::Sample<WireframeFrameData> {
       size_t num_swapchain_images) override {
     torus_.InitializeData(app(), initialization_buffer);
 
-    torus_descritor_set_layouts_[0] = {
+    torus_descriptor_set_layouts_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    torus_descritor_set_layouts_[1] = {
+    torus_descriptor_set_layouts_[1] = {
         1,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
@@ -78,8 +78,8 @@ class WireframeSample : public sample_application::Sample<WireframeFrameData> {
 
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
-        app()->CreatePipelineLayout({{torus_descritor_set_layouts_[0],
-                                      torus_descritor_set_layouts_[1]}}));
+        app()->CreatePipelineLayout({{torus_descriptor_set_layouts_[0],
+                                      torus_descriptor_set_layouts_[1]}}));
 
     VkAttachmentReference depth_attachment = {
         0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
@@ -175,8 +175,8 @@ class WireframeSample : public sample_application::Sample<WireframeFrameData> {
     frame_data->torus_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
-            app()->AllocateDescriptorSet({torus_descritor_set_layouts_[0],
-                                          torus_descritor_set_layouts_[1]}));
+            app()->AllocateDescriptorSet({torus_descriptor_set_layouts_[0],
+                                          torus_descriptor_set_layouts_[1]}));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -313,7 +313,7 @@ class WireframeSample : public sample_application::Sample<WireframeFrameData> {
   containers::unique_ptr<vulkan::PipelineLayout> pipeline_layout_;
   containers::unique_ptr<vulkan::VulkanGraphicsPipeline> torus_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> render_pass_;
-  VkDescriptorSetLayoutBinding torus_descritor_set_layouts_[2];
+  VkDescriptorSetLayoutBinding torus_descriptor_set_layouts_[2];
   vulkan::VulkanModel torus_;
 
   containers::unique_ptr<vulkan::BufferFrameData<CameraData>> camera_data_;

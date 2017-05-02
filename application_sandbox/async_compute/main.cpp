@@ -686,28 +686,28 @@ class AsyncSample : public sample_application::Sample<AsyncFrameData> {
     quad_model_.InitializeData(app(), initialization_buffer);
     particle_texture_.InitializeData(app(), initialization_buffer);
 
-    particle_descritor_set_layouts_[0] = {
+    particle_descriptor_set_layouts_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    particle_descritor_set_layouts_[3] = {
+    particle_descriptor_set_layouts_[3] = {
         3,                                  // binding
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    particle_descritor_set_layouts_[1] = {
+    particle_descriptor_set_layouts_[1] = {
         1,                             // binding
         VK_DESCRIPTOR_TYPE_SAMPLER,    // descriptorType
         1,                             // descriptorCount
         VK_SHADER_STAGE_FRAGMENT_BIT,  // stageFlags
         nullptr                        // pImmutableSamplers
     };
-    particle_descritor_set_layouts_[2] = {
+    particle_descriptor_set_layouts_[2] = {
         2,                                 // binding
         VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,  // descriptorType
         1,                                 // descriptorCount
@@ -722,10 +722,10 @@ class AsyncSample : public sample_application::Sample<AsyncFrameData> {
 
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
-        app()->CreatePipelineLayout({{particle_descritor_set_layouts_[0],
-                                      particle_descritor_set_layouts_[1],
-                                      particle_descritor_set_layouts_[2],
-                                      particle_descritor_set_layouts_[3]}}));
+        app()->CreatePipelineLayout({{particle_descriptor_set_layouts_[0],
+                                      particle_descriptor_set_layouts_[1],
+                                      particle_descriptor_set_layouts_[2],
+                                      particle_descriptor_set_layouts_[3]}}));
 
     VkAttachmentReference color_attachment = {
         0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
@@ -798,10 +798,10 @@ class AsyncSample : public sample_application::Sample<AsyncFrameData> {
     frame_data->particle_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
-            app()->AllocateDescriptorSet({particle_descritor_set_layouts_[0],
-                                          particle_descritor_set_layouts_[1],
-                                          particle_descritor_set_layouts_[2],
-                                          particle_descritor_set_layouts_[3]}));
+            app()->AllocateDescriptorSet({particle_descriptor_set_layouts_[0],
+                                          particle_descriptor_set_layouts_[1],
+                                          particle_descriptor_set_layouts_[2],
+                                          particle_descriptor_set_layouts_[3]}));
 
     ::VkImageView raw_view = color_view(frame_data);
 
@@ -1013,7 +1013,7 @@ class AsyncSample : public sample_application::Sample<AsyncFrameData> {
   const entry::entry_data* data_;
 
   // All of the data needed for the particle rendering pipeline.
-  VkDescriptorSetLayoutBinding particle_descritor_set_layouts_[4];
+  VkDescriptorSetLayoutBinding particle_descriptor_set_layouts_[4];
   containers::unique_ptr<vulkan::PipelineLayout> pipeline_layout_;
   containers::unique_ptr<vulkan::VulkanGraphicsPipeline> particle_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> render_pass_;

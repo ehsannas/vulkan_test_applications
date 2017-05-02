@@ -67,14 +67,14 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
       size_t num_swapchain_images) override {
     cube_.InitializeData(app(), initialization_buffer);
 
-    cube_descritor_set_layouts_[0] = {
+    cube_descriptor_set_layouts_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    cube_descritor_set_layouts_[1] = {
+    cube_descriptor_set_layouts_[1] = {
         1,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
@@ -84,8 +84,8 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
 
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
-        app()->CreatePipelineLayout({{cube_descritor_set_layouts_[0],
-                                      cube_descritor_set_layouts_[1]}}));
+        app()->CreatePipelineLayout({{cube_descriptor_set_layouts_[0],
+                                      cube_descriptor_set_layouts_[1]}}));
 
     VkAttachmentReference color_attachment = {
         0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
@@ -225,8 +225,8 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
     frame_data->cube_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
-            app()->AllocateDescriptorSet({cube_descritor_set_layouts_[0],
-                                          cube_descritor_set_layouts_[1]}));
+            app()->AllocateDescriptorSet({cube_descriptor_set_layouts_[0],
+                                          cube_descriptor_set_layouts_[1]}));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -501,7 +501,7 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
   containers::unique_ptr<vulkan::PipelineLayout> pipeline_layout_;
   containers::unique_ptr<vulkan::VulkanGraphicsPipeline> cube_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> render_pass_;
-  VkDescriptorSetLayoutBinding cube_descritor_set_layouts_[2];
+  VkDescriptorSetLayoutBinding cube_descriptor_set_layouts_[2];
   vulkan::VulkanModel cube_;
 
   containers::unique_ptr<vulkan::BufferFrameData<camera_data_>> camera_data;

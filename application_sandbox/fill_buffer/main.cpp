@@ -67,21 +67,21 @@ class FillSample : public sample_application::Sample<FillFrameData> {
 
     cube_.InitializeData(app(), initialization_buffer);
 
-    cube_descritor_set_layouts_[0] = {
+    cube_descriptor_set_layouts_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    cube_descritor_set_layouts_[1] = {
+    cube_descriptor_set_layouts_[1] = {
         1,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    cube_descritor_set_layouts_[2] = {
+    cube_descriptor_set_layouts_[2] = {
         2,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
@@ -92,8 +92,8 @@ class FillSample : public sample_application::Sample<FillFrameData> {
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
         app()->CreatePipelineLayout(
-            {{cube_descritor_set_layouts_[0], cube_descritor_set_layouts_[1],
-              cube_descritor_set_layouts_[2]}}));
+            {{cube_descriptor_set_layouts_[0], cube_descriptor_set_layouts_[1],
+              cube_descriptor_set_layouts_[2]}}));
 
     VkAttachmentReference depth_attachment = {
         0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
@@ -247,9 +247,9 @@ class FillSample : public sample_application::Sample<FillFrameData> {
     frame_data->cube_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
-            app()->AllocateDescriptorSet({cube_descritor_set_layouts_[0],
-                                          cube_descritor_set_layouts_[1],
-                                          cube_descritor_set_layouts_[2]}));
+            app()->AllocateDescriptorSet({cube_descriptor_set_layouts_[0],
+                                          cube_descriptor_set_layouts_[1],
+                                          cube_descriptor_set_layouts_[2]}));
 
     VkDescriptorBufferInfo buffer_infos[3] = {
         {
@@ -408,7 +408,7 @@ class FillSample : public sample_application::Sample<FillFrameData> {
   containers::unique_ptr<vulkan::PipelineLayout> pipeline_layout_;
   containers::unique_ptr<vulkan::VulkanGraphicsPipeline> cube_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> render_pass_;
-  VkDescriptorSetLayoutBinding cube_descritor_set_layouts_[3];
+  VkDescriptorSetLayoutBinding cube_descriptor_set_layouts_[3];
   vulkan::VulkanModel cube_;
 
   containers::unique_ptr<vulkan::BufferFrameData<CameraData>> camera_data_;

@@ -82,14 +82,14 @@ class DepthReadbackSample : public sample_application::Sample<DepthFrameData> {
     cube_.InitializeData(app(), initialization_buffer);
     plane_.InitializeData(app(), initialization_buffer);
 
-    render_cube_descritor_set_layout_bindings_[0] = {
+    render_cube_descriptor_set_layout_bindings_[0] = {
         0,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
         VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
         nullptr                             // pImmutableSamplers
     };
-    render_cube_descritor_set_layout_bindings_[1] = {
+    render_cube_descriptor_set_layout_bindings_[1] = {
         1,                                  // binding
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
         1,                                  // descriptorCount
@@ -101,8 +101,8 @@ class DepthReadbackSample : public sample_application::Sample<DepthFrameData> {
         containers::make_unique<vulkan::PipelineLayout>(
             data_->root_allocator,
             app()->CreatePipelineLayout(
-                {{render_cube_descritor_set_layout_bindings_[0],
-                  render_cube_descritor_set_layout_bindings_[1]}}));
+                {{render_cube_descriptor_set_layout_bindings_[0],
+                  render_cube_descriptor_set_layout_bindings_[1]}}));
 
     VkAttachmentReference color_attachment = {
         1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
@@ -270,8 +270,8 @@ class DepthReadbackSample : public sample_application::Sample<DepthFrameData> {
         containers::make_unique<vulkan::DescriptorSet>(
             data_->root_allocator,
             app()->AllocateDescriptorSet(
-                {render_cube_descritor_set_layout_bindings_[0],
-                 render_cube_descritor_set_layout_bindings_[1]}));
+                {render_cube_descriptor_set_layout_bindings_[0],
+                 render_cube_descriptor_set_layout_bindings_[1]}));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -456,7 +456,7 @@ class DepthReadbackSample : public sample_application::Sample<DepthFrameData> {
   containers::unique_ptr<vulkan::VulkanGraphicsPipeline> depth_read_pipeline_;
   containers::unique_ptr<vulkan::VkRenderPass> render_cube_render_pass_;
   containers::unique_ptr<vulkan::VkRenderPass> depth_read_render_pass_;
-  VkDescriptorSetLayoutBinding render_cube_descritor_set_layout_bindings_[2] =
+  VkDescriptorSetLayoutBinding render_cube_descriptor_set_layout_bindings_[2] =
       {};
   VkDescriptorSetLayoutBinding depth_read_pipeline_layout_bindings_ = {};
   vulkan::VulkanModel cube_;
