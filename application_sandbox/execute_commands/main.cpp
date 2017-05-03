@@ -355,7 +355,7 @@ class ExecuteCommandsSample : public sample_application::Sample<CubeFrameData> {
     VkBufferMemoryBarrier to_use_in_comp{
         VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
         nullptr,
-        VK_ACCESS_HOST_WRITE_BIT,
+        VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED,
@@ -367,6 +367,16 @@ class ExecuteCommandsSample : public sample_application::Sample<CubeFrameData> {
         nullptr,
         VK_ACCESS_SHADER_WRITE_BIT,
         VK_ACCESS_SHADER_READ_BIT,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        dispatch_data_->get_buffer(),
+        dispatch_data_->get_offset_for_frame(frame_index),
+        dispatch_data_->aligned_data_size()};
+    VkBufferMemoryBarrier to_use_in_host{
+        VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+        nullptr,
+        VK_ACCESS_SHADER_READ_BIT,
+        VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED,
         dispatch_data_->get_buffer(),
@@ -416,9 +426,13 @@ class ExecuteCommandsSample : public sample_application::Sample<CubeFrameData> {
     vulkan::VkCommandBuffer& prim_buf = (*frame_data->primary_command_buffer_);
     prim_buf->vkBeginCommandBuffer(prim_buf,
                                    &sample_application::kBeginCommandBuffer);
-    comp_buf->vkCmdPipelineBarrier(comp_buf, VK_PIPELINE_STAGE_HOST_BIT,
-                                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0,
-                                   nullptr, 1, &to_use_in_comp, 0, nullptr);
+    prim_buf->vkCmdPipelineBarrier(
+        prim_buf, VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+        0, 0, nullptr, 1, &to_use_in_comp, 0, nullptr);
     prim_buf->vkCmdExecuteCommands(prim_buf, 1, &raw_secondary_buffers[0]);
     prim_buf->vkCmdPipelineBarrier(prim_buf,
                                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -428,6 +442,11 @@ class ExecuteCommandsSample : public sample_application::Sample<CubeFrameData> {
         prim_buf, &pass_begin, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
     prim_buf->vkCmdExecuteCommands(prim_buf, 1, &raw_secondary_buffers[1]);
     prim_buf->vkCmdEndRenderPass(prim_buf);
+    prim_buf->vkCmdPipelineBarrier(
+        prim_buf, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT |
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        0, 0, nullptr, 1, &to_use_in_host, 0, nullptr);
     prim_buf->vkEndCommandBuffer(prim_buf);
   }
 
