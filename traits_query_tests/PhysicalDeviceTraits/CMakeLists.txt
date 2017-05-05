@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(PhysicalDeviceTraits
+add_vulkan_executable(PhysicalDeviceTraits_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers
