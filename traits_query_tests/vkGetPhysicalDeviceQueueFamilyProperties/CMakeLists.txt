@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(vkGetPhysicalDeviceQueueFamilyProperties
+add_vulkan_executable(vkGetPhysicalDeviceQueueFamilyProperties_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers
