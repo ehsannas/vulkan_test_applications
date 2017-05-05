@@ -35,7 +35,7 @@ MEMORY_ALLOCATE_INFO = [
 class GetImageMemoryRequirements(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         get_image_memory_requirements = require(
             self.next_call_of("vkGetImageMemoryRequirements"))
         require_not_equal(0, get_image_memory_requirements.int_Device)
@@ -57,7 +57,7 @@ class GetImageMemoryRequirements(GapitTest):
 class AllocateBindFreeMemory(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(
             self.next_call_of("vkGetPhysicalDeviceProperties"))
 

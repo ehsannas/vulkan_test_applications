@@ -24,7 +24,7 @@ class EnumeratePhysicalDevices(GapitTest):
     def expect(self):
         """Check the arguments and the values referred by the pointer arguments
         of vkEnumeratePhysicalDevices"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         # The first call to vkEnumeratePhysicalDevices, pPhysicalDevices is
         # NULL, pPhysicalDeviceCount refer to 0 prior to the call and should be

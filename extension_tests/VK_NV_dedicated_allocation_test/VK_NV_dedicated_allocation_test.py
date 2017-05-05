@@ -80,7 +80,7 @@ MEMORY_ALLOCATE_INFO = [
 class NV_Dedicated_Allocation_Image(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         create_device = self.next_call_of("vkCreateDevice")
         if create_device[0] == None:
@@ -137,7 +137,7 @@ class NV_Dedicated_Allocation_Image(GapitTest):
 class NV_Dedicated_Allocation_Buffer(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_device = self.next_call_of("vkCreateDevice")
 
         if create_device[0] == None:
@@ -194,7 +194,7 @@ class NV_Dedicated_Allocation_Buffer(GapitTest):
 class NV_Dedicated_Allocation_Image_Non_Dedicated(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         create_device = self.next_call_of("vkCreateDevice")
         if create_device[0] == None:
@@ -227,7 +227,7 @@ class NV_Dedicated_Allocation_Image_Non_Dedicated(GapitTest):
 class NV_Dedicated_Allocation_Buffer_Non_Dedicated(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_device = self.next_call_of("vkCreateDevice")
 
         if create_device[0] == None:

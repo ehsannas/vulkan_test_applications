@@ -43,7 +43,7 @@ class CopyWholeColorImageToSameColorImageOneLayer(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdCopyImage"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         copy_image = require(self.nth_call_of("vkCmdCopyImage", 1))
 
         require_not_equal(0, copy_image.int_CommandBuffer)
@@ -86,7 +86,7 @@ class CopyCompressedImageRegionToCompatibleImageRegion(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdCopyImage"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         copy_image = require(self.nth_call_of("vkCmdCopyImage", 2))
 
         require_not_equal(0, copy_image.int_CommandBuffer)

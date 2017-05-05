@@ -95,7 +95,7 @@ class ColorAttachmentImage(GapitTest):
         """1. Expects a normal image view for a normal 2D color attachement
         image created in swapchain."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image_view, device, image = check_create_image_view(self, 1)

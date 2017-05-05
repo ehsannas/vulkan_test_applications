@@ -105,7 +105,7 @@ class NoFlagOneDescriptorType(GapitTest):
     def expect(self):
         """1. No create flags, max two sets, one descriptor type"""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
 
         create_atom, device, descriptor_pool = \
             check_create_descriptor_pool(self, 1)
@@ -129,7 +129,7 @@ class WithFlagMoreDescriptorTypes(GapitTest):
     def expect(self):
         """2. With create flags, max ten sets, more descriptor types"""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
 
         create_atom, device, descriptor_pool = \
             check_create_descriptor_pool(self, 2)

@@ -36,7 +36,7 @@ class TransientBitCommandPool(GapitTest):
         """1. Expects a command pool created and destroyed with
         VK_COMMAND_POOL_CREATE_TRANSIENT_BIT ."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_command_pool = require(self.nth_call_of("vkCreateCommandPool",
                                                        1))
         device = create_command_pool.int_Device
@@ -73,7 +73,7 @@ class ResetCommandBufferBitCommandPool(GapitTest):
         """2. Expects a command pool created and destroyed with
         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT"""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_command_pool = require(self.nth_call_of("vkCreateCommandPool",
                                                        2))
         device = create_command_pool.int_Device
@@ -112,7 +112,7 @@ class ResetCommandBufferBitTransientBitCommandPool(GapitTest):
         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT |
         VK_COMMAND_POOL_CREATE_TRANSIENT_BIT"""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_command_pool = require(self.nth_call_of("vkCreateCommandPool",
                                                        3))
         device = create_command_pool.int_Device
@@ -150,7 +150,7 @@ class EmptyBitCommandPool(GapitTest):
         """3. Expects a command pool created and destroyed with empty flag
         bit"""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_command_pool = require(self.nth_call_of("vkCreateCommandPool",
                                                        4))
         device = create_command_pool.int_Device

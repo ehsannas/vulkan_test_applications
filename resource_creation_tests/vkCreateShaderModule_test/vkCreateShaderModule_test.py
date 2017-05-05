@@ -22,7 +22,7 @@ from vulkan_constants import *
 class ShaderModuleTest(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(
             self.next_call_of("vkGetPhysicalDeviceProperties"))
 

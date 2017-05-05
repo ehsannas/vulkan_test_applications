@@ -27,7 +27,7 @@ import traceback
 
 from gapit_tester import run_on_single_apk
 from gapit_tester import RunArgs
-from gapit_trace_reader import parse_trace_file, NamedAttributeError
+from gapit_trace_reader import get_architecture_from_trace_file, parse_trace_file, NamedAttributeError
 
 SUCCESS = 0
 FAILURE = 1
@@ -169,6 +169,7 @@ class GapitTest(object):
     '''
 
     def __init__(self):
+        self.architecture = None
         self.atom_generator = None
         self.warnings = []
 
@@ -290,6 +291,9 @@ class GapitTest(object):
                 print "Successfully traced application"
             print "[ " + "DONE".center(10) + " ] " + apk_name
         test_name = apk_name + "." + self.name()
+        self.architecture = get_architecture_from_trace_file(capture_name)
+        if self.architecture is None:
+            return (FAILURE, "Failed to obtain device architecture info from trace")
         self.atom_generator = parse_trace_file(capture_name)
         print "[ " + "RUN".ljust(10) + " ] " + test_name
         try:

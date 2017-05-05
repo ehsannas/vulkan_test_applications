@@ -210,7 +210,7 @@ DYNAMIC_STATE = [
 class SimpleVertexFragment(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_graphics_pipelines = require(self.next_call_of(
             "vkCreateGraphicsPipelines"))
         require_not_equal(0, create_graphics_pipelines.int_Device)

@@ -21,7 +21,7 @@ class PushConstantsWithOffsetZeroToVertexStage(GapitTest):
 
     def expect(self):
         """Check the arguments and data to vkCmdPushConstants"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         push_constants = require(self.nth_call_of("vkCmdPushConstants", 1))
 
         require_not_equal(0, push_constants.int_CommandBuffer)

@@ -39,7 +39,7 @@ class OneQueryOcclusionQueryPool(GapitTest):
         """1. Expects a query pool to be created with queryCount: 1 and
         queryType: VK_QUERY_TYPE_OCCLUSION."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
 
@@ -85,7 +85,7 @@ class SevenQueriesTimeStampQueryPool(GapitTest):
         """2. Expects a query pool to be created with queryCount: 7 and
         queryType: VK_QUERY_TYPE_TIMESTAMP."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
 
@@ -132,7 +132,7 @@ class FourQueriesPipelineStatisticsQueryPool(GapitTest):
         queryType: VK_QUERY_TYPE_PIPELINE_STATISTICS and pipelineStatistics:
         VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
 

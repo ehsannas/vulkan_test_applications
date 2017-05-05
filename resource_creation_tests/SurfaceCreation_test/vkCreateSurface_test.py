@@ -21,7 +21,7 @@ class SurfaceCreateTest(GapitTest):
     def expect(self):
         """Expect that the applicationInfoPointer is null for the first
          vkCreateInstance"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_surface = require(self.next_call_of("vkCreateAndroidSurfaceKHR"))
 
         # Make sure the parameters are valid

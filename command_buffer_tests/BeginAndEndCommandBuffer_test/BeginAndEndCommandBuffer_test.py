@@ -23,7 +23,7 @@ class NullInheritanceInfoTest(GapitTest):
     def expect(self):
         """Expect that the pInheritanceInfo is null for the first
         vkBeginCommandBuffer"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         begin_command_buffer = require(self.next_call_of(
             "vkBeginCommandBuffer"))
@@ -59,7 +59,7 @@ class NonNullInheritanceInfoTest(GapitTest):
     def expect(self):
         """Expect that the pInheritanceInfo is not null for the second
         vkBeginCommandBuffer, and that it contains some of the expected data."""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         begin_command_buffer = require(self.nth_call_of("vkBeginCommandBuffer",
                                                         2))

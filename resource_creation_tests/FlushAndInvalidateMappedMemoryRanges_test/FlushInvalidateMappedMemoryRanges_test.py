@@ -44,7 +44,7 @@ class FlushMappedMemoryRangesNonZeroOffsetNotWholeSize(GapitTest):
         MEMORY_DATA = [("data", ARRAY, FLUSH_SIZE, CHAR)]
         EXPECTED_MEMORY_DATA = [i for i in range(FLUSH_SIZE)]
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         # The first vkMapMemory() result is managed in VulkanApplication and is
         # not used here, the second is the one we need here.
         map_memory = require(self.nth_call_of("vkMapMemory", 2))
@@ -94,7 +94,7 @@ class InvalidateMappedMemoryRangesZeroOffsetWholeSize(GapitTest):
         MEMORY_DATA = [("data", ARRAY, DATA_SIZE, CHAR)]
         EXPECTED_MEMORY_DATA = [i for i in range(DATA_SIZE)]
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         map_memory = require(self.nth_call_of("vkMapMemory", 3))
         require_not_equal(0, map_memory.hex_PpData)
         # The invalidated data offset is equal to the mapped offset, but the
@@ -142,7 +142,7 @@ class FlushMappedMemoryRangesZeroOffsetWholeSize(GapitTest):
         EXPECTED_MEMORY_DATA = [min(i, 512 - i) & 0xFF
                                 for i in range(DATA_SIZE)]
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         # The first vkMapMemory() result is managed in VulkanApplication and is
         # not used here, the second is the one we need here.
         map_memory = require(self.nth_call_of("vkMapMemory", 4))
@@ -192,7 +192,7 @@ class InvalidateMappedMemoryRangesNonZeroOffsetNotWholeSize(GapitTest):
         EXPECTED_MEMORY_DATA = [(512 - i) & 0xFF
                                 for i in range(INVALIDATE_SIZE, 512)]
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         map_memory = require(self.nth_call_of("vkMapMemory", 5))
         require_not_equal(0, map_memory.hex_PpData)
         # The invalidated data offset is equal to the mapped offset, but the

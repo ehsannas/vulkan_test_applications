@@ -42,7 +42,7 @@ class ClearASingleLayerColorAttachment(GapitTest):
     def expect(self):
         """Expect the vkCmdClearAttachments() is called successfully. The
         pAttachments and pRects point to the expected values"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         cmd_clear_attachments = require(self.nth_call_of(
             "vkCmdClearAttachments", 1))

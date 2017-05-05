@@ -20,7 +20,7 @@ from vulkan_constants import *
 class PhysicalDeviceSurfaceQueries(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         enumerate_physical_devices = require(
             self.next_call_of("vkEnumeratePhysicalDevices"))
@@ -109,7 +109,7 @@ class PhysicalDeviceSurfaceQueries(GapitTest):
 class PhysicalDevicePresentModeQuery(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         enumerate_physical_devices = require(
             self.next_call_of("vkEnumeratePhysicalDevices"))

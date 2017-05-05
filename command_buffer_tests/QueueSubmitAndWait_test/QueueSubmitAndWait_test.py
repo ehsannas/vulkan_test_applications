@@ -36,7 +36,7 @@ SUBMIT_INFO = [
 class ZeroSubmits(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         queue_submit = require(self.nth_call_of("vkQueueSubmit", 1))
         require_not_equal(0, queue_submit.int_Queue)
         require_equal(0, queue_submit.int_SubmitCount)
@@ -51,7 +51,7 @@ class ZeroSubmits(GapitTest):
 class OneSubmitZeroCommandBuffers(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         queue_submit = require(self.nth_call_of("vkQueueSubmit", 2))
         require_not_equal(0, queue_submit.int_Queue)
         require_not_equal(0, queue_submit.int_SubmitCount)
@@ -80,7 +80,7 @@ class OneSubmitZeroCommandBuffers(GapitTest):
 class OneCommandBuffer(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         queue_submit = require(self.nth_call_of("vkQueueSubmit", 3))
         require_not_equal(0, queue_submit.int_Queue)
         require_equal(1, queue_submit.int_SubmitCount)
@@ -116,7 +116,7 @@ class OneCommandBuffer(GapitTest):
 class TwoCommandBuffers(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         queue_submit = require(self.nth_call_of("vkQueueSubmit", 4))
         require_not_equal(0, queue_submit.int_Queue)
         require_not_equal(0, queue_submit.int_SubmitCount)

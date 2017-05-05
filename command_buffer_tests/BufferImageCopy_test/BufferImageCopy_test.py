@@ -39,7 +39,7 @@ class CopyImageToBuffer(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdCopyImageToBuffer"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         copy_image_to_buffer = require(
             self.nth_call_of("vkCmdCopyImageToBuffer", 1))
 
@@ -76,7 +76,7 @@ class CopyBufferToImage(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdCopyBufferToImage"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         copy_buffer_to_image = require(
             self.nth_call_of("vkCmdCopyBufferToImage", 1))
 

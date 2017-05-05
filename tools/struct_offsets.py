@@ -36,9 +36,9 @@ def get_size_alignment(architecture):
     return {
         UINT32_T: (4, 4),
         INT32_T: (4, 4),
-        SIZE_T: (architecture.int_PointerSize, architecture.int_PointerSize),
-        POINTER: (architecture.int_PointerSize, architecture.int_PointerSize),
-        UINT64_T: (8, architecture.extra_FieldAlignments.int_U64Alignment),
+        SIZE_T: (architecture.int_SizeSize, architecture.int_SizeAlignment),
+        POINTER: (architecture.int_PointerSize, architecture.int_PointerAlignment),
+        UINT64_T: (architecture.int_I64Size, architecture.int_I64Alignment),
         FLOAT: (4, 4),
         CHAR: (1, 1)
     }

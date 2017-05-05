@@ -36,7 +36,7 @@ EMPTY_PIPELINE_CACHE_DATA_SIZE = 36
 class GetDataOfAnEmptyPipelineCache(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
 
@@ -76,7 +76,7 @@ class GetDataOfAnEmptyPipelineCache(GapitTest):
 class GetPipelineCacheDataOfAGraphicsPipeline(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
 

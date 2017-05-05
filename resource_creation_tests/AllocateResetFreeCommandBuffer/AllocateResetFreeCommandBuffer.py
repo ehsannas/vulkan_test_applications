@@ -33,7 +33,7 @@ class AllocateAndFreeCommandBuffers(GapitTest):
 
     def expect(self):
         """Check the arguments to vkAllocateCommandBuffers"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         for level in [VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                       VK_COMMAND_BUFFER_LEVEL_SECONDARY]:
             for count in [0, 1, MAX_COUNT]:

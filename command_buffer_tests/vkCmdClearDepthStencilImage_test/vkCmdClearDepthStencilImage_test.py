@@ -35,7 +35,7 @@ class ClearDepthImage(GapitTest):
     def expect(self):
         """1. Expects vkCmdClearDepthStencilImage() is called and traced
         successfully."""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         clear_depth_image = require(self.nth_call_of(
             "vkCmdClearDepthStencilImage", 1))
         require_not_equal(0, clear_depth_image.int_CommandBuffer)

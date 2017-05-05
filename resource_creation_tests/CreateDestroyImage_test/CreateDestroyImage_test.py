@@ -89,7 +89,7 @@ class ColorAttachmentImage(GapitTest):
     def expect(self):
         """1. Expects a normal 2D color attachement image."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image, device, image = check_create_image(self, 1)
@@ -120,7 +120,7 @@ class DepthImage(GapitTest):
     def expect(self):
         """2. Expects a normal depth image."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image, device, image = check_create_image(self, 2)
@@ -151,7 +151,7 @@ class CubeCompatibleAndMutableImage(GapitTest):
     def expect(self):
         """3. Expects a cube compatible image with mutable format support."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image, device, image = check_create_image(self, 3)
@@ -184,7 +184,7 @@ class LinearTilingImageWithSrcDstTransferUsage(GapitTest):
         """4. Expects an image with linear tiling and can be used as the source
          and destination of a transfer command."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image, device, image = check_create_image(self, 4)
@@ -217,7 +217,7 @@ class ColorAttachment3DImage(GapitTest):
         """5. Expects a 3D image with extent values and mipLevels value changed.
         """
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image, device, image = check_create_image(self, 5)
@@ -248,7 +248,7 @@ class MultiSampledImageWithPreinitializedLayout(GapitTest):
     def expect(self):
         """6. Expects a preinitialized image that support multi-sample."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image, device, image = check_create_image(self, 6)
@@ -279,7 +279,7 @@ class ColorAttachment1DImage(GapitTest):
     def expect(self):
         """7. Expects a 1D color attachement image."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
         create_image, device, image = check_create_image(self, 7)

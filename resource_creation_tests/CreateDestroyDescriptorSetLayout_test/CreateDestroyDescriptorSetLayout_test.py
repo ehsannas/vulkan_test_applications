@@ -132,7 +132,7 @@ class ZeroBindings(GapitTest):
     def expect(self):
         """1. Zero bindings."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         create_descriptor_set_layout, device, descriptor_set_layout = \
             check_create_descriptor_set_layout(self, 1)
@@ -153,7 +153,7 @@ class ThreeBindings(GapitTest):
     def expect(self):
         """2. Three bindings."""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
 
         create_descriptor_set_layout, device, descriptor_set_layout = \
             check_create_descriptor_set_layout(self, 2)
@@ -199,7 +199,7 @@ class TwoBindingsWithSamplers(GapitTest):
     def expect(self):
         """3. Two bindings with samplers."""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
 
         # Get the actual sampler handles returned by the driver.
         expected_samplers = get_samplers(self, 3)

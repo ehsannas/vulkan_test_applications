@@ -31,7 +31,7 @@ PIPELINE_LAYOUT_CREATE_INFO = [
 class EmptyLayout(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_pipeline = require(self.nth_call_of("vkCreatePipelineLayout", 1))
 
         require_not_equal(0, create_pipeline.int_Device)
@@ -67,7 +67,7 @@ class EmptyLayout(GapitTest):
 class SingleLayout(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_pipeline = require(self.nth_call_of("vkCreatePipelineLayout", 2))
 
         require_not_equal(0, create_pipeline.int_Device)
@@ -110,7 +110,7 @@ class SingleLayout(GapitTest):
 class TwoLayouts(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_pipeline = require(self.nth_call_of("vkCreatePipelineLayout", 3))
 
         require_not_equal(0, create_pipeline.int_Device)

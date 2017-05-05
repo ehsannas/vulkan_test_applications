@@ -23,7 +23,7 @@ from vulkan_constants import *
 class BindUnbindWholeMemoryRange(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         bind_buffer_memory = require(self.next_call_of("vkBindBufferMemory"))
         map_memory = require(self.next_call_of("vkMapMemory"))
         unmap_memory = require(self.next_call_of("vkUnmapMemory"))

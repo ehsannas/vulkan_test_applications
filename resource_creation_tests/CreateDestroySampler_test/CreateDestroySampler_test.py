@@ -87,7 +87,7 @@ class NormalizedCoordinates(GapitTest):
     def expect(self):
         """1. Expects a sampler with normalized coordinates."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(
             self.next_call_of("vkGetPhysicalDeviceProperties"))
 
@@ -121,7 +121,7 @@ class UnnormalizedCoordinates(GapitTest):
     def expect(self):
         """2. Expects a sampler with unnormalized coordinates."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(
             self.next_call_of("vkGetPhysicalDeviceProperties"))
 

@@ -46,7 +46,7 @@ class BlitToSameColorImageWithLinearFilter(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdBlitImage"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         blit_image = require(self.nth_call_of("vkCmdBlitImage", 1))
 
         require_not_equal(0, blit_image.int_CommandBuffer)

@@ -21,7 +21,7 @@ from vulkan_constants import *
 class SingleBuffer(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         cmd_bind_vertex_buffers = require(
             self.next_call_of("vkCmdBindVertexBuffers"))
 
@@ -55,7 +55,7 @@ BUFFER_COPY = [
 class CopyBuffer(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         cmd_copy_buffer = require(
             self.next_call_of("vkCmdCopyBuffer"))
 

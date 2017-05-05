@@ -41,7 +41,7 @@ class ZeroOffsetWholeSizeBufferViewOfUniformBuffer(GapitTest):
         """1. Expects a buffer view created with zero offset and VK_WHOLE_SIZE
         range for a uniform texel buffer."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
 
@@ -88,7 +88,7 @@ class NonZeroOffsetNonWholeSizeBufferViewOfStorageBuffer(GapitTest):
         """2. Expects a buffer view created with non-zero offset and
         non-VK_WHOLE_SIZE range for a storage texel buffer."""
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(self.next_call_of(
             "vkGetPhysicalDeviceProperties"))
 

@@ -34,7 +34,7 @@ class QueuePresentWithoutSemaphoreAndResultsArray(GapitTest):
     def expect(self):
         """1. Expects a call of vkQueuePresentKHR() without waiting semaphore and
         results array"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         queue_present = require(self.nth_call_of("vkQueuePresentKHR", 1))
         require_not_equal(0, queue_present.int_Queue)
         require_not_equal(0, queue_present.hex_PPresentInfo)

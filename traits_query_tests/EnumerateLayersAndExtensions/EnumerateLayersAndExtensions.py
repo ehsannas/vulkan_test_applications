@@ -24,7 +24,7 @@ class EnumerateDeviceExtensionProperties(GapitTest):
     def expect(self):
         """Check the arguments and values referred by the pointer arugments of
         vkEnumerateDeviceExtensionProperties"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         # First call returns the number of extension properties
         get_device_extension_property_count = require(self.next_call_of(
             "vkEnumerateDeviceExtensionProperties"))

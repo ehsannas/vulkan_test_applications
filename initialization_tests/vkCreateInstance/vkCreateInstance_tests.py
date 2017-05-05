@@ -21,7 +21,7 @@ class NullApplicationInfoTest(GapitTest):
     def expect(self):
         """Expect that the applicationInfoPointer is null for the first
          vkCreateInstance"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         create_instance = require(self.next_call_of("vkCreateInstance"))
         require_not_equal(create_instance.hex_PCreateInfo, 0)
@@ -46,7 +46,7 @@ class NonNullApplicationInfoTest(GapitTest):
     def expect(self):
         """Expect that the applicationInfoPointer is not null for the second
          vkCreateInstance, and that it contains some of the expected data."""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         create_instance = require(self.nth_call_of("vkCreateInstance", 2))
         require_not_equal(create_instance.hex_PCreateInfo, 0)

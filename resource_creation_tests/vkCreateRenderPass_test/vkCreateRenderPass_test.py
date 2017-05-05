@@ -46,7 +46,7 @@ ATTACHMENT_REFERENCE = [("attachment", UINT32_T), ("layout", UINT32_T)]
 class EmptyPass(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         create_render_pass = require(self.nth_call_of("vkCreateRenderPass", 1))
         destroy_render_pass = require(self.next_call_of("vkDestroyRenderPass"))
@@ -92,7 +92,7 @@ class EmptyPass(GapitTest):
 class SingleAttachment(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(
             self.next_call_of("vkGetPhysicalDeviceProperties"))
 

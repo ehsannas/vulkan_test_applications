@@ -15,6 +15,7 @@
 """This contains functions for parsing a trace file using gapit dump."""
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -159,8 +160,8 @@ class Atom(object):
                 return self.extras[name[6:]]
 
         raise NamedAttributeError('Could not find parameter ' + name +
-                                  ' on atom [' + str(self.index) + ']' +
-                                  self.name + '\n')
+                                  ' on atom [' + str(
+                                      self.index) + ']' + self.name + '\n')
 
     def num_observations(self):
         """Returns the number of observations on this object"""
@@ -240,14 +241,14 @@ class Atom(object):
     def add_read_observation(self, memory_start, memory_end, memory_id):
         '''Adds a read observation to the atom. Does not associate any memory
         with the read'''
-        self.read_observations.append(
-            Observation(memory_start, memory_end, memory_id))
+        self.read_observations.append(Observation(memory_start, memory_end,
+                                                  memory_id))
 
     def add_write_observation(self, memory_start, memory_end, memory_id):
         '''Adds a write observation to the atom. Does not associate any memory
         with the write'''
-        self.write_observations.append(
-            Observation(memory_start, memory_end, memory_id))
+        self.write_observations.append(Observation(memory_start, memory_end,
+                                                   memory_id))
 
     def add_extra(self, name, parameters):
         """Takes a name and an array of parameter tuples (name, value) and adds
@@ -358,8 +359,8 @@ def parse_memory_line(line):
     match = re.match(r'\s*\[([0-9a-f ]*)\]', line)
     return [int(x, 10) for x in match.group(1).split(' ')]
 
-# These are the states that we use when parsing.
-# FIRST_LINE is the first line in the entire file
+# FIRST_LINE These are the states that we use when parsing.
+# is the first line in the entire file
 FIRST_LINE = 1
 # NEW_ATOM is the state we are in just before reading a new atom
 NEW_ATOM = 2
@@ -369,6 +370,51 @@ EXTRAS = 3
 # MEMORY is the state we are in when we have finished reading the EXTRAS
 # and now we have to read all of the bytes of memory
 MEMORY = 4
+
+
+def get_architecture_from_trace_file(filename):
+    '''Parses a trace file and returns the device architecture info
+
+    Arguments:
+        filename is the name of the trace file to read
+    Return:
+        device architecture that contains device hardware info if the device
+        info header is parsed successfully, otherwise returns None
+    '''
+    proc = subprocess.Popen(
+        ['gapit', 'dump', '-showabiinfo', filename],
+        stdout=subprocess.PIPE)
+    # This parsing routine is basically a state machine to parse the device info
+    # which is stored in json string form.
+    # The first several lines of the process is un-necessary.
+    # readline keeps the newline on the end so EOF is when readline returns
+    # an empty string.
+    line = proc.stdout.readline()
+    while line != '':
+        if line.strip() == "Trace ABI Information:":
+            abi_info_str = ""
+            line = proc.stdout.readline()
+            while not line.startswith('}') or not line.strip() == '}':
+                abi_info_str += line
+                line = proc.stdout.readline()
+                if line == '':
+                    return None
+
+            # append the ending '}'
+            abi_info_str += line
+            abi_info = json.loads(abi_info_str)
+            memory_layout = abi_info["MemoryLayout"]
+            layout_dict = {}
+            for t in memory_layout:
+                if not isinstance(memory_layout[t], dict):
+                    continue
+                for p in memory_layout[t]:
+                    key = 'int_' + t + p.title()
+                    layout_dict[key] = memory_layout[t][p]
+            architecture = type("Architecture", (), layout_dict)
+            return architecture
+        line = proc.stdout.readline()
+    return None
 
 
 def parse_trace_file(filename):
@@ -382,9 +428,9 @@ def parse_trace_file(filename):
         stdout=subprocess.PIPE)
 
     # This parsing routine is basically a state machine
-    # The very first line of the process is un-necessary
+    # The very first several lines of the process is un-necessary
     # Every atom has 3 parts:
-    # The first line is the number/name/parameters
+    # The first several lines are the number/name/parameters
     # The second line is information about the read/write locations
     # The subsequent lines are the memory contents of those read/write locations
     #   IMPORTANT: These memory contents are what is present AFTER the
@@ -399,6 +445,12 @@ def parse_trace_file(filename):
     # an empty string
     line = proc.stdout.readline()
     while line != '':
+        # Filter out gapis/gapit log info
+        # TODO: remove this once gapit dump does not contain gapis log
+        if re.match(r'\d\d?:\d\d?:\d\d?\.\d*.* <gapi\w>', line):
+            line = proc.stdout.readline()
+            continue
+
         if current_state == FIRST_LINE:
             # Only atom lines starts with an index number, and the first atom
             # always has index value 0, so the string starts with '0' is the

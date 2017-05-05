@@ -104,7 +104,7 @@ class OneDescriptorSet(GapitTest):
     def expect(self):
         """1. One descriptor set."""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
         # Get the VkDescriptorPool handle returned from the driver.
         # This will also locate us to the proper position in the stream
         # so we can call next_call_of() for querying the other atoms.
@@ -142,7 +142,7 @@ class ThreeDescriptorSet(GapitTest):
     def expect(self):
         """2. Three descriptor sets."""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
         # Get the VkDescriptorPool handle returned from the driver.
         # This will also locate us to the proper position in the stream
         # so we can call next_call_of() for querying the other atoms.

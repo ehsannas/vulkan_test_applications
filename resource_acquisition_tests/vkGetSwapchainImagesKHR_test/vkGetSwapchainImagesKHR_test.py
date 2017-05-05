@@ -22,7 +22,7 @@ from vulkan_constants import *
 class GetSwapchainImages_test(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         swapchain_images = require(self.next_call_of("vkGetSwapchainImagesKHR"))
         require_equal(swapchain_images.return_val, VK_SUCCESS)
 

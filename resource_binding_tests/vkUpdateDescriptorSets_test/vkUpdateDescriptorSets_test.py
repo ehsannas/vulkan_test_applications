@@ -178,7 +178,7 @@ class OneWriteZeroCopy(GapitTest):
     def expect(self):
         """2. One write and zero copies."""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
         # Get the VkDescriptorSet handle returned from the driver.
         # This will also locate us to the proper position in the stream
         # so we can call next_call_of() for querying the other atoms.
@@ -219,7 +219,7 @@ class TwoWritesZeroCopy(GapitTest):
     def expect(self):
         """3. Two writes and zero copies."""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
         # Get the VkDescriptorSet handle returned from the driver.
         # This will also locate us to the proper position in the stream
         # so we can call next_call_of() for querying the other atoms.
@@ -267,7 +267,7 @@ class ZeroWritesTwoCopies(GapitTest):
     def expect(self):
         """4. Zero writes and two copies."""
 
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
         # Get the VkDescriptorSet handle returned from the driver.
         # This will also locate us to the proper position in the stream
         # so we can call next_call_of() for querying the other atoms.

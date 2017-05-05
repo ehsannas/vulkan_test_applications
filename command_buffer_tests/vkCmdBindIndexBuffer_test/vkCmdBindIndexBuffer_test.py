@@ -21,7 +21,7 @@ from vulkan_constants import *
 class U32Buffer(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         cmd_bind_vertex_buffers = require(
             self.nth_call_of("vkCmdBindIndexBuffer", 1))
 
@@ -35,7 +35,7 @@ class U32Buffer(GapitTest):
 class U16Buffer(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         cmd_bind_vertex_buffers = require(
             self.nth_call_of("vkCmdBindIndexBuffer", 2))
 

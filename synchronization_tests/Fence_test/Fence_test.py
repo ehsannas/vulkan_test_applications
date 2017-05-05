@@ -28,7 +28,7 @@ class CreateDestroyWaitTest(GapitTest):
 
     def expect(self):
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         create_fence = require(self.nth_call_of("vkCreateFence", 1))
         wait_for_fences = require(self.next_call_of("vkWaitForFences"))
         reset_fences = require(self.next_call_of("vkResetFences"))

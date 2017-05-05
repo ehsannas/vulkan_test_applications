@@ -23,7 +23,7 @@ class AllFourQueryResultsIn32BitWithNoFlag(GapitTest):
         num_queries = 4
         result_width = 4
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         get_query_result = require(self.nth_call_of("vkGetQueryPoolResults", 1))
 
         require_not_equal(0, get_query_result.int_Device)
@@ -51,7 +51,7 @@ class FifthToEighthQueryResultsIn64BitWithWaitBit(GapitTest):
         get_result_num_queries = 4
         result_width = 8
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         get_query_result = require(self.nth_call_of("vkGetQueryPoolResults", 2))
 
         require_not_equal(0, get_query_result.int_Device)
@@ -83,7 +83,7 @@ class AllFourQueryResultsIn32BitAnd12StrideWithPartialAndAvailabilityBit(
         num_queries = 4
         stride = 12
 
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         get_query_result = require(self.nth_call_of("vkGetQueryPoolResults", 3))
 
         require_not_equal(0, get_query_result.int_Device)

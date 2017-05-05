@@ -39,7 +39,7 @@ COMPUTE_PIPELINE_CREATE_INFO_32 = [
 class DoubleNumbers(GapitTest):
 
     def expect(self):
-        arch = require(self.next_call_of("architecture"))
+        arch = self.architecture
 
         create_compute_pipelines = require(
             self.next_call_of("vkCreateComputePipelines"))

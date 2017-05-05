@@ -63,7 +63,7 @@ class DefaultSwapchainMemoryBarrierTest(GapitTest):
     def expect(self):
         """Expect that the applicationInfoPointer is null for the first
          vkCreateInstance"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         pipeline_barrier = require(self.nth_call_of("vkCmdPipelineBarrier", 2))
         require_not_equal(pipeline_barrier.int_CommandBuffer, 0)
         require_equal(pipeline_barrier.int_SrcStageMask,

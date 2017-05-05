@@ -29,7 +29,7 @@ FRAMEBUFFER_CREATE_INFO = [
 class SingleAttachment(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         device_properties = require(
             self.next_call_of("vkGetPhysicalDeviceProperties"))
 

@@ -37,7 +37,7 @@ RECT2D = [
 class SetViewport(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         set_viewport = require(self.next_call_of("vkCmdSetViewport"))
 
         require_not_equal(0, set_viewport.int_CommandBuffer)
@@ -60,8 +60,7 @@ class SetViewport(GapitTest):
 class SetScissor(GapitTest):
 
     def expect(self):
-
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         set_scissor = require(self.next_call_of("vkCmdSetScissor"))
 
         require_not_equal(0, set_scissor.int_CommandBuffer)
@@ -81,7 +80,7 @@ class SetScissor(GapitTest):
 class BindGraphicsPipeline(GapitTest):
 
     def expect(self):
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         bind_pipeline = require(self.next_call_of("vkCmdBindPipeline"))
 
         require_not_equal(0, bind_pipeline.int_CommandBuffer)

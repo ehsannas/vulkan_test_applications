@@ -35,7 +35,7 @@ SUBRESOURCE_RANGE = [
 class Clear2DColorImageSingleLayerSingleLevel(GapitTest):
     def expect(self):
         """1. Expects vkCmdClearColorImage() is called and traced successfully."""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         clear_color_image = require(self.nth_call_of("vkCmdClearColorImage", 1))
         require_not_equal(0, clear_color_image.int_CommandBuffer)
         require_not_equal(0, clear_color_image.int_Image)

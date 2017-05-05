@@ -46,7 +46,7 @@ class BeginRenderPassWithoutAttachment(GapitTest):
     def expect(self):
         """Expect the vkCmdBeginRenderPass() is called and successfully. The
         RenderPassBeginInfo does not contain any ClearValues"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         begin_render_pass = require(self.nth_call_of("vkCmdBeginRenderPass", 1))
         require_not_equal(0, begin_render_pass.int_CommandBuffer)
@@ -77,7 +77,7 @@ class BeginColorAttachmentRenderPass(GapitTest):
     def expect(self):
         """Expect the vkCmdBeginRenderPass() is called successfully and the
         RenderPassBeginInfo should contain a pointer of one ClearValue"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
 
         begin_render_pass = require(self.nth_call_of("vkCmdBeginRenderPass", 2))
         require_not_equal(0, begin_render_pass.int_CommandBuffer)

@@ -43,7 +43,7 @@ class ResolveFrom2DOptimalTiling4XMultiSampledColorImage(GapitTest):
 
     def expect(self):
         """Check the arguments to vkCmdResolveImage"""
-        architecture = require(self.next_call_of("architecture"))
+        architecture = self.architecture
         resolve_image = require(self.nth_call_of("vkCmdResolveImage", 1))
 
         require_not_equal(0, resolve_image.int_CommandBuffer)
