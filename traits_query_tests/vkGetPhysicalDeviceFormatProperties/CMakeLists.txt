@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(vkGetPhysicalDeviceFormatProperties
+add_vulkan_executable(vkGetPhysicalDeviceFormatProperties_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers
