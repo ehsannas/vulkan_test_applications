@@ -37,44 +37,57 @@ int main_entry(const entry::entry_data* data) {
            result == VK_ERROR_OUT_OF_DEVICE_MEMORY;
   };
 
+  VkFormat kDefaultFormat = VK_FORMAT_R8G8B8A8_UNORM;
+  VkImageType kDefaultType = VK_IMAGE_TYPE_2D;
+  VkImageTiling kDefaultTiling = VK_IMAGE_TILING_OPTIMAL;
+  VkImageUsageFlags kDefaultUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  VkImageCreateFlags kDefaultFlags = 0;
+
   for (const auto& device : physical_devices) {
     data->log->LogInfo("  Phyiscal Device: ", device);
     uint64_t counter = 0;
 
     VkImageFormatProperties properties;
-    for (auto format : vulkan::AllVkFormats(allocator)) {
-      for (auto type : vulkan::AllVkImageTypes(allocator)) {
-        for (auto tiling : vulkan::AllVkImageTilings(allocator)) {
-          for (auto usage :
-               vulkan::AllVkImageUsageFlagCombinations(allocator)) {
-            if (usage == 0) continue;
-            for (auto flags :
-                 vulkan::AllVkImageCreateFlagCombinations(allocator)) {
-              const VkResult result =
-                  instance->vkGetPhysicalDeviceImageFormatProperties(
-                      device, format, type, tiling, usage, flags, &properties);
-              LOG_EXPECT(==, data->log, IsExpectedReturnCode(result), true);
-              // Periodically output to avoid flood.
-              if ((counter++ & 0x3ffff) == 0) {
-                data->log->LogInfo("    format: ", format);
-                data->log->LogInfo("    type: ", type);
-                data->log->LogInfo("    tiling: ", tiling);
-                data->log->LogInfo("    usage: ", usage);
-                data->log->LogInfo("    flags: ", flags);
-                data->log->LogInfo("      maxMipLevels: ",
-                                   properties.maxMipLevels);
-                data->log->LogInfo("      maxArrayLayers: ",
-                                   properties.maxArrayLayers);
-              }
 
-              if (result == VK_SUCCESS) {
-                // TODO(antiagainst): flesh out tests for
-                // vkGetPhysicalDeviceImageFormatProperties here
-              }
-            }
-          }
-        }
-      }
+    for (auto format : vulkan::AllVkFormats(allocator)) {
+      const VkResult result =
+          instance->vkGetPhysicalDeviceImageFormatProperties(
+              device, format, kDefaultType, kDefaultTiling, kDefaultUsage,
+              kDefaultFlags, &properties);
+      LOG_EXPECT(==, data->log, IsExpectedReturnCode(result), true);
+    }
+
+    for (auto type : vulkan::AllVkImageTypes(allocator)) {
+      const VkResult result =
+          instance->vkGetPhysicalDeviceImageFormatProperties(
+              device, kDefaultFormat, type, kDefaultTiling, kDefaultUsage,
+              kDefaultFlags, &properties);
+      LOG_EXPECT(==, data->log, IsExpectedReturnCode(result), true);
+    }
+
+    for (auto tiling : vulkan::AllVkImageTilings(allocator)) {
+      const VkResult result =
+          instance->vkGetPhysicalDeviceImageFormatProperties(
+              device, kDefaultFormat, kDefaultType, tiling, kDefaultUsage,
+              kDefaultFlags, &properties);
+      LOG_EXPECT(==, data->log, IsExpectedReturnCode(result), true);
+    }
+
+    for (auto usage : vulkan::AllVkImageUsageFlagCombinations(allocator)) {
+      if (usage == 0) continue;
+      const VkResult result =
+          instance->vkGetPhysicalDeviceImageFormatProperties(
+              device, kDefaultFormat, kDefaultType, kDefaultTiling, usage,
+              kDefaultFlags, &properties);
+      LOG_EXPECT(==, data->log, IsExpectedReturnCode(result), true);
+    }
+
+    for (auto flags : vulkan::AllVkImageCreateFlagCombinations(allocator)) {
+      const VkResult result =
+          instance->vkGetPhysicalDeviceImageFormatProperties(
+              device, kDefaultFormat, kDefaultType, kDefaultTiling,
+              kDefaultUsage, flags, &properties);
+      LOG_EXPECT(==, data->log, IsExpectedReturnCode(result), true);
     }
   }
 

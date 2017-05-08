@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(PhysicalDeviceImageFormatTraits
+add_vulkan_executable(PhysicalDeviceImageFormatTraits_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers

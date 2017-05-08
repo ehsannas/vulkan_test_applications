@@ -56,12 +56,11 @@ typedef struct VkSparseImageFormatProperties {
 
 For `vkGetPhysicalDeviceImageFormatProperties`, these tests should test
 the following cases:
-- [x] All combinations of
-  - all valid `VkFormat` values
-  - all valid `VkImageType` values
-  - all valid `VkImageTiling` values
-  - all valid `VkImageUsageFlags` values excluding 0
-  - all valid `VkImageCreateFlags` values
+- [x] all valid `VkFormat` values
+- [x] all valid `VkImageType` values
+- [x] all valid `VkImageTiling` values
+- [x] all valid `VkImageUsageFlags` values excluding 0
+- [x] all valid `VkImageCreateFlags` values
 
 For `vkGetPhysicalDeviceSparseImageFormatProperties`, these tests should test
 the following cases:
