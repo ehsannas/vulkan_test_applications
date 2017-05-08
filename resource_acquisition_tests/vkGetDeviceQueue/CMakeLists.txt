@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-add_vulkan_executable(vkGetDeviceQueue_tests
+add_vulkan_executable(vkGetDeviceQueue_test
   SOURCES main.cpp
   LIBS
     vulkan_helpers
