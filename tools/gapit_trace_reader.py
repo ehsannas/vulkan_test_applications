@@ -142,16 +142,36 @@ class Atom(object):
         parameter from a string with the given formatting.
         """
 
+        # A helper function to iterate through each element of a given array
+        # to process the array type parameters
+        def process_array_parameter(parameter_array, f):
+            l = []
+            for p in parameter_array:
+                l.append(f(p))
+            return l
+
         if name.startswith('hex_') or name.startswith('int_'):
             if name[4:] in self.parameters:
                 if name.startswith('hex_'):
-                    return int(self.parameters[name[4:]], 16)
+                    p = self.parameters[name[4:]]
+                    if isinstance(p, list):
+                        return process_array_parameter(p, lambda x: int(x, 16))
+                    else:
+                        return int(p, 16)
                 elif name.startswith('int_'):
-                    return int(self.parameters[name[4:]])
+                    p = self.parameters[name[4:]]
+                    if isinstance(p, list):
+                        return process_array_parameter(p, lambda x: int(x))
+                    else:
+                        return int(p)
 
         if name.startswith('float_'):
             if name[6:] in self.parameters:
-                return float(self.parameters[name[6:]])
+                p = self.parameters[name[6:]]
+                if isinstance(p, list):
+                    return process_array_parameter(p, lambda x: float(x))
+                else:
+                    return float(self.parameters[name[6:]])
 
         if name in self.parameters:
             return self.parameters[name]
@@ -278,7 +298,10 @@ def parse_atom_line(line):
     command = match.group(2)
 
     all_parameters = match.group(3)
-    parameters = re.findall(r'([a-zA-Z]*): ([a-zA-Z0-9\.]*)', all_parameters)
+    # Group 0: Parameter name
+    # Group 1: Array type parameter, empty if the parameter is not array type
+    # Group 2: Non-array type parameter
+    parameters = re.findall(r'([a-zA-Z]*): (?:\{Elements: \[(.*)\]\}|([a-zA-Z0-9\.]*))', all_parameters)
 
     return_val = None
     if match.group(4):
@@ -286,7 +309,10 @@ def parse_atom_line(line):
 
     atom = Atom(number, command, return_val)
     for parameter in parameters:
-        atom.add_parameter(parameter[0], parameter[1])
+        if parameter[1] != '':
+            atom.add_parameter(parameter[0], parameter[1].split(' '))
+        else:
+            atom.add_parameter(parameter[0], parameter[2])
 
     return atom
 
