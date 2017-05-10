@@ -38,6 +38,14 @@ set(NON_CONFIGURABLE_ANDROID_SOURCES
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
   ${VulkanTestApplications_SOURCE_DIR}/cmake/android_project_template/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
 
+
+if (NOT CMAKE_GLSL_COMPILER)
+  set(CMAKE_GLSL_COMPILER glslc)
+endif()
+
+SET(DEFAULT_WINDOW_WIDTH ${DEFAULT_WINDOW_WIDTH} CACHE INT
+    "Default window width for platforms that have resizable windows")
+
 if(BUILD_APKS)
   # Create a dummy-target that we can use to gather all of our dependencies
   set(TARGET_SOURCES)
