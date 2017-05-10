@@ -192,7 +192,6 @@ class DispatchSample : public sample_application::Sample<CubeFrameData> {
   virtual void InitializeFrameData(
       CubeFrameData* frame_data, vulkan::VkCommandBuffer* initialization_buffer,
       size_t frame_index) override {
-
     frame_data->command_buffer_ =
         containers::make_unique<vulkan::VkCommandBuffer>(
             data_->root_allocator, app()->GetCommandBuffer());
@@ -363,10 +362,9 @@ class DispatchSample : public sample_application::Sample<CubeFrameData> {
         dispatch_data_->get_offset_for_frame(frame_index),
         dispatch_data_->aligned_data_size()};
 
-    cmdBuffer->vkCmdPipelineBarrier(
-        cmdBuffer, VK_PIPELINE_STAGE_HOST_BIT,
-        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 1,
-        &to_use_in_comp, 0, nullptr);
+    cmdBuffer->vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_HOST_BIT,
+                                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0,
+                                    nullptr, 1, &to_use_in_comp, 0, nullptr);
     cmdBuffer->vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                                  *compute_pipeline_);
     cmdBuffer->vkCmdBindDescriptorSets(
@@ -376,8 +374,7 @@ class DispatchSample : public sample_application::Sample<CubeFrameData> {
     cmdBuffer->vkCmdDispatch(cmdBuffer, 1, 1, 1);
     cmdBuffer->vkCmdPipelineBarrier(cmdBuffer,
                                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                    0, 0,
+                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0,
                                     nullptr, 1, &to_use_in_frag, 0, nullptr);
 
     // Start the render pass
@@ -465,9 +462,10 @@ int main_entry(const entry::entry_data* data) {
   DispatchSample sample(data);
   sample.Initialize();
 
-  while (true) {
+  while (!sample.should_exit()) {
     sample.ProcessFrame();
   }
+  sample.WaitIdle();
 
   data->log->LogInfo("Application Shutdown");
 }

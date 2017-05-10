@@ -202,6 +202,8 @@ class Sample {
     InitializationComplete();
   }
 
+  void WaitIdle() { app()->device()->vkDeviceWaitIdle(app()->device()); }
+
   // The format that we are using to render. This will be either the swapchain
   // format if we are not rendering multi-sampled, or the multisampled image
   // format if we are rendering multi-sampled.
@@ -213,6 +215,7 @@ class Sample {
   VkSampleCountFlagBits num_samples() const { return num_samples_; }
 
   vulkan::VulkanApplication* app() { return &application_; }
+  const vulkan::VulkanApplication* app() const { return &application_; }
 
   const VkViewport& viewport() const { return default_viewport_; }
   const VkRect2D& scissor() const { return default_scissor_; }
@@ -365,6 +368,8 @@ class Sample {
 
   void set_invalid(bool invaid) { is_valid_ = false; }
   const bool is_valid() { return is_valid_; }
+
+  bool should_exit() const { return app()->should_exit(); }
 
  private:
   const size_t sample_frame_data_offset =
@@ -735,11 +740,13 @@ class Sample {
   SampleOptions options_;
   const entry::entry_data* data_;
   containers::Allocator* allocator_;
+  // The VulkanApplication that we build on, we want this to be the
+  // last thing deleted, it goes at the top.
+  vulkan::VulkanApplication application_;
+
   // This contains one SampleFrameData per swapchain image. It will be used
   // to render frames to the appropriate swapchains
   containers::vector<SampleFrameData> frame_data_;
-  // The VulkanApplication that we build on
-  vulkan::VulkanApplication application_;
   // The number of samples that we will render with
   VkSampleCountFlagBits num_samples_;
   // The format of our render_target

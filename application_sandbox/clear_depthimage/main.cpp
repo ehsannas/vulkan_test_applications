@@ -14,8 +14,8 @@
 
 #include "application_sandbox/sample_application_framework/sample_application.h"
 #include "support/entry/entry.h"
-#include "vulkan_helpers/helper_functions.h"
 #include "vulkan_helpers/buffer_frame_data.h"
+#include "vulkan_helpers/helper_functions.h"
 #include "vulkan_helpers/vulkan_application.h"
 #include "vulkan_helpers/vulkan_model.h"
 
@@ -64,7 +64,8 @@ struct CubeDepthFrameData {
 
 // This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameData> {
+class ClearDepthImageSample
+    : public sample_application::Sample<CubeDepthFrameData> {
  public:
   ClearDepthImageSample(const entry::entry_data* data)
       : data_(data),
@@ -128,7 +129,7 @@ class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameDa
                     0,                                 // flags
                     depth_format(),                    // format
                     num_samples(),                     // samples
-                    VK_ATTACHMENT_LOAD_OP_LOAD,       // loadOp
+                    VK_ATTACHMENT_LOAD_OP_LOAD,        // loadOp
                     VK_ATTACHMENT_STORE_OP_STORE,      // storeOp
                     VK_ATTACHMENT_LOAD_OP_DONT_CARE,   // stenilLoadOp
                     VK_ATTACHMENT_STORE_OP_DONT_CARE,  // stenilStoreOp
@@ -238,9 +239,10 @@ class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameDa
     depth_render_pipeline_->AddAttachment();
     depth_render_pipeline_->Commit();
 
-    camera_data = containers::make_unique<vulkan::BufferFrameData<camera_data_>>(
-        data_->root_allocator, app(), num_swapchain_images,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    camera_data =
+        containers::make_unique<vulkan::BufferFrameData<camera_data_>>(
+            data_->root_allocator, app(), num_swapchain_images,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     model_data = containers::make_unique<vulkan::BufferFrameData<model_data_>>(
         data_->root_allocator, app(), num_swapchain_images,
@@ -416,7 +418,7 @@ class ClearDepthImageSample : public sample_application::Sample<CubeDepthFrameDa
         &cmdBuffer, nullptr, {}, {}, VkFence(0), data_->root_allocator);
     VkClearDepthStencilValue clear_depth{
         0.93,  // depth
-        1,    // stencil
+        1,     // stencil
     };
     VkImageSubresourceRange clear_range{
         VK_IMAGE_ASPECT_DEPTH_BIT,  // aspectMask
@@ -561,9 +563,10 @@ int main_entry(const entry::entry_data* data) {
   ClearDepthImageSample sample(data);
   sample.Initialize();
 
-  while (true) {
+  while (!sample.should_exit()) {
     sample.ProcessFrame();
   }
+  sample.WaitIdle();
 
   data->log->LogInfo("Application Shutdown");
 }

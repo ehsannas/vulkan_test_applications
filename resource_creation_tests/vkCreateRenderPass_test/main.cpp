@@ -33,8 +33,8 @@ int main_entry(const entry::entry_data* data) {
       data->root_allocator, &instance, &surface, &queues[0], &queues[1]));
 
   vulkan::VkSwapchainKHR swapchain(vulkan::CreateDefaultSwapchain(
-      &instance, &device, &surface, data->root_allocator, queues[0],
-      queues[1]));
+      &instance, &device, &surface, data->root_allocator, queues[0], queues[1],
+      data));
 
   containers::vector<VkImage> images(data->root_allocator);
   vulkan::LoadContainer(data->log.get(), device->vkGetSwapchainImagesKHR,

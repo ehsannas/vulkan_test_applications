@@ -97,7 +97,8 @@ class ASyncThreadRunner {
         data_(allocator),
         app_(app),
         mailbox_buffer_(-1),
-        last_update_time_(std::chrono::high_resolution_clock::now()) {
+        last_update_time_(std::chrono::high_resolution_clock::now()),
+        exit_(false) {
     if (!app_->async_compute_queue()) {
       return;
     }
@@ -393,6 +394,11 @@ class ASyncThreadRunner {
         ->vkQueueWaitIdle((*app_->async_compute_queue()));
   }
 
+  ~ASyncThreadRunner() {
+    exit_.store(true);
+    runner_.join();
+  }
+
   // There is only one time that index can be a value that was not
   // returned from this function before, and that is if this is the
   // first time.
@@ -465,7 +471,7 @@ class ASyncThreadRunner {
     int32_t last_buffer = -1;
 
     vulkan::VkFence computation_fence = vulkan::CreateFence(&app_->device());
-    while (true) {
+    while (!exit_.load()) {
       // 1)
       if (!first) {
         app_->device()->vkWaitForFences(app_->device(), 1,
@@ -489,6 +495,9 @@ class ASyncThreadRunner {
       ProcessReturnedBuffers();
       int32_t buffer = GetNextBuffer();
       while (buffer == -1) {
+        if (exit_.load()) {
+          return;
+        }
         ProcessReturnedBuffers();
         buffer = GetNextBuffer();
         // Would be nice for a std::counting_semaphore, but alas
@@ -650,6 +659,8 @@ class ASyncThreadRunner {
   // The thread that runs the simulation.
   std::thread runner_;
   vulkan::VulkanApplication* app_;
+
+  std::atomic<bool> exit_;
 };
 
 struct AsyncFrameData {
@@ -942,6 +953,7 @@ class AsyncSample : public sample_application::Sample<AsyncFrameData> {
 
     VkClearValue clear;
     vulkan::ZeroMemory(&clear);
+    clear.color.float32[3] = 1.0f;
 
     if (swapped_buffer) {
       // If we have not transitioned this buffer yet, then move it from
@@ -953,7 +965,7 @@ class AsyncSample : public sample_application::Sample<AsyncFrameData> {
           VK_ACCESS_SHADER_READ_BIT,                //  dstAccessMask
           app()->async_compute_queue()->index(),    // srcQueueFamilyIndex
           app()->render_queue().index(),            // dstQueueFamilyIndex
-          *buffer,                                  // buffer
+          *buffer,                                  // bufferdraw_data
           0,                                        //  offset
           buffer->size(),                           // size
       };
@@ -1048,10 +1060,10 @@ int main_entry(const entry::entry_data* data) {
   }
   sample.Initialize();
 
-  while (true) {
+  while (!sample.should_exit()) {
     sample.ProcessFrame();
   }
-
+  sample.WaitIdle();
   data->log->LogInfo("Application Shutdown");
   return 0;
 }

@@ -567,6 +567,8 @@ class VulkanApplication {
                                  shader_module_create_info, shader_entry);
   }
 
+  bool should_exit() const { return should_exit_.load(); }
+
   static const VkAccessFlags kAllReadBits =
       VK_ACCESS_HOST_READ_BIT | VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
       VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
@@ -596,7 +598,6 @@ class VulkanApplication {
   containers::Allocator* allocator_;
   logging::Logger* log_;
   const entry::entry_data* entry_data_;
-  containers::vector<::VkImage> swapchain_images_;
   containers::unique_ptr<VkQueue> render_queue_concrete_;
   containers::unique_ptr<VkQueue> present_queue_concrete_;
   containers::unique_ptr<VkQueue> async_compute_queue_concrete_;
@@ -616,6 +617,8 @@ class VulkanApplication {
   containers::unique_ptr<VulkanArena> host_accessible_heap_;
   containers::unique_ptr<VulkanArena> device_only_image_heap_;
   containers::unique_ptr<VulkanArena> device_only_buffer_heap_;
+  containers::vector<::VkImage> swapchain_images_;
+  std::atomic<bool> should_exit_;
 };
 
 using BufferPointer = containers::unique_ptr<VulkanApplication::Buffer>;

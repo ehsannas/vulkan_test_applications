@@ -30,17 +30,19 @@ int main_entry(const entry::entry_data* data) {
   vulkan::VkDevice device(vulkan::CreateDeviceForSwapchain(
       data->root_allocator, &instance, &surface, &queues[0], &queues[1]));
   vulkan::VkSwapchainKHR swapchain(vulkan::CreateDefaultSwapchain(
-      &instance, &device, &surface, data->root_allocator, queues[0],
-      queues[1]));
+      &instance, &device, &surface, data->root_allocator, queues[0], queues[1],
+      data));
 
   uint32_t num_images;
 
-  LOG_ASSERT(==, data->log, device->vkGetSwapchainImagesKHR(
-                                device, swapchain, &num_images, nullptr),
-             VK_SUCCESS);
+  LOG_ASSERT(
+      ==, data->log,
+      device->vkGetSwapchainImagesKHR(device, swapchain, &num_images, nullptr),
+      VK_SUCCESS);
   containers::vector<VkImage> images(num_images, data->root_allocator);
-  LOG_EXPECT(==, data->log, device->vkGetSwapchainImagesKHR(
-                                device, swapchain, &num_images, images.data()),
+  LOG_EXPECT(==, data->log,
+             device->vkGetSwapchainImagesKHR(device, swapchain, &num_images,
+                                             images.data()),
              VK_SUCCESS);
 
   if (num_images > 1) {

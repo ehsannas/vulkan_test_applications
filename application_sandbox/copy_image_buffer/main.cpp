@@ -191,17 +191,17 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
         VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // sType
         nullptr,                                   // pNext
         0,                                         // flags
-        *frame_data->render_img_,                    // image
+        *frame_data->render_img_,                  // image
         VK_IMAGE_VIEW_TYPE_2D,                     // viewType
         app()->swapchain().format(),               // format
         {VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B,
          VK_COMPONENT_SWIZZLE_A},
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
     ::VkImageView raw_view;
-    LOG_ASSERT(==, data_->log.get(), VK_SUCCESS,
-               app()->device()->vkCreateImageView(
-                   app()->device(), &render_img_view_create_info, nullptr,
-                   &raw_view));
+    LOG_ASSERT(
+        ==, data_->log.get(), VK_SUCCESS,
+        app()->device()->vkCreateImageView(
+            app()->device(), &render_img_view_create_info, nullptr, &raw_view));
     frame_data->render_img_view_ = containers::make_unique<vulkan::VkImageView>(
         data_->root_allocator,
         vulkan::VkImageView(raw_view, nullptr, &app()->device()));
@@ -216,7 +216,8 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
         VK_SHARING_MODE_EXCLUSIVE,
         0,
         nullptr};
-    frame_data->stage_buf_ = app()->CreateAndBindDeviceBuffer(&staging_buf_create_info);
+    frame_data->stage_buf_ =
+        app()->CreateAndBindDeviceBuffer(&staging_buf_create_info);
 
     frame_data->command_buffer_ =
         containers::make_unique<vulkan::VkCommandBuffer>(
@@ -258,15 +259,15 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
 
     // Create a framebuffer with the render image as the color attachment
     VkFramebufferCreateInfo framebuffer_create_info{
-        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,      // sType
-        nullptr,                                        // pNext
-        0,                                              // flags
-        *render_pass_,                                  // renderPass
-        1,                                              // attachmentCount
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,        // sType
+        nullptr,                                          // pNext
+        0,                                                // flags
+        *render_pass_,                                    // renderPass
+        1,                                                // attachmentCount
         &frame_data->render_img_view_->get_raw_object(),  // attachments
-        app()->swapchain().width(),                     // width
-        app()->swapchain().height(),                    // height
-        1                                               // layers
+        app()->swapchain().width(),                       // width
+        app()->swapchain().height(),                      // height
+        1                                                 // layers
     };
 
     ::VkFramebuffer raw_framebuffer;
@@ -296,7 +297,7 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // newLayout
         VK_QUEUE_FAMILY_IGNORED,                   // srcQueueFamilyIndex
         VK_QUEUE_FAMILY_IGNORED,                   // dstQueueFamilyIndex
-        *frame_data->render_img_,                    // image
+        *frame_data->render_img_,                  // image
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
 
     VkImageMemoryBarrier attach_to_src{
@@ -308,7 +309,7 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,      // newLayout
         VK_QUEUE_FAMILY_IGNORED,                   // srcQueueFamilyIndex
         VK_QUEUE_FAMILY_IGNORED,                   // dstQueueFamilyIndex
-        *frame_data->render_img_,                    // image
+        *frame_data->render_img_,                  // image
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
 
     // Buffer barriers for the staging buffer
@@ -391,9 +392,9 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
         {0, 0, 0},
         {app()->swapchain().width() * 2 / 3,
          app()->swapchain().height() * 2 / 3, app()->swapchain().depth()}};
-    cmdBuffer->vkCmdCopyImageToBuffer(cmdBuffer,
-        *frame_data->render_img_, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        *frame_data->stage_buf_, 1, &copy_region);
+    cmdBuffer->vkCmdCopyImageToBuffer(cmdBuffer, *frame_data->render_img_,
+                                      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                      *frame_data->stage_buf_, 1, &copy_region);
 
     // Image barriers for swapchain image, COLOR_ATTACHMENT_OPTIMAL ->
     // TRANSFER_DST_OPTIMAL and TRANSFER_DST_OPTIMAL ->
@@ -408,8 +409,7 @@ class CopyImageBufferSample : public sample_application::Sample<CubeFrameData> {
         VK_QUEUE_FAMILY_IGNORED,                   // srcQueueFamilyIndex
         VK_QUEUE_FAMILY_IGNORED,                   // dstQueueFamilyIndex
         swapchain_image(frame_data),               // image
-        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}
-    };
+        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
 
     VkImageMemoryBarrier dst_to_attach{
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,    // sType
@@ -513,9 +513,10 @@ int main_entry(const entry::entry_data* data) {
   CopyImageBufferSample sample(data);
   sample.Initialize();
 
-  while (true) {
+  while (!sample.should_exit()) {
     sample.ProcessFrame();
   }
+  sample.WaitIdle();
 
   data->log->LogInfo("Application Shutdown");
 }

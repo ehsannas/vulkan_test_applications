@@ -38,13 +38,14 @@ int main_entry(const entry::entry_data* data) {
     vulkan::VkDevice device(vulkan::CreateDeviceForSwapchain(
         data->root_allocator, &instance, &surface, &queues[0], &queues[1]));
     vulkan::VkSwapchainKHR swapchain(vulkan::CreateDefaultSwapchain(
-        &instance, &device, &surface, allocator, queues[0], queues[1]));
+        &instance, &device, &surface, allocator, queues[0], queues[1], data));
 
     // get images
     uint32_t num_images;
 
-    LOG_ASSERT(==, data->log, device->vkGetSwapchainImagesKHR(
-                                  device, swapchain, &num_images, nullptr),
+    LOG_ASSERT(==, data->log,
+               device->vkGetSwapchainImagesKHR(device, swapchain, &num_images,
+                                               nullptr),
                VK_SUCCESS);
     containers::vector<::VkImage> images(num_images, allocator);
     LOG_EXPECT(==, data->log,
@@ -58,23 +59,25 @@ int main_entry(const entry::entry_data* data) {
         /* sType = */ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         /* pNext = */ nullptr,
         /* flags = */ 0,
-        /* image = */ images.front(), // uses the first image
+        /* image = */ images.front(),  // uses the first image
         /* viewType = */ VK_IMAGE_VIEW_TYPE_2D,
         /* format = */ VK_FORMAT_R8G8B8A8_UNORM,
-        /* components = */ {
+        /* components = */
+        {
             /* r = */ VK_COMPONENT_SWIZZLE_IDENTITY,
             /* g = */ VK_COMPONENT_SWIZZLE_IDENTITY,
             /* b = */ VK_COMPONENT_SWIZZLE_IDENTITY,
             /* a = */ VK_COMPONENT_SWIZZLE_IDENTITY,
         },
-        /* subresourceRange = */ {
-          /* aspectMask = */ VK_IMAGE_ASPECT_COLOR_BIT,
-          /* baseMipLevel = */ 0,
-          /* levelCount = */ 1,
-          /* baseArrayLayer = */ 0,
-          /* layerCount = */ 1,
+        /* subresourceRange = */
+        {
+            /* aspectMask = */ VK_IMAGE_ASPECT_COLOR_BIT,
+            /* baseMipLevel = */ 0,
+            /* levelCount = */ 1,
+            /* baseArrayLayer = */ 0,
+            /* layerCount = */ 1,
         },
-      };
+    };
     ::VkImageView image_view;
     LOG_EXPECT(==, data->log,
                device->vkCreateImageView(device, &image_view_create_info,

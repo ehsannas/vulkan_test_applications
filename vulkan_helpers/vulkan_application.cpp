@@ -74,7 +74,8 @@ VulkanApplication::VulkanApplication(
                                         allocator_, render_queue_index_,
                                         present_queue_index_)),
       command_pool_(CreateDefaultCommandPool(allocator_, device_)),
-      pipeline_cache_(CreateDefaultPipelineCache(&device_)) {
+      pipeline_cache_(CreateDefaultPipelineCache(&device_)),
+      should_exit_(false) {
   if (!device_.is_valid()) {
     return;
   }

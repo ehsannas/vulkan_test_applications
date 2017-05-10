@@ -518,9 +518,10 @@ int main_entry(const entry::entry_data* data) {
   ExecuteCommandsSample sample(data);
   sample.Initialize();
 
-  while (true) {
+  while (!sample.should_exit()) {
     sample.ProcessFrame();
   }
+  sample.WaitIdle();
 
   data->log->LogInfo("Application Shutdown");
 }

@@ -46,10 +46,10 @@ struct WireframeFrameData {
   containers::unique_ptr<vulkan::VkBufferView> query_pool_results_buf_view_;
 };
 
-
 // This creates an application with 16MB of image memory, and defaults
 // for host, and device buffer sizes.
-class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFrameData> {
+class CopyQueryPoolResultSample
+    : public sample_application::Sample<WireframeFrameData> {
  public:
   CopyQueryPoolResultSample(const entry::entry_data* data)
       : data_(data),
@@ -63,7 +63,6 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
   virtual void InitializeApplicationData(
       vulkan::VkCommandBuffer* initialization_buffer,
       size_t num_swapchain_images) override {
-
     num_frames_ = num_swapchain_images;
 
     // For GAPID, when Mid-Execution Capture is applied, we need to reconstruct
@@ -99,8 +98,7 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
     };
     query_pool_ = containers::make_unique<vulkan::VkQueryPool>(
         data_->root_allocator,
-        vulkan::CreateQueryPool(&app()->device(), query_pool_create_info)
-        );
+        vulkan::CreateQueryPool(&app()->device(), query_pool_create_info));
 
     // Query before drawing anything to make sure the initial value of query
     // pool results are zero.
@@ -116,15 +114,20 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
 
     // Create a buffer to store the query results for each frame, and to be
     // used in the fragment shader.
-    size_t query_pool_result_buf_size = vulkan::kMaxOffsetAlignment * num_swapchain_images;
+    size_t query_pool_result_buf_size =
+        vulkan::kMaxOffsetAlignment * num_swapchain_images;
 
     VkBufferCreateInfo query_pool_results_buf_create_info{
-        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, nullptr, 0,
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        nullptr,
+        0,
         query_pool_result_buf_size,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT |
             VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_SHARING_MODE_EXCLUSIVE, 0, nullptr};
+        VK_SHARING_MODE_EXCLUSIVE,
+        0,
+        nullptr};
     query_pool_results_buf_ =
         app()->CreateAndBindHostBuffer(&query_pool_results_buf_create_info);
     containers::vector<uint32_t> query_pool_init_values(
@@ -159,10 +162,10 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
 
     pipeline_layout_ = containers::make_unique<vulkan::PipelineLayout>(
         data_->root_allocator,
-        app()->CreatePipelineLayout({{torus_descriptor_set_layouts_[0],
-                                      torus_descriptor_set_layouts_[1],
-                                      torus_descriptor_set_layouts_[2],
-                                      }}));
+        app()->CreatePipelineLayout({{
+            torus_descriptor_set_layouts_[0], torus_descriptor_set_layouts_[1],
+            torus_descriptor_set_layouts_[2],
+        }}));
 
     VkAttachmentReference depth_attachment = {
         0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
@@ -251,7 +254,6 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
       WireframeFrameData* frame_data,
       vulkan::VkCommandBuffer* initialization_buffer,
       size_t frame_index) override {
-
     // Create the buffer view for the query pool result buffer so the buffer
     // can be used in the fragment shader
     VkBufferViewCreateInfo query_pool_results_buf_view_create_info{
@@ -260,8 +262,8 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
         0,                                          // flags
         *query_pool_results_buf_,                   // buffer
         VK_FORMAT_R32_UINT,                         // format
-        vulkan::kMaxOffsetAlignment * frame_index,          // offset
-        vulkan::kMaxOffsetAlignment,                        // range
+        vulkan::kMaxOffsetAlignment * frame_index,  // offset
+        vulkan::kMaxOffsetAlignment,                // range
     };
     ::VkBufferView raw_buf_view;
     LOG_ASSERT(==, data_->log.get(), VK_SUCCESS,
@@ -293,11 +295,11 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
 
     frame_data->torus_descriptor_set_ =
         containers::make_unique<vulkan::DescriptorSet>(
-            data_->root_allocator,
-            app()->AllocateDescriptorSet({torus_descriptor_set_layouts_[0],
-                                          torus_descriptor_set_layouts_[1],
-                                          torus_descriptor_set_layouts_[2],
-                                          }));
+            data_->root_allocator, app()->AllocateDescriptorSet({
+                                       torus_descriptor_set_layouts_[0],
+                                       torus_descriptor_set_layouts_[1],
+                                       torus_descriptor_set_layouts_[2],
+                                   }));
 
     VkDescriptorBufferInfo buffer_infos[2] = {
         {
@@ -327,7 +329,7 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
         {
             VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,   // sType
             nullptr,                                  // pNext
-            *frame_data->torus_descriptor_set_,        // dstSet
+            *frame_data->torus_descriptor_set_,       // dstSet
             2,                                        // dstbinding
             0,                                        // dstArrayElement
             1,                                        // descriptorCount
@@ -390,10 +392,11 @@ class CopyQueryPoolResultSample : public sample_application::Sample<WireframeFra
     LOG_ASSERT(<, data_->log, frame_index, query_pool_results_buf_->size());
     cmdBuffer->vkCmdCopyQueryPoolResults(
         cmdBuffer, *query_pool_, frame_index, 1, *query_pool_results_buf_,
-        frame_index * vulkan::kMaxOffsetAlignment,
-        sizeof(uint32_t), VK_QUERY_RESULT_WAIT_BIT);
+        frame_index * vulkan::kMaxOffsetAlignment, sizeof(uint32_t),
+        VK_QUERY_RESULT_WAIT_BIT);
     cmdBuffer->vkCmdResetQueryPool(cmdBuffer, *query_pool_, frame_index, 1);
-    cmdBuffer->vkCmdBeginQuery(cmdBuffer, *query_pool_, frame_index, VkQueryControlFlagBits(0));
+    cmdBuffer->vkCmdBeginQuery(cmdBuffer, *query_pool_, frame_index,
+                               VkQueryControlFlagBits(0));
 
     cmdBuffer->vkCmdBeginRenderPass(cmdBuffer, &pass_begin,
                                     VK_SUBPASS_CONTENTS_INLINE);
@@ -481,9 +484,10 @@ int main_entry(const entry::entry_data* data) {
   CopyQueryPoolResultSample sample(data);
   sample.Initialize();
 
-  while (true) {
+  while (!sample.should_exit()) {
     sample.ProcessFrame();
   }
+  sample.WaitIdle();
 
   data->log->LogInfo("Application Shutdown");
 }
