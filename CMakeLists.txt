@@ -1,4 +1,4 @@
-# Copyright 2016 Google Inc.
+# Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,10 +20,15 @@ cmake_minimum_required(VERSION 3.1)
 set(mathfu_build_benchmarks OFF CACHE BOOL "")
 set(mathfu_build_tests OFF CACHE BOOL "")
 add_subdirectory(third_party/mathfu)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 
 include(cmake/setup.cmake)
+
+set(VULKAN_INCLUDE_LOCATION
+  "${CMAKE_CURRENT_SOURCE_DIR}/external;${CMAKE_CURRENT_SOURCE_DIR}/external/vulkan")
+add_subdirectory(third_party/vk_callback_swapchain)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(support)
 add_subdirectory(vulkan_wrapper)
