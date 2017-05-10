@@ -96,6 +96,57 @@ VkInstance CreateDefaultInstance(containers::Allocator* allocator,
   return vulkan::VkInstance(allocator, raw_instance, nullptr, wrapper);
 }
 
+VkInstance CreateInstanceForApplication(containers::Allocator* allocator,
+                                        LibraryWrapper* wrapper,
+                                        const entry::entry_data* data) {
+  // Similar to CreateDefaultInstance, but turns on the virtual swapchain
+  // if the requested by entry_data.
+
+  VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                             nullptr,
+                             "TestApplication",
+                             1,
+                             "Engine",
+                             0,
+                             VK_MAKE_VERSION(1, 0, 0)};
+
+  const char* extensions[] = {
+    VK_KHR_SURFACE_EXTENSION_NAME,
+#if defined __ANDROID__
+    VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
+#elif defined __linux__
+    VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+#elif defined __WIN32__
+    VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+#endif
+  };
+
+  const char* layers[] = {"CallbackSwapchain"};
+
+  wrapper->GetLogger()->LogInfo("Enabled Extensions: ");
+  for (auto& extension : extensions) {
+    wrapper->GetLogger()->LogInfo("    ", extension);
+  }
+
+  VkInstanceCreateInfo info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                            nullptr,
+                            0,
+                            &app_info,
+                            uint32_t(data->options.output_frame >= 0
+                                         ? (sizeof(layers) / sizeof(layers[0]))
+                                         : 0),
+                            layers,
+                            (sizeof(extensions) / sizeof(extensions[0])),
+                            extensions};
+
+  ::VkInstance raw_instance;
+  LOG_ASSERT(==, wrapper->GetLogger(),
+             wrapper->vkCreateInstance(&info, nullptr, &raw_instance),
+             VK_SUCCESS);
+  // vulkan::VkInstance will handle destroying the instance
+  return vulkan::VkInstance(allocator, raw_instance, nullptr, wrapper);
+}
+
 containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance) {
   uint32_t device_count = 0;
@@ -543,7 +594,8 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
                                       VkSurfaceKHR* surface,
                                       containers::Allocator* allocator,
                                       uint32_t present_queue_index,
-                                      uint32_t graphics_queue_index) {
+                                      uint32_t graphics_queue_index,
+                                      const entry::entry_data* data) {
   ::VkSwapchainKHR swapchain = VK_NULL_HANDLE;
   VkExtent2D image_extent = {0, 0};
   containers::vector<VkSurfaceFormatKHR> surface_formats(1, allocator);
@@ -596,7 +648,7 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
 
     image_extent = surface_caps.currentExtent;
     if (image_extent.width == 0xFFFFFFFF) {
-      image_extent = VkExtent2D{100, 100};
+      image_extent = VkExtent2D{data->width, data->height};
     }
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo{

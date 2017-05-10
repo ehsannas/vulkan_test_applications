@@ -19,6 +19,13 @@ elseif(UNIX)
 set(ADDITIONAL_LIBS xcb pthread)
 endif()
 
+if (NOT OUTPUT_FRAME)
+    set(OUTPUT_FRAME -1)
+endif()
+
+if (NOT OUTPUT_FILE)
+    set(OUTPUT_FILE output.ppm)
+endif()
 
 if (NOT DEFAULT_WINDOW_WIDTH)
   set(DEFAULT_WINDOW_WIDTH 100)

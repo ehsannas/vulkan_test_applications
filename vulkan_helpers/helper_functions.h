@@ -50,6 +50,13 @@ VkInstance CreateEmptyInstance(containers::Allocator* allocator,
 VkInstance CreateDefaultInstance(containers::Allocator* allocator,
                                  LibraryWrapper* _wrapper);
 
+// Creates an instance with either a real or virtual swapchain based on
+// whether or not data requests an external swapchain. Otherwise
+// identical to CreateDefaultInstance.
+VkInstance CreateInstanceForApplication(containers::Allocator* allocator,
+                                        LibraryWrapper* wrapper,
+                                        const entry::entry_data* data);
+
 containers::vector<VkPhysicalDevice> GetPhysicalDevices(
     containers::Allocator* allocator, VkInstance& instance);
 
@@ -126,7 +133,8 @@ VkSwapchainKHR CreateDefaultSwapchain(VkInstance* instance, VkDevice* device,
                                       VkSurfaceKHR* surface,
                                       containers::Allocator* allocator,
                                       uint32_t present_queue_index,
-                                      uint32_t graphics_queue_index);
+                                      uint32_t graphics_queue_index,
+                                      const entry::entry_data* data);
 
 // Returns a uint32_t with only the lowest bit set.
 uint32_t inline GetLSB(uint32_t val) { return ((val - 1) ^ val) & val; }

@@ -53,9 +53,13 @@ typedef void* HANDLE;
 #error "Unsupported platform"
 #endif
 
+// If output_frame is > -1, then the given image frame will be written
+// to output_file, otherwise the application will render to the screen.
 struct application_options {
   bool fixed_timestep;
   bool prefer_separate_present;
+  const char* output_file;
+  int32_t output_frame;
 };
 
 struct entry_data {
@@ -71,6 +75,8 @@ struct entry_data {
   // This is never null.
   containers::unique_ptr<logging::Logger> log;
   containers::Allocator* root_allocator;
+  uint32_t width;
+  uint32_t height;
   application_options options;
 };
 }  // namespace entry

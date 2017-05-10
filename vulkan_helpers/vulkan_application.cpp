@@ -16,14 +16,17 @@
 #include "vulkan_helpers/vulkan_application.h"
 
 #include <algorithm>
+#include <fstream>
 #include <tuple>
 
 #include "support/containers/unordered_map.h"
 #include "vulkan_helpers/helper_functions.h"
 #include "vulkan_helpers/vulkan_model.h"
 
-namespace vulkan {
+typedef void(VKAPI_PTR* PFN_vkSetSwapchainCallback)(
+    VkSwapchainKHR, void(void*, uint8_t*, size_t), void*);
 
+namespace vulkan {
 VkDescriptorPool DescriptorSet::CreateDescriptorPool(
     containers::Allocator* allocator, VkDevice* device,
     std::initializer_list<VkDescriptorSetLayoutBinding> bindings) {
@@ -67,30 +70,73 @@ VulkanApplication::VulkanApplication(
       render_queue_index_(0u),
       present_queue_index_(0u),
       library_wrapper_(allocator_, log_),
-      instance_(CreateDefaultInstance(allocator_, &library_wrapper_)),
+      instance_(CreateInstanceForApplication(allocator_, &library_wrapper_,
+                                             entry_data_)),
       surface_(CreateDefaultSurface(&instance_, entry_data_)),
       device_(CreateDevice(extensions, features, use_async_compute_queue)),
       swapchain_(CreateDefaultSwapchain(&instance_, &device_, &surface_,
                                         allocator_, render_queue_index_,
-                                        present_queue_index_)),
+                                        present_queue_index_, entry_data_)),
       command_pool_(CreateDefaultCommandPool(allocator_, device_)),
       pipeline_cache_(CreateDefaultPipelineCache(&device_)),
       should_exit_(false) {
   if (!device_.is_valid()) {
     return;
   }
+
+  if (entry_data->options.output_frame >= 1) {
+    PFN_vkSetSwapchainCallback set_callback =
+        reinterpret_cast<PFN_vkSetSwapchainCallback>(
+            device_.getProcAddrFunction()(device_, "vkSetSwapchainCallback"));
+
+    struct cb_data {
+      uint32_t output_frame;
+      const char* file_name;
+      logging::Logger* log;
+      const entry::entry_data* dat;
+      std::atomic<bool>& should_exit;
+      static void fn(void* obj, uint8_t* data, size_t size) {
+        cb_data* d = reinterpret_cast<cb_data*>(obj);
+        if (d->output_frame == 0) return;
+
+        if (size != d->dat->width * d->dat->height * 4) {
+          d->log->LogError("Invalid data size");
+          exit(-1);
+        }
+        if (--d->output_frame == 0) {
+          // Because we are in the callback swapchain, we know that the
+          // image size is 100x100, and the format is rgba
+          std::ofstream ppm;
+          ppm.open(d->file_name);
+          ppm << "P6 " << d->dat->width << " " << d->dat->height << " 255\n";
+
+          for (size_t i = 0; i < size; ++i) {
+            if (i % 4 == 3) continue;
+            ppm << char(*(data + i));
+          }
+          ppm.close();
+          d->should_exit.store(true);
+        }
+      }
+    };
+    auto cb = new cb_data{
+        static_cast<uint32_t>(entry_data->options.output_frame),
+        entry_data->options.output_file, log_, entry_data_, should_exit_};
+    set_callback(swapchain_, &cb_data::fn, cb);
+  }
+
   vulkan::LoadContainer(log_, device_->vkGetSwapchainImagesKHR,
                         &swapchain_images_, device_, swapchain_);
   // Relevant spec sections for determining what memory we will be allowed
   // to use for our buffer allocations.
   //  The memoryTypeBits member is identical for all VkBuffer objects created
   //  with the same value for the flags and usage members in the
-  //  VkBufferCreateInfo structure passed to vkCreateBuffer. Further, if usage1
-  //  and usage2 of type VkBufferUsageFlags are such that the bits set in usage2
-  //  are a subset of the bits set in usage1, and they have the same flags,
-  //  then the bits set in memoryTypeBits returned for usage1 must be a subset
-  //  of the bits set in memoryTypeBits returned for usage2, for all values of
-  //  flags.
+  //  VkBufferCreateInfo structure passed to vkCreateBuffer. Further, if
+  //  usage1 and usage2 of type VkBufferUsageFlags are such that the bits set
+  //  in usage2 are a subset of the bits set in usage1, and they have the same
+  //  flags, then the bits set in memoryTypeBits returned for usage1 must be a
+  //  subset of the bits set in memoryTypeBits returned for usage2, for all
+  //  values of flags.
 
   // Therefore we should be able to satisfy all buffer requests for non
   // sparse memory bindings if we do the following:
@@ -382,8 +428,8 @@ std::tuple<bool, VkCommandBuffer> VulkanApplication::FillImageLayersData(
   command_buffer->vkCmdCopyBufferToImage(command_buffer, *src_buffer, *img,
                                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                          1, &copy_info);
-  // Add a global barrier at the end to make sure the data written to the image
-  // is available globally.
+  // Add a global barrier at the end to make sure the data written to the
+  // image is available globally.
   VkMemoryBarrier end_barrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER, nullptr,
                               VK_ACCESS_TRANSFER_WRITE_BIT, kAllReadBits};
   command_buffer->vkCmdPipelineBarrier(
@@ -471,7 +517,8 @@ bool VulkanApplication::DumpImageLayersData(
                       image_subresource.layerCount;
   if (image_size == 0) {
     log_->LogError(
-        "DumpImageLayersData(): The size of the dump source image layers is 0, "
+        "DumpImageLayersData(): The size of the dump source image layers is "
+        "0, "
         "this might be caused by an unrecognized image format");
     return false;
   }
@@ -651,8 +698,8 @@ VulkanArena::VulkanArena(containers::Allocator* allocator, logging::Logger* log,
         (*device)->vkMapMemory(*device, memory_, 0, buffer_size, 0,
                                reinterpret_cast<void**>(&base_address_)));
     // Store off the devices unmap memory function for the future, we only
-    // want to keep a reference to the raw device, and not the vulkan::VkDevice
-    // since vulkan::VkDevice is movable.
+    // want to keep a reference to the raw device, and not the
+    // vulkan::VkDevice since vulkan::VkDevice is movable.
     unmap_memory_function_ = &(*device)->vkUnmapMemory;
   }
 }
@@ -704,7 +751,8 @@ AllocationToken* VulkanArena::AllocateMemory(::VkDeviceSize size,
 
   // Find a block that contains at LEAST enough memory for our allocation.
   auto it = freeblocks_.lower_bound(to_allocate);
-  // Fail if there is not even a single free-block that can hold our allocation.
+  // Fail if there is not even a single free-block that can hold our
+  // allocation.
   LOG_ASSERT(==, log_, true, freeblocks_.end() != it);
 
   AllocationToken* token = it->second;
