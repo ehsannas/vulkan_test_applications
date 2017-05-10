@@ -88,9 +88,9 @@ These tests should test the following cases:
 - [x] `queryCount` of value other than 1
 - [x] `stride` of value 4
 - [x] `stride` of value 8
-- [ ] `stride` of value 12
+- [x] `stride` of value 12
 - [x] `flags` with no bit set
 - [x] `flags` with `VK_QUERY_RESULT_64_BIT` set
 - [x] `flags` with `VK_QUERY_RESULT_WAIT_BIT` set
-- [ ] `flags` with `VK_QUERY_RESULT_AVAILABILITY_BIT` set
-- [ ] `flags` with `VK_QUERY_RESULT_PARTIAL_BIT` set
+- [x] `flags` with `VK_QUERY_RESULT_AVAILABILITY_BIT` set
+- [x] `flags` with `VK_QUERY_RESULT_PARTIAL_BIT` set

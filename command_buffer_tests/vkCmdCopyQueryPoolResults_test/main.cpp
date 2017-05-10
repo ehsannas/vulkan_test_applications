@@ -23,6 +23,7 @@
 #include "vulkan_wrapper/library_wrapper.h"
 
 #include <algorithm>
+#include <utility>
 
 uint32_t fragment_shader[] =
 #include "hardcode_pos_triangle.frag.spv"
@@ -33,9 +34,11 @@ uint32_t vertex_shader[] =
     ;
 
 namespace {
-vulkan::VkQueryPool QueryWithoutDrawingAnything(
+void QueryWithoutDrawingAnythingAndCopyResults(
     const entry::entry_data* data, vulkan::VulkanApplication* app,
-    const VkQueryPoolCreateInfo& query_pool_create_info) {
+    const VkQueryPoolCreateInfo& query_pool_create_info, uint32_t first_query,
+    uint32_t query_count, ::VkBuffer dst_buffer, VkDeviceSize dst_offset,
+    VkDeviceSize stride, VkQueryResultFlags flags) {
   vulkan::VkDevice& device = app->device();
 
   // Create render pass.
@@ -323,6 +326,36 @@ vulkan::VkQueryPool QueryWithoutDrawingAnything(
     command_buffer->vkCmdEndQuery(command_buffer, query_pool, q);
   }
 
+  // Result buffer barrier
+  VkBufferMemoryBarrier to_dst_barrier{
+      VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,  // sType
+      nullptr,                                  // pNext
+      0,                                        // srcAccessMask
+      VK_ACCESS_TRANSFER_WRITE_BIT,             // dstAccessMask
+      VK_QUEUE_FAMILY_IGNORED,                  // srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                  // dstQueueFamilyIndex
+      dst_buffer,                               // buffer
+      dst_offset,                               // offset
+      VK_WHOLE_SIZE,                            // size
+  };
+  command_buffer->vkCmdPipelineBarrier(
+      command_buffer,                  // commandBuffer
+      VK_PIPELINE_STAGE_TRANSFER_BIT,  // srcStageMask
+      VK_PIPELINE_STAGE_TRANSFER_BIT,  // dstStageMask
+      0,                               // dependencyFlags
+      0,                               // memoryBarrierCount
+      nullptr,                         // pMemoryBarriers
+      1,                               // bufferMemoryBarrierCount
+      &to_dst_barrier,                 // pBufferMemoryBarriers
+      0,                               // imageMemoryBarrierCount
+      nullptr                          // pImageMemoryBarriers
+      );
+
+  // Call vkCmdCopyQueryPoolResults
+  command_buffer->vkCmdCopyQueryPoolResults(
+      command_buffer, query_pool, first_query, query_count, dst_buffer,
+      dst_offset, stride, flags);
+
   command_buffer->vkEndCommandBuffer(command_buffer);
 
   ::VkCommandBuffer raw_cmd_buf = command_buffer.get_command_buffer();
@@ -338,8 +371,26 @@ vulkan::VkQueryPool QueryWithoutDrawingAnything(
   app->render_queue()->vkQueueSubmit(app->render_queue(), 1, &submit_info,
                                      static_cast<VkFence>(VK_NULL_HANDLE));
   app->render_queue()->vkQueueWaitIdle(app->render_queue());
+}
 
-  return query_pool;
+vulkan::BufferPointer CreateBufferAndFlush(vulkan::VulkanApplication* app,
+                                           uint32_t size, uint8_t content) {
+  VkBufferCreateInfo create_info{
+      VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // sType
+      nullptr,                               // pNext
+      0,                                     // createFlags
+      size,                                  // size
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+          VK_BUFFER_USAGE_TRANSFER_DST_BIT,  // usage
+      VK_SHARING_MODE_EXCLUSIVE,             // sharingMode
+      0,                                     // queueFamilyIndexCount
+      nullptr                                // pQueueFamilyIndices
+  };
+  vulkan::BufferPointer buffer = app->CreateAndBindHostBuffer(&create_info);
+  uint8_t* ptr = reinterpret_cast<uint8_t*>(buffer->base_address());
+  std::for_each(ptr, ptr + size, [content](uint8_t& n) { n = content; });
+  buffer->flush();
+  return std::move(buffer);
 }
 }
 
@@ -350,96 +401,93 @@ int main_entry(const entry::entry_data* data) {
 
   {
     // 1. Get 32-bit results from all the queries in a four-query pool,
-    // without any result flag
+    // without any result flags, copy to result buffer with non-zero offset.
     const uint32_t num_queries = 4;
-    vulkan::VkQueryPool query_pool = QueryWithoutDrawingAnything(
+    const uint32_t first_query = 0;
+    const VkDeviceSize offset = 4 * sizeof(uint32_t);
+    const VkDeviceSize stride = sizeof(uint32_t);
+    const uint32_t buffer_size = offset + num_queries * stride;
+    const VkQueryResultFlags flags = 0;
+
+    vulkan::BufferPointer result_buffer =
+        CreateBufferAndFlush(&app, buffer_size, 0xff);
+
+    QueryWithoutDrawingAnythingAndCopyResults(
         data, &app, {VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0,
-                     VK_QUERY_TYPE_OCCLUSION, num_queries, 0});
+                     VK_QUERY_TYPE_OCCLUSION, num_queries, 0},
+        first_query, num_queries, *result_buffer, offset, stride, flags);
 
-    std::array<uint32_t, num_queries> query_results{0xFFFFFFFF, 0xFFFFFFFF,
-                                                    0xFFFFFFFF, 0xFFFFFFFF};
+    result_buffer->invalidate();
 
-    LOG_ASSERT(==, data->log,
-               app.device()->vkGetQueryPoolResults(
-                   app.device(),                    // device
-                   query_pool,                      // queryPool
-                   0,                               // firstQuery
-                   num_queries,                     // queryCount
-                   num_queries * sizeof(uint32_t),  // dataSize
-                   (void*)query_results.data(),     // pData
-                   sizeof(uint32_t),                // stride
-                   0                                // flags
-                   ),
-               VK_SUCCESS);
-
-    std::for_each(
-        std::begin(query_results), std::end(query_results),
-        [data](uint32_t result) { LOG_ASSERT(==, data->log, result, 0x0); });
+    for (uint32_t i = 0; i < buffer_size; i++) {
+      if (i < offset) {
+        LOG_ASSERT(==, data->log, result_buffer->base_address()[i], 0xFF);
+      } else {
+        LOG_ASSERT(==, data->log, result_buffer->base_address()[i], 0x0);
+      }
+    }
   }
 
   {
     // 2. Get 64-bit results from the fifth to eighth query in a eight-query
-    // pool, with VK_QUERY_RESULT_WAIT_BIT flag
+    // pool, with VK_QUERY_RESULT_WAIT_BIT flag, copy to result buffer with
+    // zero offset.
     const uint32_t total_num_queries = 8;
-    const uint32_t get_result_num_queries = 4;
-    vulkan::VkQueryPool query_pool = QueryWithoutDrawingAnything(
-        data, &app, {VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0,
-                     VK_QUERY_TYPE_OCCLUSION, total_num_queries, 0});
-    std::array<uint64_t, get_result_num_queries> query_results{
-        0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
-        0xFFFFFFFFFFFFFFFF};
-    LOG_ASSERT(==, data->log,
-               app.device()->vkGetQueryPoolResults(
-                   app.device(),                                // device
-                   query_pool,                                  // queryPool
-                   total_num_queries - get_result_num_queries,  // firstQuery
-                   get_result_num_queries,                      // queryCount
-                   query_results.size() * sizeof(uint64_t),     // dataSize
-                   (void*)query_results.data(),                 // pData
-                   sizeof(uint64_t),                            // stride
-                   VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT  // flags
-                   ),
-               VK_SUCCESS);
+    const uint32_t first_query = 4;
+    const uint32_t num_queries = total_num_queries - first_query;
+    const VkDeviceSize offset = 0;
+    const VkDeviceSize stride = sizeof(uint64_t);
+    const uint32_t buffer_size = offset + num_queries * stride;
+    const VkQueryResultFlags flags =
+        VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT;
 
-    std::for_each(
-        query_results.begin(), query_results.end(),
-        [data](uint64_t result) { LOG_ASSERT(==, data->log, result, 0x0); });
+    vulkan::BufferPointer result_buffer =
+        CreateBufferAndFlush(&app, buffer_size, 0xff);
+
+    QueryWithoutDrawingAnythingAndCopyResults(
+        data, &app, {VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0,
+                     VK_QUERY_TYPE_OCCLUSION, total_num_queries, 0},
+        first_query, num_queries, *result_buffer, offset, stride, flags);
+
+    result_buffer->invalidate();
+
+    for (uint32_t i = 0; i < buffer_size; i++) {
+      LOG_ASSERT(==, data->log, result_buffer->base_address()[i], 0x0);
+    }
   }
 
   {
     // 3. Get 32-bit results from all the queries in a four-query
     // pool, with VK_QUERY_RESULT_PARTIAL_BIT and
-    // VK_QUERY_RESULT_WITH_AVAILABILITY_BIT flag, and stride value 12
+    // VK_QUERY_RESULT_WITH_AVAILABILITY_BIT flag, and stride value 12, copy to
+    // result buffer with zero offset.
     const uint32_t num_queries = 4;
-    const uint32_t stride = 12;
-    vulkan::VkQueryPool query_pool = QueryWithoutDrawingAnything(
-        data, &app, {VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0,
-                     VK_QUERY_TYPE_OCCLUSION, num_queries, 0});
-    containers::vector<uint32_t> query_results(
-        stride / sizeof(uint32_t) * num_queries, 0xFFFFFFFF,
-        data->root_allocator);
-    LOG_ASSERT(==, data->log,
-               app.device()->vkGetQueryPoolResults(
-                   app.device(),                             // device
-                   query_pool,                               // queryPool
-                   0,                                        // firstQuery
-                   num_queries,                              // queryCount
-                   query_results.size() * sizeof(uint32_t),  // dataSize
-                   (void*)query_results.data(),              // pData
-                   stride,                                   // stride
-                   VK_QUERY_RESULT_WITH_AVAILABILITY_BIT |
-                       VK_QUERY_RESULT_PARTIAL_BIT  // flags
-                   ),
-               VK_SUCCESS);
+    const uint32_t first_query = 0;
+    const VkDeviceSize offset = 0;
+    const VkDeviceSize stride = 3 * sizeof(uint32_t);
+    const uint32_t buffer_size = offset + num_queries * stride;
+    const VkQueryResultFlags flags =
+        VK_QUERY_RESULT_WITH_AVAILABILITY_BIT | VK_QUERY_RESULT_PARTIAL_BIT;
 
-    for (size_t i = 0; i < query_results.size();) {
-      // query result
-      LOG_ASSERT(==, data->log, query_results[i], 0x0);
-      // availability status
-      LOG_ASSERT(==, data->log, query_results[i + 1], 0x1);
-      // data should not be touched.
-      LOG_ASSERT(==, data->log, query_results[i + 2], 0xFFFFFFFF);
-      i += 3;
+    vulkan::BufferPointer result_buffer =
+        CreateBufferAndFlush(&app, buffer_size, 0xff);
+
+    QueryWithoutDrawingAnythingAndCopyResults(
+        data, &app, {VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0,
+                     VK_QUERY_TYPE_OCCLUSION, num_queries, 0},
+        first_query, num_queries, *result_buffer, offset, stride, flags);
+
+    result_buffer->invalidate();
+
+    uint32_t* ptr = reinterpret_cast<uint32_t*>(result_buffer->base_address());
+    for (uint32_t i = 0; i < buffer_size / sizeof(uint32_t); i++) {
+      if (i % 3 == 0) {
+        LOG_ASSERT(==, data->log, ptr[i], 0x0);
+      } else if (i % 3 == 1) {
+        LOG_ASSERT(==, data->log, ptr[i], 0x1);
+      } else {
+        LOG_ASSERT(==, data->log, ptr[i], 0xFFFFFFFF);
+      }
     }
   }
   data->log->LogInfo("Application Shutdown");
