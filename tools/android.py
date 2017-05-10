@@ -61,7 +61,7 @@ def adb_stream(params, program_args):
     return subprocess.Popen(args, stdout=subprocess.PIPE)
 
 
-def install_apk(apk, program_args):
+def install_apk(apk_info, program_args):
     '''Installs an apk.
 
     Overwrites existing APK if it exists and grants all permissions.
@@ -69,7 +69,9 @@ def install_apk(apk, program_args):
         program_args must have a .verbose member.
 
     '''
-    adb(['install', '-r', '-g', apk], program_args)
+    adb(['install', '-r', '-g', apk_info.apk_name], program_args)
+    adb(['shell', 'pm', 'grant', apk_info.package_name,
+        'android.permission.WRITE_EXTERNAL_STORAGE'], program_args)
 
 
 def get_apk_info(apk):
@@ -79,8 +81,8 @@ def get_apk_info(apk):
     package_name = 'com.example.test.' + test_name
     activity_name = 'android.app.NativeActivity'
     apk_info = collections.namedtuple(
-        'ApkInfo', ['test_name', 'package_name', 'activity_name'])
-    return apk_info(test_name, package_name, activity_name)
+        'ApkInfo', ['test_name', 'package_name', 'activity_name', 'apk_name'])
+    return apk_info(test_name, package_name, activity_name, apk)
 
 
 def watch_process(silent, program_args):

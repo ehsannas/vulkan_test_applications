@@ -30,7 +30,7 @@ import android
 def run_on_single_apk(apk, args):
     """Installs, runs and optionally uninstalls a single APK from an android device."""
     apk_info = android.get_apk_info(apk)
-    android.install_apk(apk, args)
+    android.install_apk(apk_info, args)
     android.adb(['logcat', '-c'], args)
     android.adb(['shell', 'am', 'start', '-n',
                  apk_info.package_name + '/' + apk_info.activity_name], args)

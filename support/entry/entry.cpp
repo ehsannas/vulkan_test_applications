@@ -87,8 +87,8 @@ void android_main(android_app* app) {
           app->window,
           logging::GetLogger(&root_allocator),
           &root_allocator,
-          width,
-          height,
+          static_cast<uint32_t>(width),
+          static_cast<uint32_t>(height),
           {FIXED_TIMESTEP, PREFER_SEPARATE_PRESENT, output_file, output_frame}};
       int return_value = main_entry(&data);
       // Do not modify this line, scripts may look for it in the output.

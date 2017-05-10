@@ -23,6 +23,7 @@ import android
 
 
 class RunArgs(object):
+
     """Arguments to run_on_single_apk"""
 
     def __init__(self):
@@ -52,7 +53,7 @@ def run_on_single_apk(apk, args):
     device. args must conform to the RunArgs interface. Returns the exit code
     of the running apk.'''
     apk_info = android.get_apk_info(apk)
-    android.install_apk(apk, args)
+    android.install_apk(apk_info, args)
     android.adb(['logcat', '-c'], args)
 
     gapit_args = ['gapit']
