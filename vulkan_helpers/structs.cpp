@@ -17,7 +17,7 @@
 
 #include <utility>
 
-static_assert(VK_VERSION_1_0 == 1 && VK_HEADER_VERSION == 38,
+static_assert(VK_VERSION_1_0 == 1 && VK_HEADER_VERSION == 48,
               "review the following to make sure that all enumerant values are "
               "covered after updating vulkan.h");
 
