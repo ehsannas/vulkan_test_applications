@@ -14,7 +14,7 @@ Vector3 hsv2rgb(Vector3 hsv) {
     Vector3         rgb;
 
     hh = hsv.x;
-    if(hh >= 360.0f) hh = 0.0;
+    while(hh >= 360.0f) hh -= 360.0;
     hh /= 60.0f;
     i = int(hh);
     ff = hh - i;
@@ -62,5 +62,5 @@ Vector3 hsv2rgb(Vector3 hsv) {
 
 void main() {
     vec4 color = texture(sampler2D(default_texture, default_sampler), texcoord);
-    out_color = vec4(hsv2rgb(Vector3(speed * 360.0f, 1.0, 1.0)), color.x * 0.5f);
+    out_color = vec4(hsv2rgb(Vector3(180.0f + speed * 360.0f, 1.0, 1.0)), color.x * 0.5f);
 }

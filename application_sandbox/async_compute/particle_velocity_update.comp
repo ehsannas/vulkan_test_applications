@@ -15,6 +15,8 @@ layout (binding = 0) buffer time_data {
 const float G = 6.67408e-11;
 const float MASS_PER_PARTICLE = float(TOTAL_MASS) / float(TOTAL_PARTICLES);
 
+#define PARTICLE_SPLIT 128
+
 // This is going to be REALLY inefficient once we
 // actually try to do the n-body.
 void main() {
@@ -22,8 +24,8 @@ void main() {
   simulation_data sim = simulation[index];
   float time = timeData[0];
   Vector2 total_acceleration = vec2(0.f, 0.f);
-  for (int i = 0; i < TOTAL_PARTICLES / 64; ++i) {
-    uint idx = (64 * i) + gl_GlobalInvocationID.x + int(frame_number);
+  for (int i = 0; i < TOTAL_PARTICLES / PARTICLE_SPLIT; ++i) {
+    uint idx = (PARTICLE_SPLIT * i) + gl_GlobalInvocationID.x + int(frame_number);
     while (idx > TOTAL_PARTICLES) {
       idx = idx - TOTAL_PARTICLES;
     }

@@ -28,6 +28,6 @@ struct simulation_data {
 #define TOTAL_PARTICLES (1024 * 64)
 #define COMPUTE_SHADER_LOCAL_SIZE 128
 
-#define TOTAL_MASS (1024.0f * 1024.0f * 16.0f)
+#define TOTAL_MASS (1024.0f * 1024.0f * 64.0f)
 
 #endif  // _PARTICLE_DATA_SHARED_H_
