@@ -203,7 +203,7 @@ class PipelineLayout {
   PipelineLayout(const PipelineLayout& other) = delete;
 
   operator VkPipelineLayout&() { return pipeline_layout_; }
-  operator ::VkPipelineLayout() { return pipeline_layout_; }
+  operator ::VkPipelineLayout() const { return pipeline_layout_; }
 
  private:
   // TODO(awoloszyn): Handle push constants here too

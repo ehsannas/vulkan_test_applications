@@ -7,6 +7,7 @@ command buffers.
 - [BeginAndEndCommandBuffer_test](BeginAndEndCommandBuffer_test/README.md)
 - [BeginAndEndRenderPass_test](BeginAndEndRenderPass_test/README.md)
 - [BufferImageCopy_test](BufferImageCopy_test/README.md)
+- [DispatchAndDispatchIndirect_test](DispatchAndDispatchIndirect_test/README.md)
 - [QueueSubmitAndWait_test](QueueSubmitAndWait_test/README.md)
 - [SetDepthBias_test](SetDepthBias_test/README.md)
 - [SetLineWidthAndBlendConstants_test](SetLineWidthAndBlendConstants_test/README.md)
