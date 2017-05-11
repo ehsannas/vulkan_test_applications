@@ -15,19 +15,12 @@
 
 #version 450
 
-layout(std140, binding = 0) uniform buff {
-    mat4 MPV_Matrix;
-};
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 uv;
 
-layout (location = 0) in vec4 vertexCoord;
-layout (location = 1) in vec2 itexCoord;
-layout (location = 0) out vec2 otexCoord;
-
-out gl_PerVertex {
-    vec4 gl_Position;
-};
+layout (location = 0) out vec2 texcoord;
 
 void main() {
-    gl_Position = MPV_Matrix * vertexCoord;
-    otexCoord = itexCoord;
+    gl_Position = vec4(position, 1.0);
+    texcoord = uv;
 }
